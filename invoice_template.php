@@ -7,6 +7,37 @@ if (!isset($logoBase64)) {
 $fullName = $student['first_name'] . ' ' . $student['last_name'];
 $date     = date('F d, Y', strtotime($student['created_at']));
 $course   = $student['course_title'];
+$programName = $student['program'] ?? 'Program';
+$subjectsArray = array_map('trim', explode(",", $course));
+$subjectCount  = count($subjectsArray);
+$programCount = $student['program_count'] ?? '';
+
+if($programName === "Early Starters"){
+    $courseDisplay = "Reading, Writing, Learning (All Programs)";
+}
+elseif(!empty($course)){
+
+    $subjectsArray = array_map('trim', explode(",", $course));
+    $subjectsArray = array_filter($subjectsArray);
+
+    if($programCount == "all"){
+        $courseDisplay = implode(", ", $subjectsArray) . " (All Programs)";
+    }
+    elseif($programCount == "2"){
+        $courseDisplay = implode(", ", $subjectsArray) . " (2 Programs)";
+    }
+    elseif($programCount == "1"){
+        $courseDisplay = $subjectsArray[0] ?? '';
+    }
+    else{
+        $courseDisplay = implode(", ", $subjectsArray);
+    }
+
+}
+else{
+    $courseDisplay = "All Programs";
+}
+
 $price    = $price;
 $gst      = $gst;
 $total    = $total;
@@ -125,6 +156,17 @@ body {
     font-size: 12px;
     color: #555;
 }
+
+.footer {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    color: #777;
+}
+
 </style>
 </head>
 
@@ -156,17 +198,30 @@ body {
 <!-- BILLING -->
 <table class="bill-table">
 <tr>
-    <td class="bill-to">
-        <strong>BILL TO</strong><br><br>
-        <?php echo $fullName; ?><br>
-        <?php echo $student['email']; ?>
-    </td>
+   <td class="bill-to">
+    <strong>BILL TO</strong><br><br>
+
+    <strong>
+    <?php echo $student['first_name'] . ' ' . $student['last_name']; ?>
+    </strong><br>
+
+    <?php 
+    $payer = trim($student['payer_name'] ?? '');
+    $studentName = trim($student['first_name'].' '.$student['last_name']);
+    ?>
+
+    <?php if(!empty($payer) && $payer !== $studentName): ?>
+        C/O <?php echo $payer; ?><br>
+    <?php endif; ?>
+
+    <?php echo $student['email']; ?>
+</td>
     <td class="invoice-meta">
         <table>
             <tr>
-                <td><strong>Invoice Number:</strong></td>
-                <td>AC-<?php echo $student['id']; ?></td>
-            </tr>
+            <td><strong>Invoice Number:</strong></td>
+            <td><?php echo $student['invoice_number']; ?></td>
+        </tr>
             <tr>
                 <td><strong>Invoice Date:</strong></td>
                 <td><?php echo $date; ?></td>
@@ -196,9 +251,9 @@ body {
 </thead>
 <tbody>
 <tr>
-    <td>
-        <strong>Tuition Fees</strong><br>
-        <?php echo $course; ?>
+   <td>
+    <strong>Tuition Fees - <?php echo $programName; ?></strong><br>
+    <?php echo $courseDisplay; ?>
     </td>
     <td>1</td>
     <td>$<?php echo number_format($price, 2); ?></td>
@@ -214,11 +269,17 @@ body {
     <td>$<?php echo number_format($price, 2); ?></td>
 </tr>
 <tr>
-    <td class="totals-label">GST 18%:</td>
+    <td class="totals-label">GST 5% (713080158RT0001):</td>
     <td>$<?php echo number_format($gst, 2); ?></td>
 </tr>
 <tr class="total-amount">
     <td class="totals-label">Total:</td>
+    <td>$<?php echo number_format($total, 2); ?></td>
+</tr>
+<tr>
+    <td class="totals-label">
+        Payment on <?php echo $date; ?> using <?php echo strtolower($payment_type ?? 'cash'); ?>:
+    </td>
     <td>$<?php echo number_format($total, 2); ?></td>
 </tr>
 <tr class="amount-due">
@@ -232,6 +293,10 @@ body {
 <strong>Notes / Terms</strong><br>
 Make all cheques payable to Achievers Castle Learning Centre Ltd.<br>
 Total due in 15 days. Overdue accounts subject to a service charge of 1% per month.
+</div>
+
+<div class="footer">
+    Education is an investment. Thank you for investing with us!
 </div>
 
 </div>

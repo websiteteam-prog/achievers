@@ -1,6 +1,25 @@
 <?php
 ob_start();
 session_start();
+// 🔥 HANDLE PAGINATION SAVE
+if (isset($_POST['save_page'])) {
+
+  // 🔥 EMPTY ANSWERS REMOVE KARO (IMPORTANT FIX)
+$filtered = array_filter($_POST['answer'] ?? [], function($v){
+    return $v !== '' && $v !== null;
+});
+
+// ✅ merge without overwrite
+$_SESSION['quiz_answers'] = ($_SESSION['quiz_answers'] ?? []) + $filtered;
+
+    $next_page = (int)$_POST['save_page'];
+    $quiz_id = intval($_POST['quiz_id']);
+
+    $subject_id = intval($_POST['subject_id'] ?? 1);
+
+    header("Location: quiz.php?topic_id=" . $quiz_id . "&id=" . $subject_id . "&page=" . $next_page);
+    exit;
+}
 include "../db_config.php";
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -23,8 +42,15 @@ if (!isset($_POST['submit_quiz'])) {
 }
 
 $quiz_id = intval($_POST['quiz_id'] ?? 0);
-$raw_answers = $_POST['answer'] ?? [];  // This now supports both flat and nested
+// 🔥 EMPTY VALUES REMOVE
+$filtered_post = array_filter($_POST['answer'] ?? [], function($v){
+    return $v !== '' && $v !== null;
+});
+// 🧠 FINAL SUBMIT PE BHI SESSION UPDATE KARO
+$_SESSION['quiz_answers'] = ($_SESSION['quiz_answers'] ?? []) + $filtered_post;
 
+// ✅ combine safely
+$raw_answers = ($_SESSION['quiz_answers'] ?? []) + $filtered_post;
 if ($quiz_id == 0) {
     echo "ERROR: quiz_id is missing";
     exit;
@@ -130,65 +156,82 @@ foreach ($answers as $question_id => $student_answer) {
         // Try to decode both as JSON
         $expected_json = json_decode($correct_answer, true);
         $submitted_json = json_decode($student_answer, true);
+        // 🔥 NORMALIZE student JSON (IMPORTANT FIX)
+        if (is_array($submitted_json) && isset($submitted_json['values'])) {
+            $submitted_json = $submitted_json['values'];
+        }
 
-  if (is_array($expected_json) && is_array($submitted_json)) {
+ if (is_array($expected_json) && is_array($submitted_json)) {
 
-    // If nested structure (LCM, multi-step answers)
-    if (isset($expected_json['m1']) || isset($expected_json['m2']) || isset($expected_json['common'])) {
+    // 🔥 CASE 1: ASSOCIATIVE ARRAY (like step1, step2)
+    if (array_keys($expected_json) !== range(0, count($expected_json) - 1)) {
 
         $is_correct = 1;
 
-        foreach ($expected_json as $key => $correct_part) {
+        foreach ($expected_json as $key => $correct_array) {
 
-            $student_part = $submitted_json[$key] ?? null;
+            if (!isset($submitted_json[$key])) {
+                $is_correct = 0;
+                break;
+            }
 
-            if (is_array($correct_part)) {
+            $student_array = $submitted_json[$key] ?? null;
 
-                $correct_part  = array_map('strval', $correct_part);
-                $student_part  = is_array($student_part) ? array_map('strval', $student_part) : [];
+         
+    if (is_array($correct_array) && is_array($student_array)) {
 
-                sort($correct_part, SORT_NUMERIC);
-                sort($student_part, SORT_NUMERIC);
+    if (count($correct_array) !== count($student_array)) {
+        $is_correct = 0;
+        break;
+    }
 
-                if ($correct_part !== $student_part) {
-                    $is_correct = 0;
-                    break;
-                }
+    foreach ($correct_array as $i => $correct_val) {
 
-            } else {
+        $student_val = $student_array[$i] ?? null;
 
-                if ((string)$correct_part !== (string)$student_part) {
-                    $is_correct = 0;
-                    break;
-                }
-
+        if (is_numeric($correct_val) && is_numeric($student_val)) {
+            $tol = 0.001;
+            if (abs((float)$correct_val - (float)$student_val) > $tol) {
+                $is_correct = 0;
+                break 2;
+            }
+        } else {
+            if (trim((string)$student_val) !== trim((string)$correct_val)) {
+                $is_correct = 0;
+                break 2;
             }
         }
-
-    } else {
-
-    $is_correct = 1;
-
-    foreach ($expected_json as $key => $correct_values) {
-
-        $student_values = $submitted_json[$key] ?? [];
-
-        if (!is_array($correct_values) || !is_array($student_values)) {
-            $is_correct = 0;
-            break;
-        }
-
-        // normalize
-        $correct_values = array_map('strval', $correct_values);
-        $student_values = array_map('strval', $student_values);
-
-        if ($correct_values !== $student_values) {
-            $is_correct = 0;
-            break;
-        }
     }
+
+} else {
+
+    // ✅ STRING SAFE COMPARISON
+    if (trim((string)$correct_array) !== trim((string)$student_array)) {
+        $is_correct = 0;
+        break;
+    }
+
 }
-    } elseif (is_array($submitted_json)) {
+        }
+
+    } 
+    // 🔥 CASE 2: NORMAL ARRAY (old templates)
+    else {
+
+        $correct_values = array_map(function($v){
+            return trim((string)$v);
+        }, $expected_json);
+
+        $student_values = array_map(function($v){
+            return trim((string)$v);
+        }, $submitted_json);
+
+        sort($correct_values);
+        sort($student_values);
+
+        $is_correct = ($correct_values === $student_values) ? 1 : 0;
+    }
+} elseif (is_array($submitted_json)) {
             // Student submitted JSON, but correct is plain → fallback to string compare
             $is_correct = (strcasecmp($student_answer, $correct_answer) === 0) ? 1 : 0;
         } else {
@@ -212,7 +255,7 @@ foreach ($answers as $question_id => $student_answer) {
 
 // Clean up session
 unset($_SESSION[$sess_key]);
-
+unset($_SESSION['quiz_answers']);
 // Redirect to results
 header("Location: check_answer.php?topic_id=" . $quiz_id);
 exit;

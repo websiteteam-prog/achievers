@@ -2,12 +2,18 @@
 include "../../db_config.php";
 
 $result=mysqli_query($conn,"
-SELECT payments.*, enrollment_inquiries.first_name
+SELECT 
+    payments.*, 
+    enrollment_inquiries.first_name,
+    enrollment_inquiries.status AS enroll_status
 FROM payments
-LEFT JOIN invoices ON payments.invoice_id=invoices.id
-LEFT JOIN enrollment_inquiries ON invoices.student_id=enrollment_inquiries.id
+LEFT JOIN invoices 
+    ON payments.invoice_id=invoices.id
+LEFT JOIN enrollment_inquiries 
+    ON invoices.student_id=enrollment_inquiries.student_id
 ORDER BY payments.id DESC
 ");
+
 ?>
 <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
 <div class="payment-page">
@@ -34,6 +40,7 @@ Payments
 <th>Method</th>
 <th>Date</th>
 <th>Receipt</th>
+<th>Status</th>
 </tr>
 
 </thead>
@@ -42,7 +49,8 @@ Payments
 
 <?php 
 $sr = 1; 
-while($row=mysqli_fetch_assoc($result)){ ?>
+while($row=mysqli_fetch_assoc($result)){ 
+  ?>
 
 <tr>
 
@@ -87,7 +95,13 @@ Receipt
 </a>
 
 </td>
-
+<td>
+<?php if($row['enroll_status']=="Cancelled"){ ?>
+    <span class="badge bg-danger">Cancelled</span>
+<?php } else { ?>
+    <span class="badge bg-success">Active</span>
+<?php } ?>
+</td>
 </tr>
 
 <?php } ?>

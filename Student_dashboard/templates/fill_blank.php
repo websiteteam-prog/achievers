@@ -1,51 +1,85 @@
 <style>
-/* Container spacing and styling */
 .container-fluid {
     margin-left: 50px;
     margin-bottom: 20px;
-    padding: 15px 20px; 
-    border-radius: 12px; 
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+    padding: 18px 22px; 
+    border-radius: 14px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
     background-color: #ffffff; 
-    transition: box-shadow 0.3s, transform 0.2s;
+    transition: all 0.3s ease;
     width: 90%;
     margin-top:10px;
 }
 
-/* Hover effect for subtle lift */
 .container-fluid:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    transform: translateY(-3px);
 }
 
-/* Question text */
 .container-fluid h6 {
     font-weight: 600;
-    margin-bottom: 10px; 
-    margin-top: 0;
+    margin-bottom: 12px; 
     color: #333; 
 }
 
-/* Input field design (bottom border full width) */
-.quiz-input {
-    width: 100%; /* Full container width */
-    padding: 8px 0; /* Top & bottom padding */
-    font-size: 16px;
-    border: none;
-    border-bottom: 2px solid #ccc; /* Full-width bottom border */
-    outline: none;
-    background-color: transparent; 
-    transition: border-color 0.3s;
+/* Number line image */
+.number-line {
+    width: 100%;
+    max-width: 600px;
+    margin: 10px auto;
+    display: block;
 }
 
-/* Input focus effect */
+/* Input styling */
+.quiz-input {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 16px;
+    border: none;
+    border-bottom: 2px solid #ccc;
+    background: transparent;
+    outline: none;
+    transition: all 0.3s;
+}
+
 .quiz-input:focus {
-    border-bottom-color: #007bff; 
+    border-bottom-color: #007bff;
+}
+
+/* Answer label */
+.answer-label {
+    color: purple;
+    font-weight: 600;
+    margin-top: 10px;
+    display: block;
+}
+
+/* Mobile fix */
+@media(max-width:768px){
+    .container-fluid{
+        margin-left: 0;
+        width: 95%;
+    }
 }
 </style>
 
-<div class="container-fluid col-lg-12 col-sm-12 col-md-12">
+<div class="container-fluid">
+
     <h6><?= $char.'. '. htmlspecialchars($q['question_text']) ?></h6>
     <?php $char++; ?>
-    <input type="text" class="quiz-input" name="answer[<?= $q['id'] ?>]" placeholder="Type your answer here"/> 
+
+    <!-- Number Line Image (Optional) -->
+    <?php if(!empty($q['question_image'])){ ?>
+        <img src="templates/images/<?= $q['question_image'] ?>" class="number-line">
+    <?php } ?>
+
+    <!-- Input -->
+    <label class="answer-label">Answer:</label>
+    <input 
+        type="text" 
+        class="quiz-input" 
+        name="answer[<?= $q['id'] ?>]" 
+        placeholder="Enter your answer"
+    /> 
+
 </div>

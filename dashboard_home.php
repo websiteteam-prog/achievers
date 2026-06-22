@@ -5,86 +5,257 @@
 </script>
   <style>
     :root {
-      --primary: #1e3c72;
-      --accent: #2a5298;
-    }
+  --primary: #1e3c72;
+  --accent: #2a5298;
+  --bg-light: #f4f7fb;
+  --theme-red:#e8063c;
+}
 
-    .dashboard-header {
-      margin-bottom: 2rem;
-    }
-    .greeting {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #1e3c72;
-      margin: 0;
-    }
+.dashboard-header {
+  margin-bottom: 2rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-    .stat-card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-      transition: all 0.3s ease;
-      height: 100%;
-      padding: 1.5rem;
-      border: none;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .stat-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-    }
-    .stat-icon {
-      font-size: 2.2rem;
-      margin-bottom: 1rem;
-      opacity: 0.9;
-    }
-    .stat-number {
-      font-size: 25px;
-      font-weight: 700;
-      margin: 0 0 0.3rem 0;
-      line-height: 1;
-    }
-    .stat-label {
-      font-size: 16px;
-      color: #555;
-      font-weight: 500;
-    }
-    .trend {
-      font-size: 0.95rem;
-      margin-top: 0.5rem;
-    }
 
-    .section-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #1e3c72;
-      margin-bottom: 1rem;
-      padding-left: 0.5rem;
-      border-left: 4px solid var(--accent);
-    }
+.greeting {
+font-size: 40px;
+color: #05364d;
+font-family: "Love Ya Like A Sister", cursive;
+font-weight: 400;
+}
 
-    .activity-list .list-group-item {
-      border: none;
-      padding: 1rem 1.25rem;
-      margin-bottom: 8px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
+#refresh-btn {
+    border-radius: 30px;
+    font-weight: 400;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: #fff;
+    border: none;
+    transition: 0.3s;
+    box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);
+    padding: 10px;
+    width: 139px;
+    font-size: 17px;
+}
 
-    .loading-spinner {
-      width: 1.4rem;
-      height: 1.4rem;
-      border: 3px solid rgba(30,60,114,0.15);
-      border-top-color: #1e3c72;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+/* hover RED */
+#refresh-btn:hover{
+  background: var(--theme-red);
+  color:#fff;
+   box-shadow:0 6px 18px rgba(232,6,60,0.4);
+}
+
+/* ================= CARDS ================= */
+
+.stat-card {
+  background: linear-gradient(135deg, #ffffff, #f8fbff);
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+  padding: 1.6rem;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle top border accent */
+.stat-card::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:4px;
+  background:#e60023;
+}
+
+.stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+  width:70px;
+  height:70px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 10px;
+  background:#f1f3f5;
+  border-radius:50%;
+  font-size:34px;
+  color:#0d6efd; }
+
+.stat-number {
+  font-size: 50px;
+  font-weight: 700;
+  margin: 0;
+  font-family: "Love Ya Like A Sister", cursive;
+  color:var(--theme-red);
+}
+
+.stat-label {
+  font-size: 18px;
+  color: #666;
+  font-weight: 500;
+}
+
+.trend {
+  font-size: 0.9rem;
+}
+
+/* ================= SECTION ================= */
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 1rem;
+  padding-left: 0.6rem;
+  border-left: 4px solid var(--accent);
+}
+
+/* ================= CARDS (BOTTOM) ================= */
+
+.card{
+  border-radius:18px !important;
+  border:none;
+  box-shadow:0 8px 25px rgba(0,0,0,0.08);
+}
+
+/* ================= LIST ================= */
+
+.activity-list .list-group-item {
+  border: none;
+  padding: 1rem 1.2rem;
+  margin-bottom: 8px;
+  background: #f9fbff;
+  border-radius: 12px;
+  transition:0.2s;
+}
+
+.activity-list .list-group-item:hover{
+  background:#eef4ff;
+}
+
+/* ================= BUTTONS ================= */
+
+.btn{
+  border-radius:25px;
+}
+
+/* ================= LOADER ================= */
+
+.loading-spinner {
+  width: 1.4rem;
+  height: 1.4rem;
+  border: 3px solid rgba(30,60,114,0.15);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ================= MOBILE ================= */
+
+@media (max-width:768px){
+
+  .greeting{
+    font-size:1.4rem;
+  }
+
+  .dashboard-header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+  }
+
+  #refresh-btn{
+    width: auto;                 
+    padding:10px 18px;
+    font-size:14px;
+    border-radius:20px;          
+    align-self:flex-start;       
+  }
+
+.stat-card{
+    padding:18px 12px;
+  }
+
+  .stat-number{
+   font-size:32px;
+  }
+
+  .stat-icon{
+    width:55px;
+    height:55px;
+    font-size:22px;   
+  }
+
+  .section-title{
+    font-size:1.1rem;
+  }
+
+  .card-body{
+    padding:1rem !important;
+  }
+/* container spacing */
+  #recent-activity .activity-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  /* each activity item */
+  #recent-activity .list-group-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+
+    padding:14px;
+    border-radius:14px;
+    background:#f8fafc;
+
+    box-shadow:0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  /* text left */
+  #recent-activity .list-group-item span{
+    font-size:14px;
+    line-height:1.4;
+    color:#333;
+  }
+
+  /* time right */
+  #recent-activity .list-group-item small{
+    font-size:12px;
+    color:#888;
+    white-space:nowrap;
+  }
+
+  /* FIX wrapping issue */
+  #recent-activity .d-flex{
+    width:100%;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  /* button styling */
+  #activity-footer button{
+    width:100%;
+    border-radius:12px;
+    font-size:14px;
+  }
+}
   </style>
-
+<!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
   <div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
     <h1 class="greeting" id="greeting">Dashboard Overview</h1>
     <button id="refresh-btn" class="btn btn-outline-primary btn-sm px-4">
@@ -95,23 +266,23 @@
 
   <div class="row g-4 mb-5">
     <!-- My Students -->
-    <div class="col-md-3 col-6">
+    <div class="col-md-3 ">
       <div class="stat-card text-center">
         <div>
-        <div class="stat-icon text-primary"><i class="bi bi-people-fill"></i></div>
-        <p class="stat-number text-primary" id="my-students">0</p>
+        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+        <p class="stat-number" id="my-students">0</p>
         <p class="stat-label">My Students</p>
         </div>
-        <small class="trend text-success" id="students-trend"></small>
+        <small class="trend text-muted" id="students-trend"></small>
       </div>
     </div>
 
     <!-- Pending Assignments -->
-    <div class="col-md-3 col-6">
+    <div class="col-md-3 ">
       <div class="stat-card text-center">
         <div>
-        <div class="stat-icon text-warning"><i class="bi bi-clipboard-check-fill"></i></div>
-        <p class="stat-number text-warning" id="pending-assignments">0</p>
+        <div class="stat-icon"><i class="bi bi-clipboard-check-fill"></i></div>
+        <p class="stat-number" id="pending-assignments">0</p>
         <p class="stat-label">Pending Assignments</p>
         </div>
         <small class="trend text-muted" id="pending-trend"></small>
@@ -119,26 +290,26 @@
     </div>
 
     <!-- Today's Classes -->
-    <div class="col-md-3 col-6">
+    <div class="col-md-3 ">
       <div class="stat-card text-center">
         <div>
-        <div class="stat-icon text-info"><i class="bi bi-calendar-event-fill"></i></div>
-        <p class="stat-number text-info" id="today-classes">0</p>
+        <div class="stat-icon"><i class="bi bi-calendar-event-fill"></i></div>
+        <p class="stat-number" id="today-classes">0</p>
         <p class="stat-label">Today's Classes</p>
         </div>
-        <small class="trend text-info" id="classes-trend"></small>
+        <small class="trend text-muted" id="classes-trend"></small>
       </div>
     </div>
 
     <!-- Avg Score -->
-    <div class="col-md-3 col-6">
+    <div class="col-md-3 ">
       <div class="stat-card text-center">
         <div>
-        <div class="stat-icon text-success"><i class="bi bi-graph-up-arrow"></i></div>
-        <p class="stat-number text-success" id="avg-score">—</p>
+        <div class="stat-icon"><i class="bi bi-bar-chart-fill"></i></div>
+        <p class="stat-number" id="avg-score">—</p>
         <p class="stat-label">Active Students</p>
         </div>
-        <small class="trend text-success" id="score-trend"></small>
+        <small class="trend text-muted" id="score-trend"></small>
       </div>
     </div>
   </div>

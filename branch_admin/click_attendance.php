@@ -2,7 +2,7 @@
 session_start();
 
 if(!isset($_SESSION['admin_logged_in']) || $_SESSION['role'] != 'branch_admin'){
-    header:("Location: Login.php");
+    header("Location: ../login.php");
     exit();
 }
 
@@ -13,7 +13,7 @@ include 'branch_dashboard_sidebar.php';
 <html lang ='en'>
 <head>
     <meta charset ="UTF_8"/>
-    <meta name ="viewport" content = "width=content-width, initial-scale=1.0"/>
+    <meta name ="viewport" content = "width=device-width, initial-scale=1.0"/>
     <title>View Attendance</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
@@ -94,3 +94,4 @@ include 'branch_dashboard_sidebar.php';
         </div>
     </section>
 </body>
+</html>

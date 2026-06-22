@@ -631,7 +631,7 @@ else {
         <div class="blank-row">
             <?php for($i = 0; $i < $blankCount; $i++): ?>
               <input type="text" 
-                name="answer[<?= $q['id'] ?>][]" 
+                name="answer[<?= $q['id'] ?>][values][]" 
                 class="blank-field-input">
             <?php endfor; ?>
         </div>
@@ -674,7 +674,7 @@ else {
             $common = $data['common'] ?? [];
             foreach($common as $value): ?>
                 <input type="text"
-                    name="answer[<?= $q['id'] ?>][]"    
+                    name="answer[<?= $q['id'] ?>][values][]"    
                     class="common-small-input">
             <?php endforeach; ?>
         </div>
@@ -707,7 +707,7 @@ else {
         $common = $data['common'] ?? [];
         foreach($common as $value): ?>
             <input type="text"
-                name="answer[<?= $q['id'] ?>][]"
+                name="answer[<?= $q['id'] ?>][values][]"
                 class="venn-small">
         <?php endforeach; ?>
     </div>
@@ -769,7 +769,7 @@ else {
     <div class="blank-row">
         <?php for($i=0;$i<5;$i++): ?>
             <input type="text"
-                   name="answer[<?= $q['id'] ?>][]"
+                   name="answer[<?= $q['id'] ?>][values][]"
                    class="blank-field-input">
         <?php endfor; ?>
     </div>
@@ -784,7 +784,7 @@ else {
         <?php $blank_count = $data['blank_count'] ?? 0;
         for($i=0;$i<$blank_count;$i++): ?>
             <input type="text"
-                   name="answer[<?= $q['id'] ?>][]"
+                   name="answer[<?= $q['id'] ?>][values][]"
                    class="blank-field-input">
         <?php endfor; ?>
     </div>
@@ -1115,7 +1115,8 @@ function toggleSelect(el){
 
     let selected = [];
 
-    parentBox.querySelectorAll(".activity-cell.selected").forEach(cell=>{
+    // 🔥 FIX: include BOTH grid-cell + activity-cell
+    parentBox.querySelectorAll(".selected").forEach(cell=>{
         selected.push(cell.getAttribute("data-value"));
     });
 

@@ -1,0 +1,76 @@
+ body {
+      background-color: #f4f7fc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    
+
+
+
+
+
+/*branch panel sidebar csss*/
+
+
+ .sidebar {
+      height: 100vh;
+      width: 250px;
+      position: fixed;
+      background-color: #1e3a8a;
+      color: white;
+      padding: 20px 15px;
+    }
+
+    .sidebar h2 {
+      font-size: 22px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .sidebar .nav-link {
+      color: #cbd5e1;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .sidebar .nav-link:hover, .sidebar .nav-link.active {
+      background-color: #3b82f6;
+      color: white;
+    }
+    
+    /*Branch main dashboard css*/
+    
+    .main {
+      margin-left: 270px;
+      padding: 30px;
+    }
+
+    .main h1 {
+      font-size: 28px;
+      margin-bottom: 30px;
+    }
+
+    .card-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .dashboard-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .dashboard-card h5 {
+      margin-bottom: 15px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .dashboard-card .form-control, .dashboard-card .btn {
+      margin-top: 10px;
+    }
+   

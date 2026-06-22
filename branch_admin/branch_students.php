@@ -60,9 +60,11 @@ $sql = "SELECT
 $result = mysqli_query($conn, $sql);
 
 if (mysqli_num_rows($result) > 0) {
-    echo "<div class = 'main'><h2>Students in the Branch</h2>";
-    echo "<table border='1' cellpadding='8'>";
-    echo "<tr>
+    echo "<div class='main'>";
+    echo "<h2 class='mb-4'>Students in the Branch</h2>";
+    echo "<div class='table-responsive'>";
+    echo "<table class='table table-bordered table-striped align-middle'>";
+    echo "<thead><tr>
             <th>Student ID</th>
             <th>Name</th>
             <th>Grade</th>
@@ -73,14 +75,7 @@ if (mysqli_num_rows($result) > 0) {
             <th>Enrolled Subject</th>
             <th>Mode</th>
             <th>Action</th>
-          </tr></div>";
-          
-          echo "        <script>
-            function toggleOption(btn){
-                const optionsDiv = btn.nextElementSibling;
-                optionsDiv.classList.toggle('d-none');
-            }
-        </script>";
+          </tr></thead><tbody>";
 
     while ($row = mysqli_fetch_assoc($result)) {
         echo "<tr>
@@ -93,18 +88,25 @@ if (mysqli_num_rows($result) > 0) {
                 <td>{$row['parent_contact']}</td>
                 <td>{$row['subject_name']}</td>
                 <td>{$row['mode_of_education']}</td>
-                 <td> <button type ='button' class = 'btn btn-outline-success' onclick = 'toggleOption(this)'>Edit</button>
+                 <td> <button type ='button' class = 'btn btn-outline-success btn-sm' onclick = 'toggleOption(this)'>Edit</button>
                       <div class = 'edit-options d-none mt-2'>
                           <button type = 'button' class = 'btn btn-outline-primary btn-sm' data-bs-toggle= 'modal' data-bs-target='#updateStudentModal'>Edit Detail</button>
                           <button  type = 'button' class = 'btn btn-outline-primary btn-sm' data-bs-toggle = 'modal' data-bs-target = '#updateStudentSubjectModal'>Edit Subject</button>
-                      </div>      
+                      </div>
               </td>
               </tr>";
     }
 
-    echo "</table>";
+    echo "</tbody></table></div></div>";
+
+    echo "<script>
+            function toggleOption(btn){
+                const optionsDiv = btn.nextElementSibling;
+                optionsDiv.classList.toggle('d-none');
+            }
+        </script>";
 } else {
-    echo "No students found for this branch.";
+    echo "<div class='main'><p>No students found for this branch.</p></div>";
 }
 ?>
 

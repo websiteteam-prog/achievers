@@ -29,7 +29,7 @@ $result = $stmt->get_result();
 <html lang="en">
 <head>
     <meta charset = "UTF-8">
-    <meta name = "viewport" content = "width=content-width initial-scale =1.0">
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
     <title>Parents Meetings</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
@@ -38,17 +38,20 @@ $result = $stmt->get_result();
 
 <body>
     <section class = "main">
+        <h2 class="mb-4">Parent Meetings</h2>
         <div class = "meeting-info">
             <?php
             if(mysqli_num_rows($result)>0){
-                echo "<table border ='1' cellpadding = '8'>";
-                echo "<tr>
+                echo "<div class='table-responsive'>";
+                echo "<table class='table table-bordered table-striped align-middle'>";
+                echo "<thead><tr>
                       <th>Student's Name</th>
                       <th>Parent's Name</th>
                       <th>Parent's Contact</th>
                       <th>Agenda</th>
-                      <th>Date</th>";
-                      
+                      <th>Date</th>
+                      </tr></thead><tbody>";
+
                       while($rows = mysqli_fetch_assoc($result)){
                           echo "<tr>
                                 <td>{$rows['first_name']}</td>
@@ -58,9 +61,12 @@ $result = $stmt->get_result();
                                 <td>{$rows['date']}</td>
                                 </tr>";
                       }
-                      echo "</table>";
+                      echo "</tbody></table></div>";
+            } else {
+                echo "<p>No upcoming or recent parent meetings.</p>";
             }
             ?>
         </div>
     </section>
 </body>
+</html>

@@ -35,24 +35,109 @@
       $message       = mysqli_real_escape_string($conn, trim($_POST['message'] ?? ''));
       $terms_agreed  = isset($_POST['terms_agreed']) ? 1 : 0;
 
-      if ($terms_agreed !== 1) {
-          echo "<script>alert('You must agree to the Terms & Conditions to submit.');</script>";
-      } else {
-          // Insert into DB
-          $sql = "INSERT INTO enrollment_inquiries 
-                  (first_name, last_name, dob, grade, specific_subject, program, 
-                  guardian_name,guardian_email,guardian_phone, mother_name, mother_phone, father_name, father_phone,
-                  emergency_name, emergency_phone, authorized_name, authorized_relation, 
-                  message, terms_agreed)
-                  VALUES 
-                  ('$first_name', '$last_name', '$dob', '$grade', '$subject', '$program',
-                  '$guardian_name', '$guardian_email', '$guardian_phone', '$mother_name', '$mother_phone', '$father_name', '$father_phone',
-                  '$emergency_name', '$emergency_phone', '$authorized_name', '$authorized_relation',
-                  '$message', '$terms_agreed')";
+     if ($terms_agreed !== 1) {
+    echo "<script>alert('You must agree to the Terms & Conditions to submit.');</script>";
+    exit;
+}
 
-          if (mysqli_query($conn, $sql)) {
+        /* =========================
+        STEP 1: CHECK EMAIL
+        ========================= */
+        $email = $guardian_email;
+
+        $check = mysqli_query($conn,"SELECT id FROM students WHERE email='$email'");
+
+        if(mysqli_num_rows($check) > 0){
+            echo "<script>
+            alert('⚠️ This email is already registered. Please use another email.');
+            window.history.back();
+            </script>";
+            exit;
+        }
+
+        /* =========================
+        STEP 2: CREATE STUDENT
+        ========================= */
+        $plain_password = rand(100000,999999);
+        $password = password_hash($plain_password, PASSWORD_DEFAULT);
+
+        $insert = mysqli_query($conn,"
+        INSERT INTO students (first_name,last_name,email,password,grade,dob)
+        VALUES ('$first_name','$last_name','$email','$password','$grade','$dob')
+        ");
+
+        if(!$insert){
+            die("Student Insert Error: " . mysqli_error($conn));
+        }
+
+        $student_id = mysqli_insert_id($conn);
+
+        /* =========================
+        STEP 3: SAVE ENROLLMENT
+        ========================= */
+        $sql = "INSERT INTO enrollment_inquiries 
+        (
+        student_id,
+        first_name, last_name, dob, grade, specific_subject, program, 
+        guardian_name,guardian_email,guardian_phone, 
+        mother_name, mother_phone, father_name, father_phone,
+        emergency_name, emergency_phone, authorized_name, authorized_relation, 
+        message, terms_agreed
+        )
+        VALUES 
+        (
+        '$student_id',
+        '$first_name', '$last_name', '$dob', '$grade', '$subject', '$program',
+        '$guardian_name', '$guardian_email', '$guardian_phone',
+        '$mother_name', '$mother_phone', '$father_name', '$father_phone',
+        '$emergency_name', '$emergency_phone', '$authorized_name', '$authorized_relation',
+        '$message', '$terms_agreed'
+        )";
+
+        if (!mysqli_query($conn, $sql)) {
+            die("Database Error: " . mysqli_error($conn));
+        }
+        
+            /* =========================
+            STEP 4: CREATE INVOICE
+            ========================= */
+
+            // Basic price (simple version – later dynamic kar denge)
+            $total = 150;
+
+            // GST calculation (5%)
+            $gst = $total * (5/105);
+            $price = $total - $gst;
+
+            // Insert invoice
+           $invoice_insert = mysqli_query($conn,"
+            INSERT INTO invoices
+            (student_id, invoice_date, due_date, price, gst, total, status)
+            VALUES
+            ('$student_id', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY), '$price', '$gst', '$total', 'Pending')
+            ");
+
+            if(!$invoice_insert){
+                die("Invoice Error: " . mysqli_error($conn));
+            }
+            // Get invoice ID
+            $invoice_id = mysqli_insert_id($conn);
+
+            // Generate invoice number
+            $year = date("y");
+            $invoice_number = "AC-$year-" . str_pad($invoice_id, 4, "0", STR_PAD_LEFT);
+
+            // Update invoice number
+           if(!mysqli_query($conn,"
+            UPDATE invoices 
+            SET invoice_number='$invoice_number'
+            WHERE id='$invoice_id'
+            ")){
+                die("Invoice Update Error: " . mysqli_error($conn));
+            }
+            include_once 'terms.php';
               // Email
-              $admin_email = "info.achieverscastle@gmail.com";
+              $admin_email = "info@achieverscastle.com";
               $mail_subject = "New Student Enrolled for $subject - $first_name $last_name";
 
               $email_body = "
@@ -64,7 +149,8 @@
               <b>Grade:</b> $grade<br>
               <b>Program:</b> $program<br><br>
               <b>Subject of Interest:</b> $subject<br><br>
-
+              <b>Invoice Number:</b> $invoice_number<br>
+              <b>Total Amount:</b> $$total<br><br>
               <h3>Guardian Information</h3>
               <b>Guardian's Name:</b> $guardian_name<br>
               <b>Email:</b> $guardian_email<br>
@@ -88,40 +174,54 @@
               $message<br><br>
 
               <hr>
-              <b>Terms & Conditions Agreed:</b> Yes<br>
-              Submitted from Achiever's Castle Website
-              ";
+              <h3>Terms & Conditions (Agreed)</h3>
+                $terms_content
 
-              $mail = new PHPMailer(true);
-              try {
-                  $mail->isSMTP();
-                  $mail->Host       = 'smtp.gmail.com';
-                  $mail->SMTPAuth   = true;
-                  $mail->Username   = 'info.achieverscastle@gmail.com';
-                  $mail->Password   = 'hrgh jnhc kqkz zpbi'; // ← Use App Password if 2FA is on!
-                  $mail->SMTPSecure = 'tls';
-                  $mail->Port       = 587;
+                <br><br>
+                <b>Terms Accepted:</b> Yes<br>
+                Submitted from Achiever's Castle Website
+                ";
 
-                  $mail->setFrom('info.achieverscastle@gmail.com', 'Achievers Castle');
-                  $mail->addAddress($admin_email);
-                  $mail->addReplyTo($guardian_email, $first_name . ' ' . $last_name);
+             $mail = new PHPMailer(true);
 
-                  $mail->isHTML(true);
-                  $mail->Subject = $mail_subject;
-                  $mail->Body    = $email_body;
-                  $mail->send();
+            try {
+                $mail->isSMTP();
+                $mail->Host       = 'smtp.hostinger.com';
+                $mail->SMTPAuth   = true;
+                $mail->Username   = 'info@achieverscastle.com';
+                $mail->Password   = 'Amplic@@7408';
+                $mail->SMTPSecure = 'ssl';
+                $mail->Port       = 465;
 
-                  echo "<script>
-                      alert('Enrollment submitted successfully!');
-                      window.location='enroll_query.php';
-                  </script>";
-              } catch (Exception $e) {
-                  echo "Mailer Error: " . $mail->ErrorInfo;
-              }
-          } else {
-              echo "Database Error: " . mysqli_error($conn);
-          }
-      }
+                $mail->setFrom('info@achieverscastle.com', 'Achiever\'s Castle');
+                $mail->addAddress($admin_email);
+                $mail->addReplyTo($guardian_email, $first_name . ' ' . $last_name);
+
+                $mail->isHTML(true);
+                $mail->Subject = $mail_subject;
+                $mail->Body    = $email_body;
+
+                if($mail->send()){
+                    echo "<script>
+                    alert('Enrollment submitted & email sent successfully!');
+                    window.location='enroll_query.php';
+                    </script>";
+                    exit;
+                } else {
+                    echo "<script>
+                    alert('Enrollment saved but email failed');
+                    window.location='enroll_query.php';
+                    </script>";
+                    exit;
+                }
+
+            } catch (Exception $e) {
+                echo "<script>
+                alert('Mail error: ".$mail->ErrorInfo."');
+                window.location='enroll_query.php';
+                </script>";
+                exit;
+            }
   }
   ?>
 
@@ -229,69 +329,69 @@
     color:#05364d;
     }
 
-          .section-title { 
-              font-size: 1.4rem; 
-              margin: 30px 0 15px; 
-              color: #05364d; 
-              border-bottom: 2px solid #e8063c; 
-              padding-bottom: 8px;
-          }
-          .terms-box {
-              background: #fff8e1;
-              padding: 20px;
-              border-radius: 12px;
-              margin: 25px 0;
-              font-size: 0.95rem;
-              line-height: 1.6;
-          }
-          .form-check-label { cursor: pointer; }
+    .section-title { 
+    font-size: 1.4rem; 
+    margin: 30px 0 15px; 
+    color: #05364d; 
+    border-bottom: 2px solid #e8063c; 
+    padding-bottom: 8px;
+    }
+    .terms-box {
+    background: #fff8e1;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 25px 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    }
+    .form-check-label { cursor: pointer; }
                 
         /* TABLET */
 
-        @media(max-width:1024px){
+    @media(max-width:1024px){
 
-        .enroll-title{
-        font-size:42px;
-        }
+    .enroll-title{
+    font-size:42px;
+    }
 
-        .enroll-form{
-        padding:35px 30px;
-        }
+    .enroll-form{
+    padding:35px 30px;
+    }
 
-        }
+    }
 
         /* MOBILE */
 
-        @media(max-width:768px){
+    @media(max-width:768px){
 
-        .enroll-section{
-        padding:40px 15px 60px;
-        }
+    .enroll-section{
+    padding:40px 15px 60px;
+    }
 
-        .enroll-title{
-        font-size:32px;
-        margin-bottom:25px;
-        }
+    .enroll-title{
+    font-size:32px;
+    margin-bottom:25px;
+    }
 
-        .form-row{
-        flex-direction:column;
-        gap:15px;
-        }
+    .form-row{
+    flex-direction:column;
+    gap:15px;
+    }
 
-        .enroll-form{
-        padding:25px;
-        border-radius:18px;
-        }
+    .enroll-form{
+    padding:25px;
+    border-radius:18px;
+    }
 
-        .submit-btn{
-        width:100%;
-        padding:14px;
-        }
+    .submit-btn{
+    width:100%;
+    padding:14px;
+    }
 
-        }
-      </style>
-  </head>
-  <body>
+    }
+    </style>
+    </head>
+    <body>
   <?php include 'header.php'; ?>
 
   <section class="enroll-section">
@@ -344,7 +444,7 @@
               <div class="form-row">
                   <div class="form-group">
                       <label>Program (optional)</label>
-                      <input type="text" name="program" placeholder="e.g. Early Starters, After School, etc.">
+                      <input type="text" name="program" placeholder="e.g. Early Learner, Elementary, Advanced Learner etc.">
                   </div>
                   <div class="form-group">
                       <label>Subject of Interest *</label>
@@ -438,33 +538,19 @@
               </div>
 
               <!-- Terms & Conditions -->
-              <div class="terms-box">
-                  <p><strong>Terms & Conditions:</strong></p>
-                  <ul style="margin-left:20px;">
-                      <li>A non-refundable Registration fee is required at time of registration.</li>
-                      <li>Student course fees, activity fees and other material fees are non-refundable.</li>
-                      <li>No placement is confirmed prior to any mode of payment. One month notice or fee in lieu of, is required for any withdrawals.</li>
-                      <li>There will be no discount or refund of course fees for any leave of absence during the term of the course. The sibling discount of $10 per month is applicable on course fees only provided the 1st child is still enrolled in the Achiever's Castle program.</li>
-                      <li>The course fees does not include any short term program. Eg. Summer Camp, Workshops etc.</li>
-                       <li>
-                        The preferred form of payment is via e-transfer (via Interac) to 
-                        <a href="mailto:info@achieverscastle.com">info@achieverscastle.com</a>, 
-                        unless otherwise specified.
-                        </li>
-                      <li>Any cheques returned non-sufficient funds will incur a $25 service charge. Payments not received by the due date will incur late payment charges.</li>
-                      <li>There may be a minimum of $5 increase in monthly fee every year as per cost of living adjustment.</li>
-                      <li>We realize that even under close supervision, children may have occasional accidents. Therefore, we hereby release for indemnity & hold Achiever's Castle Learning Centre Ltd., its franchisees, staff or volunteers harmless from any & all claims, damages or other liabilities for injuries to my child which are not a result of direct negligence of the staff.</li>
-                      <li>We grant permission to the authorities at Achiever's Castle Learning Centre Ltd. to use photographs and visual recordings of my child taken in the Achiever's Castle Centre or any other Achiever's Castle events, provided no identification (name or address) may be used for promotions unless explicitly authorized.</li>
-                      <li>We, the undersigned, do hereby represent that all statements made by us on the Student Registration Form are correct, and we acknowledge that we have read, understood and agree to all terms and conditions of the registration, as set forth in the form.</li>
-                  </ul>
-                  <div class="form-check mt-3">
-                      <input class="form-check-input" type="checkbox" name="terms_agreed" id="terms_agreed" value="1" required>
-                      <label class="form-check-label" for="terms_agreed">
-                          <strong>I have read, understood, and agree to the Terms & Conditions above.</strong>
-                      </label>
-                  </div>
-              </div>
+            <?php include 'terms.php'; ?>
 
+            <div class="terms-box">
+                <p><strong>Terms & Conditions:</strong></p>
+                <?php echo $terms_content; ?>
+
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" name="terms_agreed" required>
+                    <label class="form-check-label">
+                        <strong>I agree to the Terms & Conditions</strong>
+                    </label>
+                </div>
+            </div>
               <div style="text-align:center">
                   <button type="submit" name="submit_query" class="submit-btn">Submit</button>
               </div>

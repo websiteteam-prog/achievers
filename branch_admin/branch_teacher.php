@@ -63,10 +63,11 @@ $result = mysqli_query($conn, $sql);
 
 
 if(mysqli_num_rows($result)>0){
-    echo "<div class ='main'>";
-    echo "<h2>Teachers in the branch</h2>";
-    echo "<table border = '1' cellpadding = '8'>";
-    echo "<tr>
+    echo "<div class='main'>";
+    echo "<h2 class='mb-4'>Teachers in the Branch</h2>";
+    echo "<div class='table-responsive'>";
+    echo "<table class='table table-bordered table-striped align-middle'>";
+    echo "<thead><tr>
           <th>Teacher ID</th>
           <th>Name</th>
           <th>Email</th>
@@ -74,8 +75,8 @@ if(mysqli_num_rows($result)>0){
           <th>Contact No.</th>
           <th>Branch</th>
           <th>Action</th>
-          </tr></div>";
-          
+          </tr></thead><tbody>";
+
     while($row = mysqli_fetch_assoc($result))  {
         echo "<tr>
               <td>{$row['id']}</td>
@@ -84,20 +85,20 @@ if(mysqli_num_rows($result)>0){
               <td>{$row['subjects']}</td>
               <td>{$row['contact_no']}</td>
               <td>{$row['branch']}</td>
-              <td> <button type ='button' class = 'btn btn-outline-success' onclick = 'toggleOption(this)'>Edit</button>
+              <td> <button type ='button' class = 'btn btn-outline-success btn-sm' onclick = 'toggleOption(this)'>Edit</button>
                       <div class = 'edit-options d-none mt-2'>
                           <button type = 'button' class = 'btn btn-outline-primary btn-sm' data-bs-toggle= 'modal' data-bs-target='#updateTeacherModal'>Edit Detail</button>
                           <button  type = 'button' class = 'btn btn-outline-primary btn-sm' data-bs-toggle = 'modal' data-bs-target = '#updateTeacherSubjectModal'>Edit Subject</button>
-                      </div>      
+                      </div>
               </td>
               </tr>";
-    }      
-    
-    echo "</table>";
+    }
+
+    echo "</tbody></table></div></div>";
 }
 
 else {
-    echo "No Teachers in this Branch";
+    echo "<div class='main'><p>No Teachers in this Branch</p></div>";
 }
 ?>
 

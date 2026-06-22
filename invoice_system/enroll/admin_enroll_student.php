@@ -1,4 +1,6 @@
 <?php 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 include "../../db_config.php";
 ?>
 <style>
@@ -8,7 +10,7 @@ include "../../db_config.php";
     min-height: 400px;
 }
 .enroll-section{
-padding:32px 10px;
+padding:0px 10px;
 background:#f7f9fc;
 }
 
@@ -106,6 +108,50 @@ margin-top:10px;
 .form-check input{
 margin-right:6px;
 }
+
+.subject-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    /* margin-bottom: 8px; */
+    cursor: pointer;
+    font-size: 13px;
+    background: #fff;
+    transition: all 0.2s ease;
+    width: auto; 
+}
+
+.subject-box span {
+    white-space: nowrap;
+}
+
+.subject-box input {
+    cursor: pointer;
+}
+
+.subject-box:hover {
+    background: #f0f4ff;
+    border-color: #2a5298;
+}
+
+.subject-box input:checked + span {
+    font-weight: 600;
+    color: #2a5298;
+}
+
+.subject-box input:checked {
+    accent-color: #2a5298;
+}
+
+#subject_container {
+    display: flex;
+    grid-template-columns: repeat(2, 1fr);
+    flex-wrap: wrap;
+    gap: 10px;
+}
 /* ================= MOBILE RESPONSIVE ================= */
 
 @media (max-width:768px){
@@ -119,7 +165,7 @@ margin-right:6px;
   }
 .enroll-section {
     background: #f7f9fc;
-    padding: 20px 0px;
+    padding: 0px 0px;
 }
  
   .form-row{
@@ -161,6 +207,7 @@ margin-right:6px;
   }
 
 }
+
 </style>
 
 
@@ -235,46 +282,46 @@ margin-right:6px;
 </select>
 
 </div>
-
-<div class="form-group">
-<label>Program</label>
-<input type="text" name="program" placeholder="Example: Early Starters">
-</div>
-
-</div>
-
-
-<div class="form-row">
-
-<div class="form-group">
-<label>Subject  <span class="required">*</span></label>
-
-<select name="subject" required>
-
-<option value="">Select Subject</option>
-<option>Mathematics</option>
-<option>Science</option>
-<option>Reading & Writing</option>
-
-</select>
-
-</div>
-
 <div class="form-group">
 <label>Mode of Education</label>
 
 <select name="mode_of_education">
 
 <option value="">Select Mode</option>
-<option>Physical</option>
+<option>Offline</option>
 <option>Online</option>
 
 </select>
 
 </div>
-
+<div class="form-group">
+<label>Program</label>
+<select name="program" id="program" required>
+<option value="">Select Program</option>
+<option value="Early Starters">Early Starters</option>
+<option value="Elementary">Elementary</option>
+<option value="Advanced Learners">Advanced Learners</option>
+</select>
 </div>
 
+
+</div>
+<div class="form-row" id="program_count_section" style="display:none;">
+    <div class="form-group">
+        <label>Number of Programs <span class="required">*</span></label>
+        
+        <select name="program_count" id="program_count" required>
+            <option value="">Select Number of Programs</option>
+        </select>
+    </div>
+</div>
+
+<div class="form-row" id="subject_section" style="display:none;">
+    <div class="form-group">
+        <label>Select Subjects <span class="required">*</span></label>
+        <div id="subject_container"></div>
+    </div>
+</div>
 
 <!-- Guardian -->
 
@@ -299,7 +346,7 @@ margin-right:6px;
 
 <div class="form-group">
 <label>Guardian Phone  <span class="required">*</span></label>
-<input type="text" name="guardian_phone" placeholder="10 digit phone number" required>
+<input type="text" name="guardian_phone" placeholder="10 digit phone number" required pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,10);">
 </div>
 
 <div class="form-group">
@@ -338,7 +385,7 @@ margin-right:6px;
 
 <div class="form-group">
 <label>Mother Phone</label>
-<input type="text" name="mother_phone" placeholder="Mother phone number">
+<input type="text" name="mother_phone" placeholder="Mother phone number" pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,10);">
 </div>
 
 </div>
@@ -358,7 +405,7 @@ margin-right:6px;
 
 <div class="form-group">
 <label>Father Phone</label>
-<input type="text" name="father_phone" placeholder="Father phone number">
+<input type="text" name="father_phone" placeholder="Father phone number" pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,10);">
 </div>
 
 </div>
@@ -377,7 +424,7 @@ margin-right:6px;
 
 <div class="form-group">
 <label>Emergency Phone</label>
-<input type="text" name="emergency_phone" placeholder="Emergency phone number">
+<input type="text" name="emergency_phone" placeholder="Emergency phone number" pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,10);">
 </div>
 
 </div>
@@ -412,8 +459,9 @@ margin-right:6px;
 <option value="">Select Payment Type</option>
 
 <option>Cash</option>
-<option>Bank Transfer</option>
 <option>E-Transfer</option>
+<option>Debit Card</option>
+<option>Credit Card</option>
 
 </select>
 
@@ -429,55 +477,20 @@ margin-right:6px;
 
 <!-- Terms & Conditions -->
 
+<?php include "../../terms.php"; ?>
+
 <div class="terms-box">
+    <p><strong>Terms & Conditions:</strong></p>
 
-<p><strong>Terms & Conditions:</strong></p>
+    <?php echo $terms_content; ?>
 
-<ul>
-
-<li>A non-refundable Registration fee is required at time of registration.</li>
-
-<li>Student course fees, activity fees and other material fees are non-refundable.</li>
-
-<li>No placement is confirmed prior to any mode of payment.</li>
-
-<li>One month notice or fee in lieu of is required for withdrawals.</li>
-
-<li>No refund for leave of absence during course term.</li>
-
-<li>Sibling discount of $10 per month applies only if first child is enrolled.</li>
-
-<li>Course fees do not include short term programs such as Summer Camp or Workshops.</li>
-
-<li>Preferred payment method is e-transfer to  
-<b>info@achieverscastle.com</b></li>
-
-<li>NSF cheque will incur $25 service charge.</li>
-
-<li>Late payments may incur late charges.</li>
-
-<li>Fees may increase annually due to cost of living adjustment.</li>
-
-<li>Achievers Castle Learning Centre Ltd. is not liable for injuries unless due to negligence.</li>
-
-<li>Photos or videos may be used for promotional purposes unless otherwise specified.</li>
-
-<li>All information submitted in this form must be accurate.</li>
-
-</ul>
-
-<div class="form-check">
-
-<input type="checkbox" name="terms_agreed" value="1" required>
-
-<label>
-<strong>I confirm that the guardian/parent agrees to the above Terms & Conditions.</strong>
-</label>
-
+    <div class="form-check">
+        <input type="checkbox" name="terms_agreed" value="1" required>
+        <label>
+            <strong>I confirm that the guardian/parent agrees to the above Terms & Conditions.</strong>
+        </label>
+    </div>
 </div>
-
-</div>
-
 <div style="text-align:center">
 
 <button class="submit-btn" type="submit">
@@ -496,22 +509,123 @@ document.querySelector(".enroll-form").addEventListener("submit", function(e){
     let paymentBy = document.querySelector("[name='payment_by']").value;
 
     let guardianEmail = document.querySelector("[name='guardian_email']").value.trim();
+
+    let motherName = document.querySelector("[name='mother_name']").value.trim();
     let motherEmail = document.querySelector("[name='mother_email']").value.trim();
+    let motherPhone = document.querySelector("[name='mother_phone']").value.trim();
+
+    let fatherName = document.querySelector("[name='father_name']").value.trim();
     let fatherEmail = document.querySelector("[name='father_email']").value.trim();
+    let fatherPhone = document.querySelector("[name='father_phone']").value.trim();
 
-    if(paymentBy === "Guardian" && guardianEmail === ""){
-        alert("Guardian email is required!");
-        e.preventDefault();
+    if(paymentBy === "Guardian"){
+        if(guardianEmail === ""){
+            alert("Guardian email is required!");
+            e.preventDefault();
+        }
     }
 
-    if(paymentBy === "Mother" && motherEmail === ""){
-        alert("Mother email is required!");
-        e.preventDefault();
+    if(paymentBy === "Mother"){
+        if(motherName === "" || motherEmail === "" || motherPhone === ""){
+            alert("Mother name, email & phone are required!");
+            e.preventDefault();
+        }
     }
 
-    if(paymentBy === "Father" && fatherEmail === ""){
-        alert("Father email is required!");
-        e.preventDefault();
+    if(paymentBy === "Father"){
+        if(fatherName === "" || fatherEmail === "" || fatherPhone === ""){
+            alert("Father name, email & phone are required!");
+            e.preventDefault();
+        }
+    }
+
+});
+
+// For program, subject,no of program dropdown
+const programSelect = document.getElementById("program");
+const subjectContainer = document.getElementById("subject_container");
+const subjectSection = document.getElementById("subject_section");
+const programCountSelect = document.getElementById("program_count");
+const programCountSection = document.getElementById("program_count_section");
+
+programSelect.addEventListener("change", function(){
+
+    let program = this.value;
+
+    // RESET
+    subjectContainer.innerHTML = "";
+    subjectSection.style.display = "none"; 
+    programCountSelect.innerHTML = '<option value="">Select Number of Programs</option>';
+
+     if(program === ""){
+        programCountSection.style.display = "none"; // hide
+        return;
+    }
+
+    // 🔥 SHOW program count
+    programCountSection.style.display = "block";
+
+    if(program === "Early Starters"){
+        programCountSelect.innerHTML += `<option value="all">All Programs</option>`;
+    }
+    else if(program === "Elementary" || program === "Advanced Learners"){
+        programCountSelect.innerHTML += `
+            <option value="1">One Program</option>
+            <option value="2">Two Programs</option>
+            <option value="all">Three / All Programs</option>
+        `;
+    }
+
+});
+programCountSelect.addEventListener("change", function(){
+
+    let program = programSelect.value;
+
+    if(program === ""){
+        subjectContainer.innerHTML = "<p style='color:red;'>Select program first</p>";
+        return;
+    }
+
+    subjectSection.style.display = "block"; 
+    subjectContainer.innerHTML = "Loading...";
+
+    fetch("invoice_system/enroll/get_subjects.php?program=" + program)
+    .then(res => res.json())
+    .then(data => {
+
+        subjectContainer.innerHTML = "";
+
+        if(data.length === 0){
+            subjectContainer.innerHTML = "<p style='color:red;'>No subjects found</p>";
+            return;
+        }
+
+        data.forEach(sub => {
+           subjectContainer.innerHTML += `
+            <label class="subject-box">
+                <input type="checkbox" name="subjects[]" value="${sub.subject_name}">
+                <span>${sub.subject_name}</span>
+            </label>
+        `;
+        });
+
+    });
+
+});
+subjectContainer.addEventListener("change", function(){
+
+  let selectedValue = programCountSelect.value;
+    let checked = document.querySelectorAll("input[name='subjects[]']:checked");
+
+    if(selectedValue === "all"){
+        return;
+    }
+
+    let max = parseInt(selectedValue);
+
+    if(checked.length > max){
+        alert("You can select only " + max + " subjects");
+        checked[checked.length - 1].checked = false;
     }
 
 });
