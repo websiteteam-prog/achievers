@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost";
-$username = "root";
-$password = "";
-$database = "mrmukpe4_creativetheka_newest"; 
+$username   = "root";
+$password   = "";
+$database   = "mrmukpe4_creativetheka_newest";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $database);
@@ -12,6 +12,5 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-/* 🔥 THIS LINE FIXES EMOJI ISSUE */
+/* Ensure emojis / unicode are stored correctly */
 $conn->set_charset("utf8mb4");
-?>
