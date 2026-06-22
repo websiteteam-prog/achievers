@@ -1,165 +1,116 @@
 <?php
-ini_set("display_errors", 1);
-ini_set("display_startup_errors", 1);
-error_reporting(E_ALL);
-
-session_start();
-
-include '../db_config.php';
-include 'branch_dashboard_sidebar.php';
-
-if(!isset($_SESSION['admin_logged_in']) || $_SESSION['role'] != 'branch_admin'){
-    header("Location: ../login.php");
-    exit();
-}
+require_once __DIR__ . '/auth.php';
+require_branch_admin();
 
 $branch_id = $_SESSION['branch_id'];
+$submitted = ($_SERVER['REQUEST_METHOD'] === 'POST');
 
-if($_SERVER['REQUEST_METHOD'] === 'POST'){
-    $grade = $_POST['grade'];
-    $subject = $_POST['subject_id'];
-    $month = $_POST['month'];
-    
-    // fetch students
-    $sql1 = $conn->prepare("SELECT students.id as student_id, students.first_name 
-                            FROM students
-                            WHERE students.grade = ? AND students.branch_id = ?");
-    $sql1->bind_param("ii", $grade, $branch_id);
-    $sql1->execute();
-    $studentResult = $sql1->get_result();
-    
-    // fetch dates
-    $sql2 = $conn->prepare("SELECT DISTINCT date FROM attendance_records
-                            WHERE subject_id = ? AND MONTH(date) = ?
-                            AND YEAR(date) = YEAR(CURDATE())
-                            ORDER BY date ASC");
-    $sql2->bind_param("ii", $subject, $month);
-    $sql2->execute();
-    $datesResult = $sql2->get_result();
-    $dates = [];
-    
-    while($rows = mysqli_fetch_assoc($datesResult)){
-        $dates[] = $rows['date'];
+$subjectNames = [1 => 'English', 2 => 'Science', 3 => 'Maths', 4 => 'History'];
+$students = [];
+$dates = [];
+$attendance = [];
+$grade = 0;
+$subject = 0;
+$month = 0;
+
+if ($submitted) {
+    $grade   = (int) ($_POST['grade'] ?? 0);
+    $subject = (int) ($_POST['subject_id'] ?? 0);
+    $month   = (int) ($_POST['month'] ?? 0);
+
+    $s1 = $conn->prepare("SELECT id AS student_id, first_name FROM students WHERE grade = ? AND branch_id = ?");
+    $s1->bind_param("ii", $grade, $branch_id);
+    $s1->execute();
+    $res = $s1->get_result();
+    while ($r = $res->fetch_assoc()) {
+        $students[] = $r;
+    }
+
+    $s2 = $conn->prepare("SELECT DISTINCT date FROM attendance_records WHERE subject_id = ? AND MONTH(date) = ? AND YEAR(date) = YEAR(CURDATE()) ORDER BY date ASC");
+    $s2->bind_param("ii", $subject, $month);
+    $s2->execute();
+    $dres = $s2->get_result();
+    while ($d = $dres->fetch_assoc()) {
+        $dates[] = $d['date'];
+    }
+
+    $s3 = $conn->prepare("SELECT student_id, date, status FROM attendance_records WHERE subject_id = ? AND MONTH(date) = ? AND YEAR(date) = YEAR(CURDATE())");
+    $s3->bind_param("ii", $subject, $month);
+    $s3->execute();
+    $ares = $s3->get_result();
+    while ($a = $ares->fetch_assoc()) {
+        $attendance[$a['student_id']][$a['date']] = strtolower($a['status']);
     }
 }
-?>
 
+function status_badge($status): string
+{
+    switch ($status) {
+        case 'present': return '<span class="badge bg-success">Present</span>';
+        case 'absent':  return '<span class="badge bg-danger">Absent</span>';
+        case 'late':    return '<span class="badge bg-warning text-dark">Late</span>';
+        default:        return '<span class="badge bg-light text-dark">--</span>';
+    }
+}
+
+$monthLabel = $month ? date("F", mktime(0, 0, 0, $month, 1)) : '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Grade Wise Attendance</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="branch.css"/>
-    <style>
-        .attendance-card {
-            background: #fff;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            margin: 20px auto;
-            max-width: 95%;
-        }
-        .attendance-header {
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            color: white;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .attendance-header h4 {
-            margin: 0;
-            font-weight: 600;
-        }
-        table {
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        table th {
-            text-align: center;
-            font-weight: 600;
-            background-color: #f1f3f4 !important;
-        }
-        table td {
-            text-align: center;
-            vertical-align: middle;
-        }
-        .badge {
-            font-size: 0.9rem;
-            padding: 8px 12px;
-            border-radius: 8px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monthly Attendance</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="stylesheet" href="branch.css" />
+  <style>
+    .attendance-card { background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin: 0 auto; max-width: 100%; }
+    .attendance-header { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; }
+    .attendance-header h4 { margin: 0; font-weight: 600; }
+  </style>
 </head>
 <body>
-<section class="main">
-    <div class="attendance-card">
+  <?php include 'branch_dashboard_sidebar.php'; ?>
+
+  <main class="main">
+    <?php if (!$submitted): ?>
+      <div class="alert alert-info">Please choose a grade, subject and month from the <a href="click_attendance.php">Attendance</a> page.</div>
+    <?php else: ?>
+      <div class="attendance-card">
         <div class="attendance-header">
-            <h4>
-                📊 Attendance - 
-                Grade <?= htmlspecialchars($grade) ?> | 
-                <?php
-                    echo date("F", mktime(0, 0, 0, $month, 1)); 
-                    echo " | ";
-                    if($subject == '1'){
-                        echo "English";
-                    } elseif($subject == '2'){
-                        echo "Science";
-                    } elseif($subject == '3'){
-                        echo "Maths";
-                    } else {
-                        echo "History";
-                    }
-                ?>
-            </h4>
+          <h4>&#128202; Attendance &mdash; Grade <?= e($grade) ?> | <?= e($monthLabel) ?> | <?= e($subjectNames[$subject] ?? 'Subject') ?></h4>
         </div>
-        
-        <div class="table-responsive">
+        <?php if (empty($students)): ?>
+          <div class="alert alert-warning mb-0">No students found for this grade in your branch.</div>
+        <?php else: ?>
+          <div class="table-responsive">
             <table class="table table-bordered table-hover table-striped align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Student's Name</th>
-                        <?php foreach ($dates as $date): ?>
-                            <th><?= date("d M", strtotime($date)) ?></th>
-                        <?php endforeach; ?>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php while ($student = $studentResult->fetch_assoc()): ?>
-                    <tr>
-                        <td class="fw-medium text-start ps-3"><?= htmlspecialchars($student['first_name']) ?></td>
-                        <?php
-                        foreach ($dates as $date) {
-                            $stmt = $conn->prepare("SELECT status FROM attendance_records 
-                                                    WHERE student_id = ? AND subject_id = ? AND date = ?");
-                            $stmt->bind_param("iis", $student['student_id'], $subject, $date);
-                            $stmt->execute();
-                            $res = $stmt->get_result();
-                            if ($row = $res->fetch_assoc()) {
-                                $status = strtolower($row['status']);
-                                if ($status === "present") {
-                                    echo '<td><span class="badge bg-success">Present</span></td>';
-                                } elseif ($status === "absent") {
-                                    echo '<td><span class="badge bg-danger">Absent</span></td>';
-                                } elseif ($status === "late") {
-                                    echo '<td><span class="badge bg-warning text-dark">Late</span></td>';
-                                } else {
-                                    echo '<td><span class="badge bg-secondary">--</span></td>';
-                                }
-                            } else {
-                                echo '<td><span class="badge bg-light text-dark">--</span></td>';
-                            }
-                        }
-                        ?>
-                    </tr>
-                <?php endwhile; ?>
-                </tbody>
+              <thead class="table-light">
+                <tr>
+                  <th>Student's Name</th>
+                  <?php foreach ($dates as $date): ?>
+                    <th><?= e(date("d M", strtotime($date))) ?></th>
+                  <?php endforeach; ?>
+                </tr>
+              </thead>
+              <tbody>
+                <?php foreach ($students as $student): ?>
+                  <tr>
+                    <td class="fw-medium text-start ps-3"><?= e($student['first_name']) ?></td>
+                    <?php foreach ($dates as $date): ?>
+                      <td><?= status_badge($attendance[$student['student_id']][$date] ?? null) ?></td>
+                    <?php endforeach; ?>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
             </table>
-        </div>
-    </div>
-</section>
+          </div>
+        <?php endif; ?>
+      </div>
+    <?php endif; ?>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
