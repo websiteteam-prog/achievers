@@ -2,6 +2,16 @@
 session_start();
 include 'db_config.php';
 
+// Already logged in? Send the user straight to their dashboard.
+if (!empty($_SESSION['admin_logged_in'])) {
+    if (($_SESSION['role'] ?? '') === 'super_admin') {
+        header("Location: admin_dashboard.php");
+    } else {
+        header("Location: branch_admin/branch_dashboard.php");
+    }
+    exit();
+}
+
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -18,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $admin = $result->fetch_assoc();
 
         if ($admin && password_verify($password, $admin['password'])) {
+            session_regenerate_id(true);
             $_SESSION['admin_logged_in'] = true;
             $_SESSION['admin_id'] = $admin['id'];
             $_SESSION['admin_name'] = $admin['name'];
@@ -140,11 +151,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" action="login.php">
             <div class="mb-3">
                 <label class="form-label">Email</label>
-                <input type="email" class="form-control" name="email" placeholder="you@example.com" required autofocus />
+                <input type="email" class="form-control" name="email" placeholder="you@example.com" autocomplete="username" required autofocus />
             </div>
             <div class="mb-3">
                 <label class="form-label">Password</label>
-                <input type="password" class="form-control" name="password" placeholder="Enter your password" required />
+                <input type="password" class="form-control" name="password" placeholder="Enter your password" autocomplete="current-password" required />
             </div>
             <button type="submit" class="btn-login mt-2">Login</button>
         </form>
