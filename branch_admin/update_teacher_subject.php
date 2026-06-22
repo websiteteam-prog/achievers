@@ -1,67 +1,60 @@
 <?php
+require_once __DIR__ . '/auth.php';
+require_branch_admin();
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-
-session_start();
-include '../db_config.php';
-
-
-
-if(!isset($_SESSION['admin_logged_in']) || $_SESSION['role'] != 'branch_admin'){
-    header("Location: ../login.php");
-    exit();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect_with_flash('danger', 'Invalid request.');
 }
 
-$branch_id = $_SESSION['branch_id'];
-$admin_email = $_SESSION['admin_email'];
+$subject_id = (int) ($_POST['subject'] ?? 0);
+$teacher_id = (int) ($_POST['teacher_id'] ?? 0);
+$action     = $_POST['action'] ?? '';
+$branch_id  = $_SESSION['branch_id'];
 
+if ($subject_id <= 0 || $teacher_id <= 0) {
+    redirect_with_flash('danger', 'Please provide a valid teacher ID and subject.');
+}
 
-if($_SERVER['REQUEST_METHOD'] === 'POST'){
-    $subject_id = mysqli_real_escape_string($conn, $_POST['subject']);
-    $teacher_id = mysqli_real_escape_string($conn, $_POST['teacher_id']);
-    $action = mysqli_real_escape_string($conn, $_POST['action']);
-    
-    // check if the teacher id exists in the database
-    
-    $check_stmt = $conn->prepare("select id from teachers where id = ?");
-    $check_stmt->bind_param("i", $teacher_id);
-    $check_stmt->execute();
-    $check_stmt ->store_result();
-    
-    if ($check_stmt->num_rows === 0){
-        echo "Error: Teacher ID does not exist";
-        $check_stmt->close();
-        exit();
+// Resolve branch name and ensure the teacher belongs to it
+$bn = $conn->prepare("SELECT branch_name FROM branches WHERE id = ?");
+$bn->bind_param("i", $branch_id);
+$bn->execute();
+$branchName = $bn->get_result()->fetch_assoc()['branch_name'] ?? '';
+$bn->close();
+
+$check = $conn->prepare("SELECT id FROM teachers WHERE id = ? AND branch = ?");
+$check->bind_param("is", $teacher_id, $branchName);
+$check->execute();
+$check->store_result();
+$exists = $check->num_rows > 0;
+$check->close();
+if (!$exists) {
+    redirect_with_flash('danger', 'Teacher ID does not exist in your branch.');
+}
+
+try {
+    if ($action === 'add') {
+        $dup = $conn->prepare("SELECT teacher_id FROM teacher_subjects WHERE teacher_id = ? AND subject_id = ?");
+        $dup->bind_param("ii", $teacher_id, $subject_id);
+        $dup->execute();
+        $dup->store_result();
+        $already = $dup->num_rows > 0;
+        $dup->close();
+        if ($already) {
+            redirect_with_flash('warning', 'That subject is already assigned to the teacher.');
+        }
+        $stmt = $conn->prepare("INSERT INTO teacher_subjects (teacher_id, subject_id) VALUES (?, ?)");
+        $stmt->bind_param("ii", $teacher_id, $subject_id);
+        $stmt->execute();
+        redirect_with_flash('success', 'Subject added successfully.');
+    } elseif ($action === 'delete') {
+        $stmt = $conn->prepare("DELETE FROM teacher_subjects WHERE teacher_id = ? AND subject_id = ?");
+        $stmt->bind_param("ii", $teacher_id, $subject_id);
+        $stmt->execute();
+        redirect_with_flash('success', 'Subject removed successfully.');
+    } else {
+        redirect_with_flash('danger', 'Invalid action.');
     }
-    
-    $check_stmt->close();
-    
-    // proceed with the selected option
-    if($action === 'add') {
-        $sqlAdd = $conn->prepare( "Insert into teacher_subjects (teacher_id , subject_id) values (?, ?)");
-        $sqlAdd->bind_param("ii", $teacher_id, $subject_id);
-        if ($sqlAdd->execute()){
-            echo "Subject added successfully";
-        } else {
-            echo "Failed to add subject or May be it akready exists";
-        }
-        
-        } elseif($action === 'delete') {
-            $sqlDelete = $conn->prepare( "delete from teacher_subjects where teacher_id = ? and subject_id = ?");
-            $sqlDelete->bind_param("ii", $teacher_id, $subject_id);
-            
-            if($sqlDelete->execute()){
-                echo "Subject from teacher removed successfully";
-            } else {
-                echo "Failed to remove the subject";
-            }
-        } else {
-            echo "invalid action";
-        }
-        
-    
+} catch (mysqli_sql_exception $e) {
+    redirect_with_flash('danger', 'Could not update the teacher subjects.');
 }
-?>

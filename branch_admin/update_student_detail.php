@@ -1,51 +1,41 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+require_once __DIR__ . '/auth.php';
+require_branch_admin();
 
-
-session_start();
-
-include "../db_config.php";
-
-if(!isset($_SESSION['admin_logged_in']) || $_SESSION['role'] !== 'branch_admin') {
-    header("Location: login.php");
-    exit();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect_with_flash('danger', 'Invalid request.');
 }
 
-if($_SERVER['REQUEST_METHOD'] === 'POST'){
-    $column = $_POST['detail'];
-    $student_id = $_POST['student_id'];
-    $new_value = $_POST['new_value'];
-    
-    $allowed_columns = ['first_name', 'parent_email', 'grade', 'email', 'phone', 'parent_name', 'parent_contact', 'address', 'mode_of_education'];
-    
-        if (!in_array($column, $allowed_columns)) {
-        die("Invalid column name.");
-    }
-    
-    $sql = "update students set `$column` = ? where id = ?";
-    $stmt=$conn->prepare($sql);
+$column     = $_POST['detail'] ?? '';
+$student_id = (int) ($_POST['student_id'] ?? 0);
+$new_value  = trim($_POST['new_value'] ?? '');
+$branch_id  = $_SESSION['branch_id'];
+
+$allowed_columns = ['first_name', 'parent_email', 'grade', 'email', 'phone', 'parent_name', 'parent_contact', 'address', 'mode_of_education'];
+if (!in_array($column, $allowed_columns, true)) {
+    redirect_with_flash('danger', 'Invalid field selected.');
+}
+if ($student_id <= 0 || $new_value === '') {
+    redirect_with_flash('danger', 'Please provide a valid student ID and value.');
+}
+
+// Student must belong to this branch
+$check = $conn->prepare("SELECT id FROM students WHERE id = ? AND branch_id = ?");
+$check->bind_param("ii", $student_id, $branch_id);
+$check->execute();
+$check->store_result();
+if ($check->num_rows === 0) {
+    $check->close();
+    redirect_with_flash('danger', 'Student ID does not exist in your branch.');
+}
+$check->close();
+
+try {
+    $sql = "UPDATE students SET `$column` = ? WHERE id = ?";
+    $stmt = $conn->prepare($sql);
     $stmt->bind_param("si", $new_value, $student_id);
-    
-    $check_stmt = $conn->prepare("SELECT id FROM students WHERE id = ?");
-$check_stmt->bind_param("i", $student_id);
-$check_stmt->execute();
-$check_stmt->store_result();
-
-if ($check_stmt->num_rows == 0) {
-    die("student ID does not exist.");
+    $stmt->execute();
+    redirect_with_flash('success', 'Student detail updated successfully.');
+} catch (mysqli_sql_exception $e) {
+    redirect_with_flash('danger', 'Failed to update student detail.');
 }
-$check_stmt->close();
-    
-    if($stmt->execute()){
-        echo "updated successfully";
-    }
-    else{
-        echo "Failed to update";
-    }
-    
-    $stmt->close();
-}
-
-?>
