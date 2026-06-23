@@ -159,11 +159,24 @@ while ($row = $result->fetch_assoc()) {
 
         .chapter-link {
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            padding-right: 32px;
         }
 
-        .chapter-link i {
-            margin-right: 8px;
+        .chapter-badge {
+            width: 26px;
+            height: 26px;
+            min-width: 26px;
+            border-radius: 7px;
+            background: rgba(118, 75, 162, 0.12);
             color: #764ba2;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 13px;
+            transition: all 0.3s ease;
         }
 
         .nav-link:hover {
@@ -172,7 +185,8 @@ while ($row = $result->fetch_assoc()) {
             transform: translateX(5px);
         }
 
-        .nav-link:hover i {
+        .nav-link:hover .chapter-badge {
+            background: rgba(255, 255, 255, 0.2);
             color: #fff;
         }
 
@@ -265,18 +279,18 @@ while ($row = $result->fetch_assoc()) {
             <h2><?= htmlspecialchars($subject_name) ?></h2>
         </div>
         <nav class="nav flex-column">
-            <?php if (empty($chapters)): ?>
+            <?php $chapterNum = 0; if (empty($chapters)): ?>
                 <div class="empty-state">
                     <i class="bi bi-journal-x"></i>
                     No chapter assigned yet.
                 </div>
             <?php endif; ?>
-            <?php foreach ($chapters as $chapter_id => $chapter) { ?>
+            <?php foreach ($chapters as $chapter_id => $chapter) { $chapterNum++; ?>
                 <div class="chapter-item mb-2">
                     <a href="#"
                         class="nav-link chapter-link"
                         data-chapter-id="<?= $chapter_id ?>">
-                        <i class="bi bi-journal-bookmark-fill"></i><?= htmlspecialchars($chapter['chapter_name']) ?>
+                        <span class="chapter-badge"><?= $chapterNum ?></span><?= htmlspecialchars($chapter['chapter_name']) ?>
                     </a>
                     <div class="topics-container"
                         id="topics-<?= $chapter_id ?>"
