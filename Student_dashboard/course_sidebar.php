@@ -44,10 +44,13 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 $chapters = [];
-$subject_name = '';
+
+$name_stmt = $conn->prepare("SELECT subject_name FROM subjects WHERE id = ?");
+$name_stmt->bind_param("i", $subject_id);
+$name_stmt->execute();
+$subject_name = $name_stmt->get_result()->fetch_assoc()['subject_name'] ?? 'Subject';
 
 while ($row = $result->fetch_assoc()) {
-    $subject_name = $row['subject_name'];
     $chapter_id = $row['chapter_id'];
     $chapter_name = $row['chapter_name'];
 
@@ -222,6 +225,9 @@ while ($row = $result->fetch_assoc()) {
     <div class="sidebar" id="sidebar">
         <h2><?= htmlspecialchars($subject_name) ?></h2>
         <nav class="nav flex-column">
+            <?php if (empty($chapters)): ?>
+                <p class="text-muted text-center mt-3">No chapter assigned yet.</p>
+            <?php endif; ?>
             <?php foreach ($chapters as $chapter_id => $chapter) { ?>
                 <div class="chapter-item mb-2">
                     <a href="#"
