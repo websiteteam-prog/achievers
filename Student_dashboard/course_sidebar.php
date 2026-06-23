@@ -78,6 +78,7 @@ while ($row = $result->fetch_assoc()) {
     <title><?= htmlspecialchars($subject_name) ?></title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
         * {
@@ -99,8 +100,8 @@ while ($row = $result->fetch_assoc()) {
             width: 280px;
             height: 100vh;
             background: #fff;
-            padding: 25px 20px;
-            border-right: 1px solid #ddd;
+            padding: 0 0 20px;
+            border-right: 1px solid #eee;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
@@ -110,12 +111,36 @@ while ($row = $result->fetch_assoc()) {
             z-index: 1000;
         }
 
-        .sidebar h2 {
-            font-size: 22px;
+        .sidebar-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            padding: 22px 20px;
+            margin-bottom: 16px;
+        }
+
+        .sidebar-header h2 {
+            font-size: 20px;
             font-weight: 600;
-            color: #1F669C;
-            margin-bottom: 20px;
             text-align: center;
+            margin: 0;
+        }
+
+        .sidebar nav {
+            padding: 0 20px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 30px 10px;
+        }
+
+        .empty-state i {
+            font-size: 38px;
+            display: block;
+            margin-bottom: 10px;
+            opacity: 0.5;
         }
 
         /* Nav Links */
@@ -132,10 +157,23 @@ while ($row = $result->fetch_assoc()) {
             position: relative;
         }
 
+        .chapter-link {
+            font-weight: 600;
+        }
+
+        .chapter-link i {
+            margin-right: 8px;
+            color: #764ba2;
+        }
+
         .nav-link:hover {
             background: #1F669C;
             color: #fff;
             transform: translateX(5px);
+        }
+
+        .nav-link:hover i {
+            color: #fff;
         }
 
         .nav-link.active {
@@ -223,17 +261,22 @@ while ($row = $result->fetch_assoc()) {
     <button class="hamburger" id="hamburgerBtn">☰</button>
 
     <div class="sidebar" id="sidebar">
-        <h2><?= htmlspecialchars($subject_name) ?></h2>
+        <div class="sidebar-header">
+            <h2><?= htmlspecialchars($subject_name) ?></h2>
+        </div>
         <nav class="nav flex-column">
             <?php if (empty($chapters)): ?>
-                <p class="text-muted text-center mt-3">No chapter assigned yet.</p>
+                <div class="empty-state">
+                    <i class="bi bi-journal-x"></i>
+                    No chapter assigned yet.
+                </div>
             <?php endif; ?>
             <?php foreach ($chapters as $chapter_id => $chapter) { ?>
                 <div class="chapter-item mb-2">
                     <a href="#"
                         class="nav-link chapter-link"
                         data-chapter-id="<?= $chapter_id ?>">
-                        <?= htmlspecialchars($chapter['chapter_name']) ?>
+                        <i class="bi bi-journal-bookmark-fill"></i><?= htmlspecialchars($chapter['chapter_name']) ?>
                     </a>
                     <div class="topics-container"
                         id="topics-<?= $chapter_id ?>"
