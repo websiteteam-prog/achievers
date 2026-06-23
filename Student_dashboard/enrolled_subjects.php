@@ -10,16 +10,18 @@ if (!isset($_SESSION['student_id'])) {
 $student_id = $_SESSION['student_id'];
 
 $sql = "
-SELECT 
+SELECT
     s.id AS subject_id,
     s.subject_name,
     st.grade,
     c.image AS course_image
 FROM student_subjects ss
-JOIN subjects s 
+JOIN subjects s
     ON ss.subject_id = s.id
 JOIN students st
     ON ss.student_id = st.id
+JOIN assigned_chapters ac
+    ON ac.subject_id = s.id AND ac.student_id = ss.student_id
 LEFT JOIN courses c
     ON c.subject_id = s.id
 WHERE ss.student_id = ?
