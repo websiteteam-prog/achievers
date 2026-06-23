@@ -1,6 +1,7 @@
 <?php
 
 $data = json_decode($q['question_payload'], true);
+$correct = json_decode($q['correct_answer'] ?? '', true) ?? [];
 
 $section_id = $q['instruction_id'] ?? 0;
 
@@ -344,6 +345,16 @@ $common_blanks = $data['common_blanks'] ?? 0;
     font-weight: bold;
     font-size: 18px;
 }
+.pool-cell.used {
+    background: rgba(255,255,255,0.15);
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.pool-cell.used::after {
+    content: " \2713";
+}
+
 /* ===== CLEAN BOOK STYLE LCM ===== */
 
 .lcm-wrapper {
@@ -980,7 +991,13 @@ Common Multiples
 </div>
 
 </div>
-<?php elseif ($mode == "multiples_venn"): ?>
+<?php elseif ($mode == "multiples_venn"):
+
+$left_count   = count($correct['left'] ?? []);
+$right_count  = count($correct['right'] ?? []);
+$common_count = count($correct['common'] ?? []);
+$pool_numbers = $data['numbers'] ?? [];
+?>
 
 <div class="venn-wrapper">
 
@@ -994,7 +1011,7 @@ Multiples of <?= $data['num1'] ?>
 
 <div class="venn-left-numbers">
 
-<?php for($i=0;$i<4;$i++): ?>
+<?php for($i=0;$i<$left_count;$i++): ?>
 
 <input type="text"
 name="answer[<?= $q['id'] ?>][left][]"
@@ -1015,7 +1032,7 @@ Multiples of <?= $data['num2'] ?>
 
 <div class="venn-right-numbers">
 
-<?php for($i=0;$i<4;$i++): ?>
+<?php for($i=0;$i<$right_count;$i++): ?>
 
 <input type="text"
 name="answer[<?= $q['id'] ?>][right][]"
@@ -1031,9 +1048,7 @@ class="venn-small">
 <!-- COMMON -->
 <div class="venn-common-numbers">
 
-<?php 
-$common_count = count(json_decode($q['correct_answer'], true)['common'] ?? []);
-for($i=0;$i<$common_count;$i++): ?>
+<?php for($i=0;$i<$common_count;$i++): ?>
 
 <input type="text"
 name="answer[<?= $q['id'] ?>][common][]"
@@ -1050,12 +1065,12 @@ Common multiples of <?= $data['num1'] ?> and <?= $data['num2'] ?>
 </div>
 
 
-<!-- NUMBER BOX -->
-<div class="grid-box">
+<!-- NUMBER POOL: reference list of available numbers, click to mark as placed -->
+<div class="grid-box number-pool" data-qid="<?= $q['id']; ?>">
 
-<?php foreach($data['numbers'] as $num): ?>
+<?php foreach($pool_numbers as $num): ?>
 
-<div class="grid-cell">
+<div class="grid-cell pool-cell" onclick="this.classList.toggle('used')">
 <?= $num ?>
 </div>
 
