@@ -2,20 +2,25 @@
 session_start();
 include 'db_config.php';
 
-$teacher_id = (int)($_SESSION['teacher_id'] ?? 0);
+if (!isset($_SESSION['teacher_id'])) {
+    header('Location: teacher_login.php');
+    exit();
+}
 
-// All subject+grade combinations this teacher teaches
-$teacher_subjects = [];
-$stmt = $conn->prepare("SELECT s.id AS subject_id, s.subject_name, s.grade
+$teacher_id = (int)$_SESSION['teacher_id'];
+
+// Grades this teacher teaches (a teacher can teach the same subject across multiple grades)
+$grades = [];
+$stmt = $conn->prepare("SELECT DISTINCT s.grade
                          FROM teacher_subjects ts
                          JOIN subjects s ON ts.subject_id = s.id
-                         WHERE ts.teacher_id = ?
-                         ORDER BY s.grade ASC");
+                         WHERE ts.teacher_id = ? AND s.grade IS NOT NULL AND s.grade != ''
+                         ORDER BY CAST(s.grade AS UNSIGNED)");
 $stmt->bind_param("i", $teacher_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
-    $teacher_subjects[] = $row;
+    $grades[] = $row['grade'];
 }
 ?>
 <!DOCTYPE html>
@@ -24,6 +29,7 @@ while ($row = $result->fetch_assoc()) {
   <title>Assign Chapters</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <style>
     body { background: #f4f6fb; font-family: 'Segoe UI', Arial, sans-serif; }
     .assign-card {
@@ -68,35 +74,38 @@ while ($row = $result->fetch_assoc()) {
 
       <div class="mb-3">
         <label>Grade</label>
-        <select id="gradeSelect" class="form-select" required>
+        <select id="grade" class="form-select" required>
           <option value="">-- Select Grade --</option>
-          <?php foreach ($teacher_subjects as $ts): ?>
-            <option value="<?= (int)$ts['subject_id'] ?>">
-              Grade <?= htmlspecialchars($ts['grade']) ?> &mdash; <?= htmlspecialchars($ts['subject_name']) ?>
-            </option>
+          <?php foreach ($grades as $g): ?>
+            <option value="<?= htmlspecialchars($g) ?>">Grade <?= htmlspecialchars($g) ?></option>
           <?php endforeach; ?>
         </select>
-        <?php if (empty($teacher_subjects)): ?>
+        <?php if (empty($grades)): ?>
           <div class="hint text-danger">No subjects/grades are linked to your account yet.</div>
         <?php endif; ?>
       </div>
 
       <div class="mb-3">
+        <label>Subject</label>
+        <select id="subject_id" name="subject_id" class="form-select" required disabled>
+          <option value="">-- Select Grade First --</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
         <label>Select Student</label>
         <select name="student_id" id="studentSelect" class="form-select" required disabled>
-          <option value="">-- Select Grade First --</option>
+          <option value="">-- Select Subject First --</option>
         </select>
       </div>
 
       <div class="mb-3">
         <label>Select Chapter</label>
         <select name="chapter_title" id="chapterSelect" class="form-select" required disabled>
-          <option value="">-- Select Grade First --</option>
+          <option value="">-- Select Subject First --</option>
         </select>
         <div class="hint">Only chapters already created for this subject are listed.</div>
       </div>
-
-      <input type="hidden" name="subject_id" id="subjectIdInput" value="">
 
       <button type="submit" class="btn-assign mt-2">
         <i class="bi bi-check2-circle me-1"></i> Assign Chapter
@@ -106,35 +115,47 @@ while ($row = $result->fetch_assoc()) {
 </div>
 
 <script>
-const gradeSelect = document.getElementById('gradeSelect');
-const studentSelect = document.getElementById('studentSelect');
-const chapterSelect = document.getElementById('chapterSelect');
-const subjectIdInput = document.getElementById('subjectIdInput');
+$(document).ready(function () {
 
-gradeSelect.addEventListener('change', function () {
-    const subjectId = this.value;
-    subjectIdInput.value = subjectId;
+    // Grade -> Subjects (scoped to this teacher)
+    $("#grade").change(function () {
+        const grade = $(this).val();
 
-    if (!subjectId) {
-        studentSelect.disabled = true;
-        chapterSelect.disabled = true;
-        studentSelect.innerHTML = '<option value="">-- Select Grade First --</option>';
-        chapterSelect.innerHTML = '<option value="">-- Select Grade First --</option>';
-        return;
+        $("#subject_id").prop('disabled', true).html('<option value="">-- Select Grade First --</option>');
+        resetDependent();
+
+        if (!grade) return;
+
+        $("#subject_id").html('<option value="">Loading...</option>');
+
+        $.get("assign_chapter_get_subjects.php", { grade: grade }, function (data) {
+            $("#subject_id").html('<option value="">-- Select Subject --</option>' + data).prop('disabled', false);
+        });
+    });
+
+    // Subject -> Students + Chapters
+    $("#subject_id").change(function () {
+        const subjectId = $(this).val();
+
+        resetDependent();
+
+        if (!subjectId) return;
+
+        $("#studentSelect, #chapterSelect").prop('disabled', false).html('<option value="">Loading...</option>');
+
+        $.get("assign_chapter_get_students.php", { subject_id: subjectId }, function (data) {
+            $("#studentSelect").html(data);
+        });
+
+        $.get("assign_chapter_get_chapters.php", { subject_id: subjectId }, function (data) {
+            $("#chapterSelect").html(data);
+        });
+    });
+
+    function resetDependent() {
+        $("#studentSelect").prop('disabled', true).html('<option value="">-- Select Subject First --</option>');
+        $("#chapterSelect").prop('disabled', true).html('<option value="">-- Select Subject First --</option>');
     }
-
-    studentSelect.disabled = false;
-    chapterSelect.disabled = false;
-    studentSelect.innerHTML = '<option value="">Loading...</option>';
-    chapterSelect.innerHTML = '<option value="">Loading...</option>';
-
-    fetch('assign_chapter_get_students.php?subject_id=' + encodeURIComponent(subjectId))
-        .then(r => r.text())
-        .then(html => studentSelect.innerHTML = html);
-
-    fetch('assign_chapter_get_chapters.php?subject_id=' + encodeURIComponent(subjectId))
-        .then(r => r.text())
-        .then(html => chapterSelect.innerHTML = html);
 });
 </script>
 
