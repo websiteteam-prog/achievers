@@ -1,33 +1,8 @@
 <?php
 
-// GLOBAL COUNTERS
-if (!isset($GLOBALS['main_question'])) {
-    $GLOBALS['main_question'] = 1;
-}
-if (!isset($GLOBALS['grid_question'])) {
-    $GLOBALS['grid_question'] = 1;
-}
-if (!isset($GLOBALS['common_question'])) {
-    $GLOBALS['common_question'] = 1;
-}
-if (!isset($GLOBALS['venn_question'])) {
-    $GLOBALS['venn_question'] = 1;
-}
-if (!isset($GLOBALS['gcf_venn_question'])) {
-    $GLOBALS['gcf_venn_question'] = 1;
-}
-
 $data = json_decode($q['question_payload'], true);
 
-if (!isset($GLOBALS['section_question'])) {
-    $GLOBALS['section_question'] = [];
-}
-
 $section_id = $q['instruction_id'] ?? 0;
-
-if (!isset($GLOBALS['section_question'][$section_id])) {
-    $GLOBALS['section_question'][$section_id] = 1;
-}
 
 $mode = $data['mode'] ?? 'pairs';
 
@@ -569,36 +544,38 @@ z-index:10;
 
    <h5><strong>
 
-<?php 
+<?php
+$display_no = $q['_sub_no'] ?? 1;
+
 if ($mode == "grid") {
-    echo $GLOBALS['grid_question']++ . ") Factors of $number";
-} 
+    echo $display_no . ") Factors of $number";
+}
 elseif ($mode == "common") {
-    echo $GLOBALS['common_question']++ . ")";
+    echo $display_no . ")";
 }
 elseif ($mode == "venn") {
-    echo $GLOBALS['venn_question']++ . ")";
+    echo $display_no . ")";
 }
 elseif ($mode == "gcf_direct") {
     $numbers = $data['numbers'] ?? [];
-    echo $GLOBALS['section_question'][$section_id]++ . ")" . implode(" , ", $numbers);
+    echo $display_no . ")" . implode(" , ", $numbers);
 }
 elseif ($mode == "gcf_venn") {
-    echo $GLOBALS['gcf_venn_question']++ . ")";
+    echo $display_no . ")";
 }
 elseif ($mode == "multiples_between") {
-    echo $GLOBALS['section_question'][$section_id]++ . ") Multiples of "
+    echo $display_no . ") Multiples of "
          . $data['number'] . "( between "
          . $data['start'] . " and "
          . $data['end'].")";
 }
 elseif ($mode == "multiples_identify") {
-    echo $GLOBALS['section_question'][$section_id]++ . ")"
+    echo $display_no . ")"
          . implode(", ", $data['numbers'])
          . " are multiples of";
 }
 elseif ($mode == "multiples_first5") {
-    echo $GLOBALS['section_question'][$section_id]++ . ") Multiples of "
+    echo $display_no . ") Multiples of "
          . $data['number'];
 }
 
@@ -606,14 +583,14 @@ elseif ($mode == "true_false_single") {
     // numbering handled inside question row
 }
 elseif ($mode == "lcm_steps") {
-    echo $GLOBALS['section_question'][$section_id]++ . ") "
+    echo $display_no . ") "
          . $data['num1'] . " and " . $data['num2'];
 }
 elseif ($mode == "multiples_find_base") {
-    echo $GLOBALS['section_question'][$section_id]++ . ")";
+    echo $display_no . ")";
 }
 else {
-    echo $GLOBALS['section_question'][$section_id]++ . ")";
+    echo $display_no . ")";
 }
 ?>
 
@@ -894,7 +871,7 @@ $correct_lcm = $correct['lcm'] ?? '';
 <div class="common-answer-row">
 
 <strong>
-<?= $GLOBALS['section_question'][$section_id]++ ?>)
+<?= $display_no ?>)
 </strong>
 
 <span class="common-text">
