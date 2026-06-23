@@ -15,6 +15,7 @@ if (!isset($_GET['subject_id'])) {
 }
 
 $subject_id = intval($_GET['subject_id']);
+$student_id = (int)$_SESSION['student_id'];
 
 // Fetch subject name
 $subject_sql = $conn->prepare("SELECT name FROM subjects WHERE id = ?");
@@ -23,9 +24,9 @@ $subject_sql->execute();
 $subject_result = $subject_sql->get_result()->fetch_assoc();
 $subject_name = $subject_result['name'] ?? 'Unknown Subject';
 
-// Fetch all chapters for this subject
-$chapter_sql = $conn->prepare("SELECT id, chapter_title FROM assigned_chapters WHERE subject_id = ?");
-$chapter_sql->bind_param("i", $subject_id);
+// Fetch only chapters assigned to this student for this subject
+$chapter_sql = $conn->prepare("SELECT id, chapter_title FROM assigned_chapters WHERE subject_id = ? AND student_id = ?");
+$chapter_sql->bind_param("ii", $subject_id, $student_id);
 $chapter_sql->execute();
 $chapters = $chapter_sql->get_result();
 ?>
@@ -51,7 +52,7 @@ $chapters = $chapter_sql->get_result();
             <?php endwhile; ?>
         </div>
     <?php else: ?>
-        <p class="text-muted">No chapters available for this subject.</p>
+        <p class="text-muted">No chapters have been assigned to you yet for this subject.</p>
     <?php endif; ?>
 
     <a href="student_dashboard.php" class="btn btn-secondary mt-4">⬅️ Back to Dashboard</a>

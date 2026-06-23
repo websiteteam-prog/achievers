@@ -16,9 +16,9 @@ if (!isset($_GET['chapter_id'])) {
 }
 $chapter_id = intval($_GET['chapter_id']);
 
-// Get chapter info
-$stmt = $conn->prepare("SELECT * FROM assigned_chapters WHERE id = ?");
-$stmt->bind_param("i", $chapter_id);
+// Get chapter info (must belong to this student)
+$stmt = $conn->prepare("SELECT * FROM assigned_chapters WHERE id = ? AND student_id = ?");
+$stmt->bind_param("ii", $chapter_id, $student_id);
 $stmt->execute();
 $chapter = $stmt->get_result()->fetch_assoc();
 
