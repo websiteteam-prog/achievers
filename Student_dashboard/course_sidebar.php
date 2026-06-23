@@ -19,21 +19,23 @@ if (!$subject_id) {
     die("course sidebar Invalid subject ID");
 }
 
-// ✅ FIXED: Order by chapter ID instead of position (to avoid error)
-$sql =  "SELECT 
-            topics.id AS topic_id, 
-            subjects.subject_name, 
-            chapters.chapter_name, 
-            chapters.id AS chapter_id, 
-            topics.title, 
-            topics.file_path, 
-            topics.position 
+// Only show chapters the teacher has actually assigned to this student
+$sql =  "SELECT
+            topics.id AS topic_id,
+            subjects.subject_name,
+            chapters.chapter_name,
+            chapters.id AS chapter_id,
+            topics.title,
+            topics.file_path,
+            topics.position
          FROM topics
          JOIN chapters ON topics.chapter_id = chapters.id
-         JOIN student_subjects ON student_subjects.subject_id = chapters.subject_id
+         JOIN assigned_chapters ac
+              ON ac.chapter_title = chapters.chapter_name
+             AND ac.subject_id = chapters.subject_id
+             AND ac.student_id = ?
          JOIN subjects ON subjects.id = chapters.subject_id
-         WHERE student_subjects.student_id = ? 
-           AND chapters.subject_id = ? 
+         WHERE chapters.subject_id = ?
          ORDER BY chapters.id ASC, topics.position ASC";
 
 $stmt = $conn->prepare($sql);
