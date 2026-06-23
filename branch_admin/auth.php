@@ -20,11 +20,11 @@ function is_branch_admin(): bool
     return !empty($_SESSION['admin_logged_in']) && ($_SESSION['role'] ?? '') === 'branch_admin';
 }
 
-/** Redirect to the login page unless a branch admin is logged in. */
+/** Redirect to the dedicated branch-admin login page unless a branch admin is logged in. */
 function require_branch_admin(): void
 {
     if (!is_branch_admin()) {
-        header('Location: ../login.php');
+        header('Location: login.php');
         exit();
     }
 }
