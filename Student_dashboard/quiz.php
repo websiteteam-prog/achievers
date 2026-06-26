@@ -563,6 +563,9 @@ if ($topic_id) {
               case 'percent_to_decimal_table':
                 include 'templates/percents/percent_to_decimal_table.php';
                 break;
+              case 'pie_chart_table':
+                include 'templates/PieChart/pie_chart_table.php';
+                break;
               case 'fraction_to_percent':
                 include 'templates/percents/fraction_to_percent.php';
                 break;

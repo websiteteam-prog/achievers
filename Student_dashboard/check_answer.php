@@ -315,6 +315,7 @@ svg, table, canvas {
                             case 'factor': include 'templates/Factor/factor.php'; break;
                             case 'decimal_percent_steps': include 'templates/percents/decimal_percent_steps.php'; break;
                             case 'percent_to_decimal_table': include 'templates/percents/percent_to_decimal_table.php'; break;
+                            case 'pie_chart_table': include 'templates/PieChart/pie_chart_table.php'; break;
                             case 'fraction_to_percent': include 'templates/percents/fraction_to_percent.php'; break;
                             case 'percent_to_fraction_table': include 'templates/percents/percent_to_fraction_table.php'; break;
                             case 'find_whole_percent': include 'templates/percents/find_whole_percent.php'; break;
