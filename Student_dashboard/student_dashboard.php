@@ -31,11 +31,17 @@ $res_sub = mysqli_query($conn, $sql_sub);
 if ($res_sub) $subjects_count = (int) mysqli_fetch_assoc($res_sub)['cnt'];
 
 // Materials count
+// Courses are linked to the subjects the student is enrolled in
+// (same relationship used on the "My Enrolled Courses" page).
 $materials_count = 0;
 $course_ids = [];
-$sql_courses = "SELECT course_id FROM course_enrollments WHERE student_id = " . (int)$student_id;
+$sql_courses = "SELECT c.id AS course_id
+                FROM student_subjects ss
+                JOIN courses c ON c.subject_id = ss.subject_id
+                WHERE ss.student_id = " . (int)$student_id;
 $res_courses = mysqli_query($conn, $sql_courses);
 while ($r = mysqli_fetch_assoc($res_courses)) $course_ids[] = (int)$r['course_id'];
+$course_ids = array_values(array_unique($course_ids));
 if (!empty($course_ids)) {
     $ids = implode(',', $course_ids);
     $sql_mat = "SELECT COUNT(*) as cnt FROM course_materials WHERE course_id IN ($ids)";
@@ -667,19 +673,29 @@ if ($res_pay) {
                 <!-- Study Materials -->
                 <section class="mb-5">
                     <h4 class="section-title"><i class="bi bi-folder2-open me-2"></i> Recent Study Materials</h4>
-                    <?php if ($materials_count > 0): ?>
+                    <?php
+                    // Collect the actual materials so the empty-state below is reliable
+                    // even if the count and the displayed rows ever disagree.
+                    $materials = [];
+                    if (!empty($course_ids)) {
+                        $sql_mats = "SELECT cm.*, s.subject_name
+                                 FROM course_materials cm
+                                 JOIN courses c ON cm.course_id = c.id
+                                 JOIN subjects s ON c.subject_id = s.id
+                                 WHERE cm.course_id IN (" . implode(',', $course_ids) . ")
+                                 LIMIT 6";
+                        $res_mats = mysqli_query($conn, $sql_mats);
+                        while ($res_mats && $mat = mysqli_fetch_assoc($res_mats)) {
+                            $materials[] = $mat;
+                        }
+                    }
+                    ?>
+                    <?php if (!empty($materials)): ?>
                         <div class="row g-4">
                             <?php
-                            $sql_mats = "SELECT cm.*, s.subject_name 
-                                     FROM course_materials cm 
-                                     JOIN courses c ON cm.course_id = c.id 
-                                     JOIN subjects s ON c.subject_id = s.id 
-                                     WHERE cm.course_id IN (" . implode(',', $course_ids ?: [0]) . ") 
-                                     LIMIT 6";
-                            $res_mats = mysqli_query($conn, $sql_mats);
-                            while ($mat = mysqli_fetch_assoc($res_mats)):
+                            foreach ($materials as $mat):
                                 $path = $mat['file_path'] ?? '';
-                                $url = $path ? "https://creativetheka.in/" . trim(dirname($path), '/') . "/" . rawurlencode(basename($path)) : '';
+                                $url = $path ? "https://www.achieverscastle.com/" . trim(dirname($path), '/') . "/" . rawurlencode(basename($path)) : '';
                             ?>
                                 <div class="col-lg-4 col-md-6">
                                     <div class="card-material">
@@ -697,7 +713,7 @@ if ($res_pay) {
                                         </div>
                                     </div>
                                 </div>
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
                         </div>
                     <?php else: ?>
                         <div class="alert alert-light text-center py-5 border-0 shadow-sm">
