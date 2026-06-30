@@ -1,0 +1,621 @@
+<!-- ============================================================
+     SkyWize Aviation — Professional Landing Page
+     Paste this entire block into Graphy → Website Builder
+     → Add Section → Custom Code / HTML
+     Fully self-contained: scoped styles + markup + tiny JS.
+     Everything is namespaced under .sw-root so it will not
+     collide with the host theme.
+
+     SETUP: search for "REPLACE_WITH_GMB_LINK" and swap in your
+     Google My Business URL, and "REPLACE_WITH_PHONE" for the
+     phone number used in the call links.
+     ============================================================ -->
+<div class="sw-root">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+    /* ---------- Theme tokens ---------- */
+    .sw-root{
+      --navy:#0a2540;
+      --navy-2:#10355c;
+      --navy-3:#0d4377;
+      --blue:#1e88e5;
+      --blue-deep:#1567b8;
+      --sky:#4fc3f7;
+      --accent:#ff8f1c;
+      --accent-2:#ff6a00;
+      --ink:#16222e;
+      --muted:#5b6b72;
+      --muted-2:#8898a4;
+      --bg:#f4f8ff;
+      --card:#ffffff;
+      --line:#e6eef8;
+      --line-2:#eef4fc;
+      --radius:18px;
+      --radius-sm:14px;
+      --shadow:0 22px 55px -28px rgba(10,37,64,.5);
+      --shadow-sm:0 12px 30px -20px rgba(10,37,64,.45);
+      --ring:0 0 0 4px rgba(30,136,229,.28);
+      font-family:'Poppins','Segoe UI',system-ui,-apple-system,sans-serif;
+      color:var(--ink);
+      line-height:1.65;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+    .sw-root *{box-sizing:border-box;margin:0;padding:0}
+    .sw-root img{max-width:100%;display:block}
+    .sw-wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+    .sw-section{padding:88px 0}
+    .sw-display{font-family:'Plus Jakarta Sans','Poppins',sans-serif}
+
+    .sw-eyebrow{
+      display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;
+      letter-spacing:1.6px;text-transform:uppercase;color:var(--blue);
+      background:rgba(30,136,229,.10);padding:8px 16px;border-radius:50px;margin-bottom:18px;
+    }
+    .sw-eyebrow svg{width:14px;height:14px}
+    .sw-h2{font-family:'Plus Jakarta Sans','Poppins',sans-serif;font-size:clamp(27px,4vw,42px);
+      font-weight:800;line-height:1.18;color:var(--navy);max-width:780px;letter-spacing:-.5px}
+    .sw-lead{font-size:17px;color:var(--muted);max-width:720px;margin-top:18px}
+    .sw-center{text-align:center}
+    .sw-center .sw-h2,.sw-center .sw-lead{margin-left:auto;margin-right:auto}
+
+    /* ---------- Buttons ---------- */
+    .sw-btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;
+      font-family:'Plus Jakarta Sans','Poppins',sans-serif;font-weight:600;font-size:15.5px;
+      text-decoration:none;padding:15px 28px;border-radius:50px;border:0;
+      transition:transform .25s ease,box-shadow .25s ease,background .25s ease;white-space:nowrap;
+    }
+    .sw-btn svg{width:18px;height:18px;flex:0 0 auto}
+    .sw-btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+      box-shadow:0 16px 34px -14px rgba(255,106,0,.75)}
+    .sw-btn-primary:hover{transform:translateY(-3px);box-shadow:0 24px 40px -14px rgba(255,106,0,.8)}
+    .sw-btn-ghost{background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.34)}
+    .sw-btn-ghost:hover{background:rgba(255,255,255,.2);transform:translateY(-3px)}
+    .sw-btn-light{background:#fff;color:var(--navy)}
+    .sw-btn-light:hover{transform:translateY(-3px);box-shadow:0 18px 34px -16px rgba(10,37,64,.5)}
+    .sw-root a:focus-visible,.sw-root button:focus-visible,.sw-root summary:focus-visible{
+      outline:none;box-shadow:var(--ring)}
+
+    /* ---------- Sticky nav ---------- */
+    .sw-nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.86);
+      backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);
+      border-bottom:1px solid var(--line)}
+    .sw-nav-inner{display:flex;align-items:center;justify-content:space-between;
+      height:68px;gap:16px}
+    .sw-brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--navy);
+      font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.4px}
+    .sw-brand-mark{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--blue),var(--sky));box-shadow:0 8px 18px -8px rgba(30,136,229,.7)}
+    .sw-brand-mark svg{width:21px;height:21px;color:#fff}
+    .sw-brand small{display:block;font-size:11px;font-weight:500;letter-spacing:1.5px;
+      color:var(--muted-2);text-transform:uppercase;margin-top:-3px;font-family:'Poppins',sans-serif}
+    .sw-nav-links{display:flex;align-items:center;gap:30px}
+    .sw-nav-links a{text-decoration:none;color:var(--ink);font-size:14.5px;font-weight:500;
+      transition:color .2s}
+    .sw-nav-links a:hover{color:var(--blue)}
+    .sw-nav .sw-btn{padding:11px 22px;font-size:14.5px}
+    @media(max-width:860px){.sw-nav-links a{display:none}}
+
+    /* ---------- Hero ---------- */
+    .sw-hero{position:relative;overflow:hidden;color:#fff;
+      background:radial-gradient(1100px 520px at 82% -12%,rgba(79,195,247,.4),transparent),
+                 radial-gradient(800px 420px at 10% 0%,rgba(30,136,229,.28),transparent),
+                 linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 52%,var(--navy-3) 100%)}
+    .sw-hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:180px;
+      background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='180' preserveAspectRatio='none'%3E%3Cpath d='M0 120 Q300 60 600 100 T1200 90' stroke='%23ffffff22' stroke-width='2' fill='none'/%3E%3Cpath d='M0 150 Q350 95 700 130 T1200 120' stroke='%23ffffff14' stroke-width='2' fill='none'/%3E%3C/svg%3E") bottom/cover no-repeat;pointer-events:none}
+    .sw-hero-glow{position:absolute;width:520px;height:520px;border-radius:50%;
+      background:radial-gradient(circle,rgba(79,195,247,.32),transparent 65%);
+      top:-160px;right:-120px;filter:blur(8px);pointer-events:none}
+    .sw-hero .sw-wrap{position:relative;z-index:2;padding-top:84px;padding-bottom:96px;text-align:center}
+    .sw-hero-pill{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.22);padding:9px 18px;border-radius:50px;font-size:13px;
+      font-weight:500;letter-spacing:.3px;margin-bottom:26px}
+    .sw-hero-pill svg{width:15px;height:15px;color:var(--sky)}
+    .sw-hero h1{font-family:'Plus Jakarta Sans','Poppins',sans-serif;font-size:clamp(33px,5.4vw,60px);
+      font-weight:800;line-height:1.08;max-width:920px;margin:0 auto;letter-spacing:-1px}
+    .sw-hero h1 .sw-hl{background:linear-gradient(120deg,var(--sky),#bfe7ff);
+      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    .sw-hero p{font-size:clamp(16px,2.1vw,19px);color:#cfe4ff;max-width:700px;margin:24px auto 36px}
+    .sw-hero-cta{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+    .sw-badges{display:flex;flex-wrap:wrap;gap:13px;justify-content:center;margin-top:42px}
+    .sw-badge{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.09);
+      border:1px solid rgba(255,255,255,.18);padding:10px 18px;border-radius:50px;font-size:14px;
+      font-weight:500}
+    .sw-badge svg{width:16px;height:16px;flex:0 0 auto;color:var(--sky)}
+
+    /* ---------- Stats band ---------- */
+    .sw-stats{background:var(--card);border-bottom:1px solid var(--line)}
+    .sw-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:38px 0}
+    .sw-stat{text-align:center;padding:8px 14px;position:relative}
+    .sw-stat + .sw-stat::before{content:"";position:absolute;left:0;top:18%;height:64%;width:1px;
+      background:var(--line)}
+    .sw-stat b{display:block;font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(26px,3.4vw,38px);
+      font-weight:800;color:var(--navy);line-height:1;letter-spacing:-.5px}
+    .sw-stat span{display:block;margin-top:9px;font-size:13.5px;color:var(--muted);font-weight:500}
+    @media(max-width:680px){.sw-stats-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+      .sw-stat:nth-child(odd)::before{display:none}}
+
+    /* ---------- About ---------- */
+    .sw-about{background:var(--bg)}
+    .sw-about-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+      padding:52px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+    .sw-about-card::before{content:"";position:absolute;top:-60px;right:-60px;width:200px;height:200px;
+      border-radius:50%;background:radial-gradient(circle,rgba(79,195,247,.14),transparent 70%)}
+    .sw-about-card .sw-lead{max-width:none}
+    @media(max-width:620px){.sw-about-card{padding:32px 26px}}
+
+    /* ---------- Programs ---------- */
+    .sw-grid{display:grid;gap:24px}
+    .sw-grid-3{grid-template-columns:repeat(3,1fr)}
+    .sw-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+      padding:32px 28px;transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease;
+      position:relative;overflow:hidden}
+    .sw-card:hover{transform:translateY(-7px);box-shadow:var(--shadow);border-color:var(--line-2)}
+    .sw-card .sw-num{position:absolute;top:-12px;right:16px;font-family:'Plus Jakarta Sans',sans-serif;
+      font-size:88px;font-weight:800;color:rgba(30,136,229,.06);line-height:1;pointer-events:none}
+    .sw-ic{width:56px;height:56px;border-radius:15px;display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--blue),var(--sky));color:#fff;margin-bottom:20px;
+      box-shadow:0 12px 24px -12px rgba(30,136,229,.65)}
+    .sw-ic svg{width:28px;height:28px}
+    .sw-card h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:19px;color:var(--navy);
+      margin-bottom:10px;font-weight:700;letter-spacing:-.3px}
+    .sw-card p{font-size:14.5px;color:var(--muted)}
+    .sw-tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+      color:var(--blue);background:rgba(30,136,229,.10);padding:5px 12px;border-radius:50px;
+      margin-bottom:14px;letter-spacing:.3px}
+    .sw-tag.sw-tag-hot{color:var(--accent-2);background:rgba(255,106,0,.10)}
+    .sw-tag svg{width:13px;height:13px}
+    .sw-card-cta{display:grid;place-items:center;text-align:center;border:0;
+      background:linear-gradient(150deg,var(--navy),var(--navy-2));color:#fff}
+    .sw-card-cta h3{color:#fff;font-size:22px}
+    .sw-card-cta p{color:#cfe4ff;margin-bottom:22px}
+
+    /* ---------- Why Different ---------- */
+    .sw-why{background:var(--navy);color:#fff;position:relative;overflow:hidden}
+    .sw-why::before{content:"";position:absolute;top:-120px;left:-80px;width:380px;height:380px;
+      border-radius:50%;background:radial-gradient(circle,rgba(30,136,229,.22),transparent 70%)}
+    .sw-why .sw-wrap{position:relative;z-index:2}
+    .sw-why .sw-h2{color:#fff}
+    .sw-why .sw-grid-2{grid-template-columns:repeat(2,1fr);margin-top:46px}
+    .sw-feature{display:flex;gap:18px;background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:28px;
+      transition:transform .3s ease,background .3s ease}
+    .sw-feature:hover{transform:translateY(-5px);background:rgba(255,255,255,.08)}
+    .sw-feature .sw-fic{flex:0 0 auto;width:50px;height:50px;border-radius:13px;display:grid;
+      place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+      box-shadow:0 12px 24px -12px rgba(255,106,0,.6)}
+    .sw-feature .sw-fic svg{width:25px;height:25px}
+    .sw-feature h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;margin-bottom:7px;
+      font-weight:700;letter-spacing:-.3px}
+    .sw-feature p{font-size:14.5px;color:#bcd2ee}
+
+    /* ---------- Career Timeline ---------- */
+    .sw-timeline{position:relative;margin-top:54px;padding-left:44px;max-width:820px}
+    .sw-timeline::before{content:"";position:absolute;left:15px;top:10px;bottom:10px;width:3px;
+      background:linear-gradient(var(--sky),var(--blue),var(--accent));border-radius:3px}
+    .sw-step{position:relative;margin-bottom:30px;background:var(--card);border:1px solid var(--line);
+      border-radius:16px;padding:26px 30px;box-shadow:var(--shadow-sm);
+      transition:transform .3s ease,box-shadow .3s ease}
+    .sw-step:hover{transform:translateX(5px);box-shadow:var(--shadow)}
+    .sw-step:last-child{margin-bottom:0}
+    .sw-dot{position:absolute;left:-44px;top:28px;width:32px;height:32px;border-radius:50%;
+      background:linear-gradient(135deg,var(--blue),var(--sky));color:#fff;display:grid;
+      place-items:center;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;
+      box-shadow:0 0 0 6px var(--bg)}
+    .sw-step h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:19px;color:var(--navy);
+      margin-bottom:8px;font-weight:700;letter-spacing:-.3px}
+    .sw-step p{font-size:14.5px;color:var(--muted)}
+
+    /* ---------- CTA strip ---------- */
+    .sw-cta{background:linear-gradient(135deg,var(--blue),var(--navy-3));color:#fff;text-align:center;
+      position:relative;overflow:hidden}
+    .sw-cta::after{content:"";position:absolute;inset:0;
+      background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='300'%3E%3Cpath d='M0 180 Q300 120 600 160 T1200 150' stroke='%23ffffff1f' stroke-width='2' fill='none'/%3E%3C/svg%3E") center/cover no-repeat;pointer-events:none}
+    .sw-cta .sw-wrap{position:relative;z-index:2}
+    .sw-cta .sw-h2{color:#fff}
+    .sw-cta p{color:#e3f0ff;max-width:650px;margin:18px auto 32px;font-size:17px}
+
+    /* ---------- FAQ ---------- */
+    .sw-faq{background:var(--bg)}
+    .sw-acc{max-width:860px;margin:46px auto 0}
+    .sw-acc details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);
+      margin-bottom:14px;overflow:hidden;transition:box-shadow .25s ease,border-color .25s ease}
+    .sw-acc details[open]{box-shadow:var(--shadow);border-color:var(--line-2)}
+    .sw-acc summary{list-style:none;cursor:pointer;padding:22px 26px;font-family:'Plus Jakarta Sans',sans-serif;
+      font-weight:600;font-size:16px;color:var(--navy);display:flex;justify-content:space-between;
+      align-items:center;gap:16px}
+    .sw-acc summary::-webkit-details-marker{display:none}
+    .sw-acc summary .sw-pm{flex:0 0 auto;width:28px;height:28px;border-radius:50%;
+      background:rgba(30,136,229,.12);color:var(--blue);display:grid;place-items:center;
+      transition:transform .25s ease,background .25s ease}
+    .sw-acc summary .sw-pm svg{width:15px;height:15px}
+    .sw-acc details[open] summary .sw-pm{transform:rotate(135deg);background:var(--blue);color:#fff}
+    .sw-acc .sw-ans{padding:0 26px 24px;color:var(--muted);font-size:14.5px}
+
+    /* ---------- Footer ---------- */
+    .sw-footer{background:var(--navy);color:#cfe0f2;padding:56px 0 30px}
+    .sw-foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;align-items:start}
+    .sw-footer .sw-brand{color:#fff}
+    .sw-footer .sw-brand small{color:#8fb3d8}
+    .sw-foot-about{margin-top:18px;font-size:14.5px;color:#9fb8d4;max-width:320px}
+    .sw-foot-col h4{font-family:'Plus Jakarta Sans',sans-serif;color:#fff;font-size:14px;
+      letter-spacing:1.2px;text-transform:uppercase;margin-bottom:16px;font-weight:700}
+    .sw-foot-col a,.sw-foot-col p{display:flex;align-items:flex-start;gap:10px;color:#9fb8d4;
+      text-decoration:none;font-size:14.5px;margin-bottom:12px;transition:color .2s}
+    .sw-foot-col a:hover{color:var(--sky)}
+    .sw-foot-col svg{width:17px;height:17px;flex:0 0 auto;margin-top:3px;color:var(--sky)}
+    .sw-foot-bottom{margin-top:42px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);
+      display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13.5px;color:#7e98b6}
+    @media(max-width:760px){.sw-foot-grid{grid-template-columns:1fr;gap:30px}}
+
+    /* ---------- Scroll reveal ---------- */
+    .sw-reveal{opacity:0;transform:translateY(24px);
+      transition:opacity .7s cubic-bezier(.16,.84,.44,1),transform .7s cubic-bezier(.16,.84,.44,1)}
+    .sw-reveal.sw-in{opacity:1;transform:none}
+
+    /* ---------- Responsive ---------- */
+    @media(max-width:900px){
+      .sw-grid-3{grid-template-columns:repeat(2,1fr)}
+      .sw-why .sw-grid-2{grid-template-columns:1fr}
+    }
+    @media(max-width:620px){
+      .sw-section{padding:60px 0}
+      .sw-grid-3{grid-template-columns:1fr}
+      .sw-badges{gap:10px}
+      .sw-timeline{padding-left:40px}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .sw-root *{animation:none!important;transition:none!important}
+      .sw-reveal{opacity:1;transform:none}
+    }
+  </style>
+
+  <!-- ================= NAV ================= -->
+  <header class="sw-nav">
+    <div class="sw-wrap sw-nav-inner">
+      <a class="sw-brand" href="#sw-top" aria-label="SkyWize Aviation home">
+        <span class="sw-brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        </span>
+        <span>SkyWize<small>Aviation Academy</small></span>
+      </a>
+      <nav class="sw-nav-links" aria-label="Primary">
+        <a href="#sw-about">About</a>
+        <a href="#sw-programs">Programs</a>
+        <a href="#sw-why">Why Us</a>
+        <a href="#sw-career">Career Path</a>
+        <a href="#sw-faq">FAQs</a>
+      </nav>
+      <!-- TODO: REPLACE_WITH_GMB_LINK -->
+      <a class="sw-btn sw-btn-primary" href="REPLACE_WITH_GMB_LINK" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Visit Institute
+      </a>
+    </div>
+  </header>
+
+  <!-- ================= HERO ================= -->
+  <section class="sw-hero" id="sw-top">
+    <span class="sw-hero-glow" aria-hidden="true"></span>
+    <div class="sw-wrap">
+      <span class="sw-hero-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        SkyWize Aviation • Chandigarh Tricity
+      </span>
+      <h1>Your Child Deserves a Career That Takes Them to the <span class="sw-hl">Skies</span></h1>
+      <p>The best aviation academy in Chandigarh — trusted by 1,000+ students and their families. DGCA-recognized programs, 100% placement support, and real careers in aviation.</p>
+      <div class="sw-hero-cta">
+        <!-- TODO: REPLACE_WITH_GMB_LINK -->
+        <a class="sw-btn sw-btn-primary" href="REPLACE_WITH_GMB_LINK" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Visit Our Institute
+        </a>
+        <a class="sw-btn sw-btn-ghost" href="#sw-programs">
+          Explore Programs
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+      <div class="sw-badges">
+        <span class="sw-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> DGCA-Recognized</span>
+        <span class="sw-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 1,000+ Students Trained</span>
+        <span class="sw-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 100% Placement Support</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STATS ================= -->
+  <section class="sw-stats" aria-label="SkyWize by the numbers">
+    <div class="sw-wrap">
+      <div class="sw-stats-grid">
+        <div class="sw-stat"><b data-count="1000" data-suffix="+">1,000+</b><span>Students Trained</span></div>
+        <div class="sw-stat"><b data-count="5" data-suffix="">5</b><span>Aviation Programs</span></div>
+        <div class="sw-stat"><b data-count="100" data-suffix="%">100%</b><span>Placement Support</span></div>
+        <div class="sw-stat"><b>3</b><span>Tricity Cities Served</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ABOUT ================= -->
+  <section class="sw-section sw-about" id="sw-about">
+    <div class="sw-wrap">
+      <div class="sw-about-card sw-reveal">
+        <span class="sw-eyebrow">About SkyWize</span>
+        <h2 class="sw-h2">Which is the best aviation academy in Chandigarh?</h2>
+        <p class="sw-lead">SkyWize Aviation is the tricity's first aviation training institute led by industry professionals. It offers DGCA-focused programs in Commercial Pilot License (CPL), Private Pilot License (PPL), Airline Interview Prep, and Drone Pilot Licensing. With personalised attention and digital classrooms, SkyWize is the top-rated aviation institute for students in <strong style="color:var(--navy)">Chandigarh, Panchkula, and Mohali</strong>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROGRAMS ================= -->
+  <section class="sw-section" id="sw-programs">
+    <div class="sw-wrap">
+      <div class="sw-center sw-reveal">
+        <span class="sw-eyebrow">Our Programs</span>
+        <h2 class="sw-h2">5 Aviation Programs — All Under One Roof</h2>
+        <p class="sw-lead">Every course at SkyWize is built around one goal: getting you hired in the aviation industry with real knowledge and real confidence.</p>
+      </div>
+
+      <div class="sw-grid sw-grid-3" style="margin-top:48px">
+        <div class="sw-card sw-reveal">
+          <span class="sw-num">01</span>
+          <div class="sw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></div>
+          <span class="sw-tag sw-tag-hot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.4 7.3H22l-6 4.4 2.3 7.3-6.3-4.6L5.7 21 8 14 2 9.3h7.6z"/></svg> Most Popular</span>
+          <h3>Commercial Pilot License (CPL)</h3>
+          <p>The main course for anyone who wants to fly for an airline. Covers all DGCA theory subjects, exam preparation, and guidance on flying hours. This is the path to becoming a professional pilot.</p>
+        </div>
+        <div class="sw-card sw-reveal">
+          <span class="sw-num">02</span>
+          <div class="sw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M12 2a14 14 0 0 1 0 20M12 2a14 14 0 0 0 0 20"/><circle cx="12" cy="12" r="10"/></svg></div>
+          <h3>Private Pilot License (PPL)</h3>
+          <p>For students who want to start flying but aren't ready for CPL yet. PPL lets you fly small aircraft and is a great first step. Many students do PPL first, then move to CPL.</p>
+        </div>
+        <div class="sw-card sw-reveal">
+          <span class="sw-num">03</span>
+          <div class="sw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.3 7 22l5-3 5 3-1.2-8.7"/></svg></div>
+          <h3>Airline Transport Pilot License (ATPL)</h3>
+          <p>For experienced pilots who want to become a Captain. ATPL is the highest pilot license; it allows you to be the pilot-in-command of a large commercial aircraft.</p>
+        </div>
+        <div class="sw-card sw-reveal">
+          <span class="sw-num">04</span>
+          <div class="sw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg></div>
+          <h3>Airline Interview Preparation</h3>
+          <p>Dedicated course to help you crack airline selection rounds. Covers mock interviews, body language, personality, spoken English, and airline-specific formats. Even past students can join.</p>
+        </div>
+        <div class="sw-card sw-reveal">
+          <span class="sw-num">05</span>
+          <div class="sw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 9V5M12 15v4M9 12H5M15 12h4M5 5l2.5 2.5M19 5l-2.5 2.5M5 19l2.5-2.5M19 19l-2.5-2.5"/></svg></div>
+          <span class="sw-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M21 7v5h-5"/></svg> Fastest Growing</span>
+          <h3>Drone Pilot Licensing Program</h3>
+          <p>Drones are the fastest growing area in aviation. This course gives you an official DGCA drone pilot license — opening doors in defense, agriculture, filmmaking, and logistics sectors.</p>
+        </div>
+        <div class="sw-card sw-card-cta sw-reveal">
+          <div>
+            <h3>Not sure which course fits you?</h3>
+            <p>Talk to our team and get honest guidance — free.</p>
+            <!-- TODO: REPLACE_WITH_GMB_LINK -->
+            <a class="sw-btn sw-btn-primary" href="REPLACE_WITH_GMB_LINK" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Visit Our Institute
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= WHY DIFFERENT ================= -->
+  <section class="sw-section sw-why" id="sw-why">
+    <div class="sw-wrap">
+      <div class="sw-center sw-reveal">
+        <span class="sw-eyebrow" style="background:rgba(255,255,255,.12);color:#9fd0ff">Why SkyWize</span>
+        <h2 class="sw-h2">What Makes SkyWize Different from Other Institutes in the Tricity</h2>
+      </div>
+      <div class="sw-grid sw-grid-2">
+        <div class="sw-feature sw-reveal">
+          <div class="sw-fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div>
+            <h3>Run by real aviation professionals</h3>
+            <p>Not just teachers — the people training you have actually worked in the aviation industry. That's a big deal when you're preparing for airline interviews and DGCA exams.</p>
+          </div>
+        </div>
+        <div class="sw-feature sw-reveal">
+          <div class="sw-fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></div>
+          <div>
+            <h3>Personalised attention to every student</h3>
+            <p>SkyWize doesn't do giant batches where you get lost in the crowd. Each student gets focused, individual guidance.</p>
+          </div>
+        </div>
+        <div class="sw-feature sw-reveal">
+          <div class="sw-fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+          <div>
+            <h3>Fully digital, structured classrooms</h3>
+            <p>No outdated notes or boring lectures — modern, interactive sessions that actually make DGCA subjects easy to understand.</p>
+          </div>
+        </div>
+        <div class="sw-feature sw-reveal">
+          <div class="sw-fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M13 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L11 19"/></svg></div>
+          <div>
+            <h3>Tie-ups with the best flying schools</h3>
+            <p>For CPL students, SkyWize has tie-ups with top flying schools so you can complete your flying hours smoothly.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CAREER TIMELINE ================= -->
+  <section class="sw-section" id="sw-career">
+    <div class="sw-wrap">
+      <div class="sw-center sw-reveal">
+        <span class="sw-eyebrow">Career Path</span>
+        <h2 class="sw-h2">What Does a Pilot's Career Actually Look Like After Training?</h2>
+      </div>
+      <div class="sw-timeline" style="margin-left:auto;margin-right:auto">
+        <div class="sw-step sw-reveal">
+          <span class="sw-dot">1</span>
+          <h3>Junior First Officer (JFO)</h3>
+          <p>Right after your CPL from DGCA, you join an airline as a JFO. It's a 6-month trainee stage with a stipend — your first real experience inside a commercial cockpit.</p>
+        </div>
+        <div class="sw-step sw-reveal">
+          <span class="sw-dot">2</span>
+          <h3>First Officer (Co-Pilot)</h3>
+          <p>After JFO training, you become a co-pilot on large passenger aircraft — flying routes, assisting the Captain, and building your flying hours. Salary increases significantly here.</p>
+        </div>
+        <div class="sw-step sw-reveal">
+          <span class="sw-dot">3</span>
+          <h3>Obtain ATPL (Airline Transport Pilot License)</h3>
+          <p>After 1,500 hours of flying (usually 3–4 years), you can apply for ATPL from DGCA. This is the license that makes you eligible to become a Captain.</p>
+        </div>
+        <div class="sw-step sw-reveal">
+          <span class="sw-dot">4</span>
+          <h3>Captain (Pilot-in-Command)</h3>
+          <p>You're now in command of the aircraft, the crew, and the passengers. Highest responsibility. Highest pay. The goal every pilot works toward.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CTA STRIP ================= -->
+  <section class="sw-section sw-cta">
+    <div class="sw-wrap sw-reveal">
+      <span class="sw-eyebrow" style="background:rgba(255,255,255,.16);color:#fff">Ready to Start?</span>
+      <h2 class="sw-h2">Come Visit SkyWize</h2>
+      <p>You don't need to fill a form or pay anything to visit. Just walk into our Panchkula institute, meet our team, and get honest answers. The best decisions start with a real conversation.</p>
+      <!-- TODO: REPLACE_WITH_GMB_LINK -->
+      <a class="sw-btn sw-btn-light" href="REPLACE_WITH_GMB_LINK" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Visit Our Institute
+      </a>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section class="sw-section sw-faq" id="sw-faq">
+    <div class="sw-wrap">
+      <div class="sw-center sw-reveal">
+        <span class="sw-eyebrow">FAQs</span>
+        <h2 class="sw-h2">Questions Parents &amp; Students Ask Us</h2>
+      </div>
+      <div class="sw-acc">
+        <details open class="sw-reveal">
+          <summary>I am from a Commerce / Arts background. Can I still join an aviation course at SkyWize?<span class="sw-pm" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="sw-ans">Yes, absolutely. You do not need Science to join most aviation courses at SkyWize. Cabin Crew Excellence Program, Airline Interview Preparation, and Drone Pilot Licensing are open to students from any stream — Science, Commerce, or Arts.</div>
+        </details>
+        <details class="sw-reveal">
+          <summary>My child just passed Class 12. Is this the right time to join SkyWize?<span class="sw-pm" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="sw-ans">Yes, right after Class 12 is actually the best time to start. Aviation careers have an age factor, especially for pilots. The earlier you begin your DGCA ground training, the faster you complete your exams and get into a flying school.</div>
+        </details>
+        <details class="sw-reveal">
+          <summary>What is the DGCA exam and how hard is it to clear?<span class="sw-pm" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="sw-ans">DGCA stands for Directorate General of Civil Aviation — India's official aviation authority. To become a licensed pilot in India, you must pass DGCA theory exams in subjects like Air Navigation, Meteorology, Air Regulations, Technical General, and RTR (Radio Telephony).</div>
+        </details>
+        <details class="sw-reveal">
+          <summary>Are there age limits for becoming a pilot in India?<span class="sw-pm" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="sw-ans">Yes. For CPL (Commercial Pilot License), you must be at least 17 years old to get a Student Pilot License, and at least 18 years old to obtain a CPL. Most airlines have an upper age limit of around 36–40 years for fresh pilot recruitment, though this varies.</div>
+        </details>
+        <details class="sw-reveal">
+          <summary>What is a Drone Pilot License and why should my child consider it?<span class="sw-pm" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="sw-ans">A Drone Pilot License is an official DGCA certification that allows you to fly commercial drones legally in India. It's the fastest-growing area in aviation, with opportunities in defense, agriculture, filmmaking, and logistics.</div>
+        </details>
+        <details class="sw-reveal">
+          <summary>Is aviation a good career for girls? Are there enough opportunities?<span class="sw-pm" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="sw-ans">Aviation is one of the best career choices for girls in India right now. Indian airlines are actively hiring, and there is a strong push to increase the number of female pilots in India.</div>
+        </details>
+        <details class="sw-reveal">
+          <summary>Can I become a pilot if I wear glasses or have weak eyesight?<span class="sw-pm" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+          <div class="sw-ans">This depends on the degree of your vision problem. Mild refractive errors — nearsightedness or farsightedness within a certain range — are acceptable for a pilot license, provided the vision is fully correctable with glasses or contact lenses.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="sw-footer">
+    <div class="sw-wrap">
+      <div class="sw-foot-grid">
+        <div>
+          <a class="sw-brand" href="#sw-top" aria-label="SkyWize Aviation home">
+            <span class="sw-brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+            </span>
+            <span style="color:#fff">SkyWize<small>Aviation Academy</small></span>
+          </a>
+          <p class="sw-foot-about">The tricity's first professional-led aviation academy — DGCA-focused training for the next generation of pilots in Chandigarh, Panchkula &amp; Mohali.</p>
+        </div>
+        <div class="sw-foot-col">
+          <h4>Programs</h4>
+          <a href="#sw-programs">Commercial Pilot License</a>
+          <a href="#sw-programs">Private Pilot License</a>
+          <a href="#sw-programs">Airline Interview Prep</a>
+          <a href="#sw-programs">Drone Pilot Licensing</a>
+        </div>
+        <div class="sw-foot-col">
+          <h4>Visit Us</h4>
+          <p><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Panchkula, Chandigarh Tricity</p>
+          <!-- TODO: REPLACE_WITH_PHONE -->
+          <a href="tel:REPLACE_WITH_PHONE"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.4-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg> Call us today</a>
+          <!-- TODO: REPLACE_WITH_GMB_LINK -->
+          <a href="REPLACE_WITH_GMB_LINK" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg> Get directions</a>
+        </div>
+      </div>
+      <div class="sw-foot-bottom">
+        <span>© <span id="sw-year">2026</span> SkyWize Aviation. All rights reserved.</span>
+        <span>DGCA-recognized programs • 100% placement support</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= TINY JS ================= -->
+  <script>
+  (function(){
+    var root = document.currentScript.closest('.sw-root');
+    if(!root) return;
+
+    /* year */
+    var y = root.querySelector('#sw-year'); if(y) y.textContent = new Date().getFullYear();
+
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce) return;
+
+    /* scroll reveal */
+    var reveals = root.querySelectorAll('.sw-reveal');
+    if('IntersectionObserver' in window){
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(e.isIntersecting){ e.target.classList.add('sw-in'); io.unobserve(e.target); }
+        });
+      }, {threshold:.12, rootMargin:'0px 0px -8% 0px'});
+      reveals.forEach(function(el){ io.observe(el); });
+    } else {
+      reveals.forEach(function(el){ el.classList.add('sw-in'); });
+    }
+
+    /* animated stat counters */
+    var counters = root.querySelectorAll('[data-count]');
+    function animate(el){
+      var target = parseInt(el.getAttribute('data-count'), 10);
+      var suffix = el.getAttribute('data-suffix') || '';
+      var start = null, dur = 1400;
+      function step(ts){
+        if(!start) start = ts;
+        var p = Math.min((ts - start) / dur, 1);
+        var eased = 1 - Math.pow(1 - p, 3);
+        var val = Math.round(target * eased);
+        el.textContent = val.toLocaleString('en-IN') + suffix;
+        if(p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+    if('IntersectionObserver' in window){
+      var io2 = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(e.isIntersecting){ animate(e.target); io2.unobserve(e.target); }
+        });
+      }, {threshold:.6});
+      counters.forEach(function(el){ io2.observe(el); });
+    }
+  })();
+  </script>
+</div>
