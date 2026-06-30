@@ -268,6 +268,18 @@ body {
     <td class="totals-label">Subtotal:</td>
     <td>$<?php echo number_format($price, 2); ?></td>
 </tr>
+<?php if(isset($invoice) && !empty($invoice['discount_type']) && $invoice['discount_amount'] > 0): ?>
+<tr>
+    <td class="totals-label">Discount<?php echo $invoice['discount_type'] === 'sibling' ? ' (Sibling)' : ''; ?>:</td>
+    <td>-$<?php echo number_format($invoice['discount_amount'], 2); ?></td>
+</tr>
+<?php endif; ?>
+<?php if(isset($invoice) && !empty($invoice['extra_type']) && $invoice['extra_amount'] > 0): ?>
+<tr>
+    <td class="totals-label"><?php echo $invoice['extra_type'] === 'add' ? 'Extra Charge' : 'Amount Reduced'; ?>:</td>
+    <td><?php echo $invoice['extra_type'] === 'add' ? '' : '-'; ?>$<?php echo number_format($invoice['extra_amount'], 2); ?></td>
+</tr>
+<?php endif; ?>
 <tr>
     <td class="totals-label">GST 5% (713080158RT0001):</td>
     <td>$<?php echo number_format($gst, 2); ?></td>

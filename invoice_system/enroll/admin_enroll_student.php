@@ -1,4 +1,4 @@
-<?php 
+<?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 include "../../db_config.php";
@@ -121,7 +121,7 @@ margin-right:6px;
     font-size: 13px;
     background: #fff;
     transition: all 0.2s ease;
-    width: auto; 
+    width: auto;
 }
 
 .subject-box span {
@@ -167,7 +167,7 @@ margin-right:6px;
     background: #f7f9fc;
     padding: 0px 0px;
 }
- 
+
   .form-row{
     flex-direction:column;
     gap:12px;
@@ -217,7 +217,7 @@ margin-right:6px;
 
 <h2 class="enroll-title">Admin Student Enrollment</h2>
 
-<form method="POST" action="invoice_system/enroll/save_admin_enrollment.php" class="enroll-form">
+<form id="enrollForm" class="enroll-form">
 
 <!-- Student Details -->
 
@@ -254,11 +254,22 @@ margin-right:6px;
 
 
 <div class="form-row">
+<div class="form-group">
+<label>Mode of Education</label>
 
+<select name="mode_of_education">
+
+<option value="">Select Mode</option>
+<option>Offline</option>
+<option>Online</option>
+
+</select>
+
+</div>
 <div class="form-group">
 <label>Grade  <span class="required">*</span></label>
 
-<select name="grade" required>
+<select name="grade" id="grade" required>
 
 <option value="">Select Grade</option>
 
@@ -283,20 +294,9 @@ margin-right:6px;
 
 </div>
 <div class="form-group">
-<label>Mode of Education</label>
-
-<select name="mode_of_education">
-
-<option value="">Select Mode</option>
-<option>Offline</option>
-<option>Online</option>
-
-</select>
-
-</div>
-<div class="form-group">
 <label>Program</label>
 <select name="program" id="program" required>
+<!-- <select name="program" id="program" required readonly> -->
 <option value="">Select Program</option>
 <option value="Early Starters">Early Starters</option>
 <option value="Elementary">Elementary</option>
@@ -309,7 +309,7 @@ margin-right:6px;
 <div class="form-row" id="program_count_section" style="display:none;">
     <div class="form-group">
         <label>Number of Programs <span class="required">*</span></label>
-        
+
         <select name="program_count" id="program_count" required>
             <option value="">Select Number of Programs</option>
         </select>
@@ -444,6 +444,53 @@ margin-right:6px;
 
 </div>
 
+<h3 class="section-title">Discount</h3>
+
+<div class="form-row">
+  <div class="form-group">
+    <label>Discount Type</label>
+    <select name="discount_type" id="discount_type">
+      <option value="">No Discount</option>
+      <option value="one_time">One Time Discount</option>
+      <option value="sibling">Sibling Discount (Recurring)</option>
+    </select>
+  </div>
+
+  <div class="form-group" id="discount_amount_box" style="display:none;">
+    <label>Discount Amount (CAD $)</label>
+    <input type="number" name="discount_amount" id="discount_amount" min="0" step="0.01">
+  </div>
+</div>
+
+<div class="form-group">
+  <label>Discount Description</label>
+  <input type="text" name="discount_description" placeholder="Enter discount reason (optional)">
+</div>
+
+<!-- Extra Amount (Add / Reduce) -->
+
+<h3 class="section-title">Extra Amount</h3>
+
+<div class="form-row">
+  <div class="form-group">
+    <label>Extra Amount Type</label>
+    <select name="extra_type" id="extra_type">
+      <option value="">No Extra Amount</option>
+      <option value="add">Add Extra Charge (+)</option>
+      <option value="subtract">Reduce Amount (-)</option>
+    </select>
+  </div>
+
+  <div class="form-group" id="extra_amount_box" style="display:none;">
+    <label>Extra Amount (CAD $)</label>
+    <input type="number" name="extra_amount" id="extra_amount" min="0" step="0.01">
+  </div>
+</div>
+
+<div class="form-group">
+  <label>Extra Amount Description</label>
+  <input type="text" name="extra_description" placeholder="Reason for extra charge / reduction (optional)">
+</div>
 
 <!-- Admin Fields -->
 
@@ -452,9 +499,9 @@ margin-right:6px;
 <div class="form-row">
 
 <div class="form-group">
-<label>Payment Type <span class="required">*</span></label>
+<label>Payment Type </label>
 
-<select name="payment_type" required>
+<select name="payment_type">
 
 <option value="">Select Payment Type</option>
 
@@ -471,7 +518,7 @@ margin-right:6px;
 
 
 <div class="form-group">
-<label>Admin Message / Notes</label>
+<label>Comments / Additional Message</label>
 <textarea name="message" placeholder="Optional notes about student"></textarea>
 </div>
 
@@ -542,11 +589,11 @@ document.querySelector(".enroll-form").addEventListener("submit", function(e){
 });
 
 // For program, subject,no of program dropdown
-const programSelect = document.getElementById("program");
-const subjectContainer = document.getElementById("subject_container");
-const subjectSection = document.getElementById("subject_section");
-const programCountSelect = document.getElementById("program_count");
-const programCountSection = document.getElementById("program_count_section");
+var programSelect = document.getElementById("program");
+var subjectContainer = document.getElementById("subject_container");
+var subjectSection = document.getElementById("subject_section");
+var programCountSelect = document.getElementById("program_count");
+var programCountSection = document.getElementById("program_count_section");
 
 programSelect.addEventListener("change", function(){
 
@@ -554,7 +601,7 @@ programSelect.addEventListener("change", function(){
 
     // RESET
     subjectContainer.innerHTML = "";
-    subjectSection.style.display = "none"; 
+    subjectSection.style.display = "none";
     programCountSelect.innerHTML = '<option value="">Select Number of Programs</option>';
 
      if(program === ""){
@@ -562,7 +609,7 @@ programSelect.addEventListener("change", function(){
         return;
     }
 
-    // 🔥 SHOW program count
+    // SHOW program count
     programCountSection.style.display = "block";
 
     if(program === "Early Starters"){
@@ -586,10 +633,17 @@ programCountSelect.addEventListener("change", function(){
         return;
     }
 
-    subjectSection.style.display = "block"; 
+    subjectSection.style.display = "block";
     subjectContainer.innerHTML = "Loading...";
 
-    fetch("invoice_system/enroll/get_subjects.php?program=" + program)
+    let grade = document.getElementById("grade").value;
+
+    fetch(
+        "invoice_system/enroll/get_subjects.php?program=" +
+        encodeURIComponent(program) +
+        "&grade=" +
+        encodeURIComponent(grade)
+    )
     .then(res => res.json())
     .then(data => {
 
@@ -629,4 +683,93 @@ subjectContainer.addEventListener("change", function(){
     }
 
 });
+
+$("#enrollForm").submit(function(e){
+    e.preventDefault();
+
+    let btn = $(".submit-btn");
+    btn.prop("disabled", true).text("Processing...");
+
+    let formData = $(this).serialize();
+
+    $.ajax({
+        url: "invoice_system/enroll/save_admin_enrollment.php",
+        type: "POST",
+        data: formData,
+
+        success: function(res){
+            $("#page-content").html(res);
+        },
+
+        error: function(){
+            alert("Enrollment failed");
+            btn.prop("disabled", false).text("Enroll Student");
+        }
+    });
+});
+
+// for discount
+
+document.getElementById("discount_type").addEventListener("change", function(){
+    let type = this.value;
+    let box = document.getElementById("discount_amount_box");
+
+    if(type === "one_time" || type === "sibling"){
+        box.style.display = "block";
+    } else {
+        box.style.display = "none";
+    }
+});
+
+// for extra amount (add / reduce)
+
+document.getElementById("extra_type").addEventListener("change", function(){
+    let type = this.value;
+    let box = document.getElementById("extra_amount_box");
+
+    if(type === "add" || type === "subtract"){
+        box.style.display = "block";
+    } else {
+        box.style.display = "none";
+        document.getElementById("extra_amount").value = "";
+    }
+});
+
+// grade dependency
+
+document.getElementById("grade").addEventListener("change", function(){
+
+    let grade = this.value;
+    let programSelect = document.getElementById("program");
+
+    // reset program
+    programSelect.value = "";
+
+    if(grade === "") return;
+
+    if(
+        grade === "Pre-School" ||
+        grade === "Kindergarten" ||
+        grade === "Grade 1" ||
+        grade === "Grade 2"
+    ){
+        programSelect.value = "Early Starters";
+    }
+    else if(
+        ["Grade 3","Grade 4","Grade 5","Grade 6","Grade 7","Grade 8"].includes(grade)
+    ){
+        programSelect.value = "Elementary";
+    }
+    else if(
+        ["Grade 9","Grade 10","Grade 11","Grade 12"].includes(grade)
+    ){
+        programSelect.value = "Advanced Learners";
+    }
+
+    // trigger program change manually (VERY IMPORTANT)
+    programSelect.dispatchEvent(new Event('change'));
+});
+// disable program
+// document.getElementById("program").setAttribute("disabled", true);
+
 </script>
