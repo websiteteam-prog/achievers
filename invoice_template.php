@@ -36,23 +36,20 @@ else{
 }
 
 $discount_type   = $invoice['discount_type'] ?? '';
-$discount_amount = $invoice['discount_amount'] ?? 0;
+$discount_amount = (float)($invoice['discount_amount'] ?? 0);
+$extra_type      = $invoice['extra_type'] ?? '';
+$extra_amount    = (float)($invoice['extra_amount'] ?? 0);
+
+$disc      = in_array($discount_type, ['one_time','sibling']) ? $discount_amount : 0;
+$extra_add = in_array($extra_type, ['one_time','permanent']) ? $extra_amount : 0;
+
+// $total = final amount (GST included). Rebuild base tuition:
+$gross_tuition = $total + $disc - $extra_add;
+
+// GST is included inside the total (5%)
+$gst = $total - ($total / 1.05);
 
 
-// GST INCLUDED → reverse calculation
-$original_price = $total + $discount_amount;
-
-// base (without GST)
-$base_price = $original_price / 1.05;
-
-// after discount
-$price_after_discount = $total;
-
-// taxable base after discount
-$taxable_after_discount = $price_after_discount / 1.05;
-
-// GST part
-$gst = $price_after_discount - $taxable_after_discount;
 ?>
 <!DOCTYPE html>
 <html>
@@ -268,8 +265,8 @@ body {
     <?php echo $courseDisplay; ?>
     </td>
     <td>1</td>
-  <td>$<?php echo number_format($base_price, 2); ?></td>
-<td>$<?php echo number_format($base_price, 2); ?></td>
+  <td>$<?php echo number_format($gross_tuition, 2); ?></td>
+<td>$<?php echo number_format($gross_tuition, 2); ?></td>
 </tr>
 </tbody>
 </table>
@@ -277,27 +274,26 @@ body {
 <!-- TOTALS -->
 <table class="totals-table">
 <tr>
-    <td class="totals-label">Subtotal:</td>
-    <td>$<?php echo number_format($base_price, 2); ?></td>
+    <td class="totals-label">Tuition Fees (incl. GST):</td>
+    <td>$<?php echo number_format($gross_tuition, 2); ?></td>
 </tr>
 
-<?php if(in_array($discount_type, ['one_time','sibling']) && $discount_amount > 0): ?>
+<?php if($disc > 0): ?>
 <tr>
-    <td class="totals-label">
-        Discount (<?php echo ucfirst(str_replace("_"," ",$discount_type)); ?>):
-    </td>
-    <td>- $<?php echo number_format($discount_amount, 2); ?></td>
-</tr>
-
-<tr>
-    <td class="totals-label"><strong>Taxable Amount:</strong></td>
-    <td>$<?php echo number_format($taxable_after_discount, 2); ?></td>
+    <td class="totals-label">Discount (<?php echo ucfirst(str_replace("_"," ",$discount_type)); ?>):</td>
+    <td>- $<?php echo number_format($disc, 2); ?></td>
 </tr>
 <?php endif; ?>
 
+<?php if($extra_add > 0): ?>
+<tr>
+    <td class="totals-label">Extra Charge (<?php echo $extra_type === 'permanent' ? 'Permanent' : 'One Time'; ?>):</td>
+    <td>+ $<?php echo number_format($extra_add, 2); ?></td>
+</tr>
+<?php endif; ?>
 
 <tr>
-    <td class="totals-label">GST 5% (713080158RT0001):</td>
+    <td class="totals-label">GST 5% (713080158RT0001) — included:</td>
     <td>$<?php echo number_format($gst, 2); ?></td>
 </tr>
 
@@ -306,9 +302,7 @@ body {
     <td>$<?php echo number_format($total, 2); ?></td>
 </tr>
 <tr>
-    <td class="totals-label">
-        Payment on <?php echo $date; ?> :
-    </td>
+    <td class="totals-label">Payment on <?php echo $date; ?> :</td>
     <td>$<?php echo number_format($total, 2); ?></td>
 </tr>
 <tr class="amount-due">

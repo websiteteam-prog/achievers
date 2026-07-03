@@ -210,7 +210,7 @@ rel="stylesheet"
 
 .filter-card
 {
-    background:#f8fafc;
+    background:transparent;
     padding:20px;
     border-radius:12px;
     margin-bottom:20px;

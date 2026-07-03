@@ -260,6 +260,8 @@ $payments_result = mysqli_query($conn, "
                 <th>Invoice No</th>
                 <th>Status</th>
                 <th>Amount</th>
+                <th>Discount</th>
+                <th>Extra</th>
                 <th>Action</th>
             </tr>
             </thead>
@@ -274,6 +276,22 @@ $payments_result = mysqli_query($conn, "
                             : '<span class="badge warning">Pending</span>'; ?>
                     </td>
                     <td>$<?php echo number_format($inv['total'], 2); ?></td>
+                                        <td>
+                        <?php if(!empty($inv['discount_type']) && $inv['discount_amount'] > 0): ?>
+                            <span class="badge info">
+                                <?php echo ucfirst(str_replace("_"," ",$inv['discount_type'])); ?>
+                                - $<?php echo number_format($inv['discount_amount'], 2); ?>
+                            </span>
+                        <?php else: ?> - <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if(($inv['extra_type'] ?? '') !== '' && $inv['extra_amount'] > 0): ?>
+                            <span class="badge warning">
+                                + $<?php echo number_format($inv['extra_amount'], 2); ?>
+                                (<?php echo $inv['extra_type'] === 'permanent' ? 'Permanent' : 'One Time'; ?>)
+                            </span>
+                        <?php else: ?> - <?php endif; ?>
+                    </td>
                     <td>
                        <a href="#"
                         class="btn-view menu-link"

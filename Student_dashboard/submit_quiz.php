@@ -23,6 +23,39 @@ include "../db_config.php";
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+function normalizeMath($v) {
+    $v = trim((string)$v);
+
+    // saare spaces hatao
+    $v = preg_replace('/\s+/u', '', $v);
+
+    // x, X, * sabko × me convert karo
+    $v = preg_replace('/[xX*·]/u', '×', $v);
+
+    return mb_strtolower($v);
+}
+
+function normalizeExponentExpression($v)
+{
+    $v = normalizeMath($v);
+
+    $parts = explode('×', $v);
+
+    // empty values remove
+    $parts = array_filter($parts);
+
+    // sort terms
+    sort($parts, SORT_NATURAL);
+
+    return implode('×', $parts);
+}
+
+function isExponentExpression($v)
+{
+    return preg_match('/[⁰¹²³⁴⁵⁶⁷⁸⁹^]/u', $v)
+        || substr_count($v, '×') > 0
+        || preg_match('/\d+\^\d+/u', $v);
+}
 
 // Check login
 if (!isset($_SESSION['student_id'])) {
@@ -41,7 +74,7 @@ if (!isset($_POST['submit_quiz'])) {
 }
 
 $quiz_id = intval($_POST['quiz_id'] ?? 0);
-// 🔥 EMPTY VALUES REMOVE
+//  EMPTY VALUES REMOVE
 $filtered_post = array_filter($_POST['answer'] ?? [], function($v){
     return $v !== '' && $v !== null;
 });
@@ -156,7 +189,7 @@ foreach ($answers as $question_id => $student_answer) {
         // Try to decode both as JSON
         $expected_json = json_decode($correct_answer, true);
         $submitted_json = json_decode($student_answer, true);
-        // 🔥 NORMALIZE student JSON 
+        //  NORMALIZE student JSON 
         if (is_array($submitted_json) && isset($submitted_json['values'])) {
             $submitted_json = $submitted_json['values'];
         }
@@ -164,7 +197,7 @@ foreach ($answers as $question_id => $student_answer) {
  if (is_array($expected_json) && is_array($submitted_json)) {
 
  // ==========================
-// 🔥 HISTOGRAM TABLE SUPPORT
+//  HISTOGRAM TABLE SUPPORT
 // ==========================
 
 if (
@@ -176,7 +209,7 @@ if (
 
     $is_correct = 1;
 
-    // ✅ Frequency check
+    // Frequency check
     foreach ($expected_json['freq'] as $i => $val) {
         $student_val = $submitted_json['freq'][$i] ?? null;
 
@@ -186,7 +219,7 @@ if (
         }
     }
 
-    // ✅ Cumulative check
+    // Cumulative check
     if ($is_correct) {
         foreach ($expected_json['cum'] as $i => $val) {
             $student_val = $submitted_json['cum'][$i] ?? null;
@@ -198,7 +231,7 @@ if (
         }
     }
 
-    // ✅ Max interval check
+    // Max interval check
     if ($is_correct && isset($expected_json['max_interval'])) {
         $student_max = trim((string)($submitted_json['max_interval'] ?? ''));
 
@@ -242,21 +275,21 @@ if (
             }
         } else {
 
-            if (
-                strcasecmp(
-                    trim((string)$student_val),
-                    trim((string)$correct_val)
-                ) !== 0
-            ) {
-                $is_correct = 0;
-                break 2;
-            }
+           if (
+            normalizeMath($student_val)
+            !==
+            normalizeMath($correct_val)
+        )
+        {
+            $is_correct = 0;
+            break 2;
+        }
         }
     }
 
 } else {
 
-    // ✅ STRING SAFE COMPARISON
+    //  STRING SAFE COMPARISON
    if (
     strcasecmp(
         trim((string)$correct_array),
@@ -274,12 +307,12 @@ if (
 
     else {
 
-        $correct_values = array_map(function($v){
-            return trim((string)$v);
+         $correct_values = array_map(function($v){
+        return normalizeMath($v);
         }, $expected_json);
-
+        
         $student_values = array_map(function($v){
-            return trim((string)$v);
+            return normalizeMath($v);
         }, $submitted_json);
 
         sort($correct_values);
@@ -289,18 +322,71 @@ if (
     }
 } elseif (is_array($submitted_json)) {
 
-            $is_correct = (strcasecmp($student_answer, $correct_answer) === 0) ? 1 : 0;
+if (
+    isExponentExpression($student_answer)
+    || isExponentExpression($correct_answer)
+) {
+
+    $is_correct =
+    (
+        normalizeExponentExpression($student_answer)
+        ===
+        normalizeExponentExpression($correct_answer)
+    ) ? 1 : 0;
+
+} else {
+
+    $is_correct =
+    (
+        normalizeMath($student_answer)
+        ===
+        normalizeMath($correct_answer)
+    ) ? 1 : 0;
+}
         } else {
             // Normal string comparison (old behavior)
-            if (is_numeric($student_answer) && is_numeric($correct_answer)) {
-                $tol = 0.001;
-                $is_correct = abs((float)$student_answer - (float)$correct_answer) < $tol ? 1 : 0;
-            } else {
-                $is_correct = (strcasecmp($student_answer, $correct_answer) === 0) ? 1 : 0;
-            }
-        }
+ if (is_numeric($student_answer) && is_numeric($correct_answer)) {
+
+    $tol = 0.001;
+
+    $is_correct =
+        abs((float)$student_answer - (float)$correct_answer) < $tol
+        ? 1
+        : 0;
+
+} else {
+
+    if (
+        isExponentExpression($student_answer)
+        || isExponentExpression($correct_answer)
+    ) {
+
+        $is_correct =
+        (
+            normalizeExponentExpression($student_answer)
+            ===
+            normalizeExponentExpression($correct_answer)
+        )
+        ? 1
+        : 0;
+
+    } else {
+
+        $is_correct =
+        (
+            normalizeMath($student_answer)
+            ===
+            normalizeMath($correct_answer)
+        )
+        ? 1
+        : 0;
+
     }
-        // 🔥 FIX: ensure string before DB insert
+}
+
+}
+        }
+        // FIX: ensure string before DB insert
         if (is_array($student_answer)) {
             $student_answer = json_encode($student_answer);
 }

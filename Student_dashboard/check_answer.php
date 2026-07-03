@@ -530,6 +530,9 @@ svg, table, canvas {
                             case 'pattern_rule_mcq' :
                             case 'pattern_extend_rule' :
                             case 'pattern_match_rule' :  include 'templates/Probability/number_pattern_complete.php'; break;
+                            case 'dynamic_fill_table':
+                                include 'templates/exponent/dynamic_fill_table.php';
+                                break;
                             case 'problem_solving':
                         include 'templates/problem_solving.php';
                       break;
@@ -616,7 +619,19 @@ svg, table, canvas {
                             break; 
                             case 'algebra_universal':
                             include 'templates/Algebra/algebra_universal.php';
-                            break;              
+                            break; 
+                            case 'compare_powers':
+                            include 'templates/Algebra/compare_powers.php';
+                            break;
+                            case 'integer_order_list':
+                            include 'templates/Integer/integer_order_list.php';
+                            break;
+                            case 'coordinate_points_input_negative':
+                            include 'templates/Integer/coordinate_points_input_negative.php';
+                            break; 
+                            case 'integer_number_line':
+                            include 'templates/Integer/integer_number_line.php';
+                            break;            
                             default:
                                 echo '<div class="p-4 text-muted fst-italic">Question type: ' . htmlspecialchars($q['question_type']) . '</div>';
                         }

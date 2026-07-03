@@ -2,19 +2,19 @@
 session_start();
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['teacher_id']) || !isset($_SESSION['teacher_subject'])) {
+if (!isset($_SESSION['teacher_id'])) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
 }
 
 include '../db_config.php';
 
-$subject = $_SESSION['teacher_subject'];
+$teacher_id = (int)$_SESSION['teacher_id'];
 
-$sql = "SELECT COUNT(DISTINCT s.id) AS cnt 
-        FROM students s
-        INNER JOIN subjects sub ON s.grade = sub.grade 
-        WHERE sub.subject_name = ?";
+$sql = "SELECT COUNT(DISTINCT ss.student_id) AS cnt
+        FROM teacher_subjects ts
+        JOIN student_subjects ss ON ss.subject_id = ts.subject_id
+        WHERE ts.teacher_id = ?";
 
 $stmt = $conn->prepare($sql);
 
@@ -23,7 +23,7 @@ if (!$stmt) {
     exit;
 }
 
-$stmt->bind_param("s", $subject);
+$stmt->bind_param("i", $teacher_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();

@@ -285,16 +285,14 @@ if($type === 'square_complete'):
 
 elseif($type === 'square_missing_digit'):
 
-if (!isset($GLOBALS['squareHintStarted'])) {
-    $GLOBALS['squareHintStarted'] = true;
+
+if ($is_first_missing_digit):
 ?>
 
 <div style="display:flex;align-items:flex-start;gap:60px;">
-
-    <!-- LEFT SIDE QUESTIONS -->
     <div style="flex:1;">
 
-<?php } ?>
+<?php endif; ?>
 
 <div class="square-card">
 
@@ -316,27 +314,22 @@ if (!isset($GLOBALS['squareHintStarted'])) {
     </div>
 
 </div>
-<?php
-if (
-    isset($current_instruction['questions']) &&
-    $index === count($current_instruction['questions']) - 1
-):
-?>
+
+<?php if ($is_first_missing_digit): ?>
 
     </div>
 
-    <!-- RIGHT SIDE SINGLE IMAGE -->
     <div style="width:320px;flex-shrink:0;">
         <img
             src="templates/images/square_hint.png"
             alt="Hint"
-            style="width:100%;display:block;margin-top: -33px;"
+            style="width:100%;display:block;margin-top:-33px;"
         >
     </div>
 
 </div>
-<?php
-    endif;
+
+<?php endif;
 ?>
 <?php
 elseif($type === 'perfect_square_root'):

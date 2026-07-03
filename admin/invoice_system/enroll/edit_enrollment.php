@@ -116,7 +116,7 @@
     </div>
 
 
-<!-- 💼 DISCOUNT CARD -->
+<!--  DISCOUNT CARD -->
 <div class="discount-card">
 
   <div class="discount-header">
@@ -154,7 +154,33 @@
   Active: <?php echo ucfirst(str_replace("_"," ",$discount_type)); ?> ($<?php echo $discount_amount; ?>)
 </div>
 <?php endif; ?>
-
+<!-- EXTRA AMOUNT CARD -->
+<div class="discount-card">
+  <div class="discount-header">
+    <span class="discount-icon">➕</span>
+    <h3>Extra Amount</h3>
+  </div>
+  <div class="discount-body">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Extra Amount Type</label>
+        <select name="extra_type" id="extra_type">
+          <option value="">No Extra Amount</option>
+          <option value="one_time" <?php if(($data['extra_type'] ?? '')=="one_time") echo "selected"; ?>>One Time Extra</option>
+          <option value="permanent" <?php if(($data['extra_type'] ?? '')=="permanent") echo "selected"; ?>>Permanent Extra (Recurring)</option>
+        </select>
+      </div>
+      <div class="form-group" id="extra_amount_box" style="display:<?php echo (!empty($data['extra_type']) ? 'block':'none'); ?>">
+        <label>Extra Amount ($)</label>
+        <input type="number" name="extra_amount" value="<?php echo $data['extra_amount'] ?? ''; ?>" step="0.01">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Extra Amount Description</label>
+      <input type="text" name="extra_description" value="<?php echo htmlspecialchars($data['extra_description'] ?? ''); ?>" placeholder="Reason (optional)">
+    </div>
+  </div>
+</div>
 
     <div class="submit-wrapper">
     <button class="submit-btn">Update Plan</button>
@@ -233,7 +259,7 @@
     box-shadow: 0 6px 15px rgba(34,197,94,0.3);
     }
 
-     /* 💼 PROFESSIONAL DISCOUNT CARD */
+     /*  PROFESSIONAL DISCOUNT CARD */
 .discount-card{
   background: #ffffff;
   border-radius: 14px;
@@ -320,6 +346,19 @@
         flex-wrap:wrap;
         gap:10px;
     }
+
+    /* Chrome, Edge, Safari, Opera */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
 
     /* MOBILE */
     @media(max-width:768px){
@@ -530,7 +569,7 @@ document.getElementById("discount_type").addEventListener("change", function(){
     // show/hide amount field
     box.style.display = type ? "block" : "none";
 
-    // 🔥 REMOVE LOGIC
+    //  REMOVE LOGIC
     if(type === ""){
         document.getElementById("discount_removed").value = "1";
     } else {
@@ -539,6 +578,9 @@ document.getElementById("discount_type").addEventListener("change", function(){
 
 });
 
+document.getElementById("extra_type").addEventListener("change", function(){
+    document.getElementById("extra_amount_box").style.display = this.value ? "block" : "none";
+});
 // grade dependency
 
 document.getElementById("grade").addEventListener("change", function(){
@@ -570,7 +612,7 @@ document.getElementById("grade").addEventListener("change", function(){
         programSelect.value = "Advanced Learners";
     }
 
-    // 🔥 trigger program change manually (VERY IMPORTANT)
+    //  trigger program change manually (VERY IMPORTANT)
     programSelect.dispatchEvent(new Event('change'));
 });
     </script>

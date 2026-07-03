@@ -113,6 +113,20 @@
   background:#009fb5;
 }
 
+/* SCHEDULE ASSESSMENT BUTTON (NEW) */
+.schedule-btn{
+  background:#2e9e74;
+  color:#fff;
+  padding:10px 26px;
+  border-radius:25px;
+  text-decoration:none;
+  font-weight:600;
+  white-space:nowrap;
+}
+.schedule-btn:hover{
+  background:#05364d;
+}
+
 /* ================= MOBILE HEADER ================= */
 .mobile-top-bar{
   display:none;
@@ -235,6 +249,23 @@
 .mobile-login-btn:hover{
   background:#009fb5;
 }
+
+/* MOBILE SCHEDULE BUTTON (NEW) */
+.mobile-schedule-btn{
+    display:block;
+    margin-top:12px;
+    text-align:center;
+    background:#2e9e74;
+    color:#fff;
+    padding:8px 14px;
+    border-radius:20px;
+    text-decoration:none;
+    font-weight:600;
+}
+.mobile-schedule-btn:hover{
+  background:#05364d;
+}
+
 /* ===== LOGIN MODAL ===== */
 .login-modal{
   position:fixed;
@@ -373,7 +404,10 @@
       <li><a href="blog.php">Blogs</a></li>
       <li><a href="contact.php">Contact</a></li>
     </ul>
-   
+
+    <!-- NEW: Schedule Appointment Button -->
+    <a href="schedule_appointment.php" class="schedule-btn">Schedule Appointment</a>
+
     <a href="#" class="login-btn" id="openLoginModal">Login</a>
      <a href="./enroll_query.php" style="
     background-color: #d6b125;
@@ -393,6 +427,20 @@ Enroll Now
     <div class="mobile-logo">
       <img src="images/logo1.png">
     </div>
+
+    <!-- NEW: Mobile Schedule Button -->
+    <a href="schedule_appointment.php" style="
+    background-color: #2e9e74;
+    color: white;
+    padding: 8px 14px;
+    text-decoration: none;
+    border-radius: 30px;
+    display: inline-block;
+    font-size: 12px;
+">
+Schedule
+</a>
+
      <a href="https://www.achieverscastle.com/enroll_query.php" style="
     background-color: #e60023;
     color: white;
@@ -419,6 +467,9 @@ Enroll Query
     <li><a href="about.php">About</a></li>
     <li><a href="contact.php">Contact</a></li>
   </ul>
+
+  <!-- NEW: Schedule Button in sidebar -->
+  <a href="schedule_appointment.php" class="mobile-schedule-btn">Schedule Appointment</a>
 
   <!-- LOGIN BUTTON -->
   <a href="#" class="mobile-login-btn" id="openLoginModalMobile">Login</a>

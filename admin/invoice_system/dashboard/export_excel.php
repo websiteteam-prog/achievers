@@ -10,8 +10,16 @@ $search = $_GET['search'] ?? '';
 $date   = $_GET['date'] ?? '';
 $status = $_GET['status'] ?? '';
 $enroll_status = $_GET['enroll_status'] ?? '';
+$billing = $_GET['billing'] ?? '';
 
 $where = "WHERE 1=1";
+
+// 🔁 BILLING FILTER
+if($billing === 'paused'){
+    $where .= " AND enrollment_inquiries.billing_paused = 1";
+} elseif($billing === 'active'){
+    $where .= " AND enrollment_inquiries.billing_paused = 0";
+}
 
 // 🔍 SEARCH
 if(!empty($search)){
@@ -24,7 +32,7 @@ if(!empty($search)){
 
 // 📅 DATE
 if(!empty($date)){
-    $where .= " AND DATE(invoices.created_at) = '$date'";
+    $where .= " AND DATE(enrollment_inquiries.enroll_date) = '$date'";
 }
 
 // 📌 INVOICE STATUS
@@ -52,6 +60,7 @@ SELECT
     enrollment_inquiries.program,
     enrollment_inquiries.specific_subject,
     enrollment_inquiries.status AS enroll_status,
+    enrollment_inquiries.billing_paused,
 
     payments.id AS payment_id,
     payments.amount,
@@ -73,7 +82,7 @@ ORDER BY invoices.id DESC
 ");
 
 // ✅ HEADER
-echo "Invoice No\tStudent\tTotal\tInvoice Status\tEnrollment\tPayment\tDate\tMethod\tReceipt No\tInvoice PDF\tReceipt PDF\n";
+echo "Invoice No\tStudent\tTotal\tInvoice Status\tEnrollment\tBilling\tPayment\tDate\tMethod\tReceipt No\tInvoice PDF\tReceipt PDF\n";
 // ✅ DATA
 while($row = mysqli_fetch_assoc($query)){
 
@@ -90,6 +99,7 @@ while($row = mysqli_fetch_assoc($query)){
     echo ($row['total'] ?? '0') . "\t";
     echo ($row['invoice_status'] ?? '-') . "\t";
     echo ($row['enroll_status'] ?? '-') . "\t";
+    echo (($row['billing_paused'] ?? 0) == 1 ? 'Paused' : 'Active') . "\t";
 
     echo ($row['amount'] ?? 'No Payment') . "\t";
     echo ($row['payment_date'] ?? '-') . "\t";

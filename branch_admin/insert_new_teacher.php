@@ -1,56 +1,57 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+require_once __DIR__ . '/auth.php';
+require_branch_admin();
 
-
-session_start();
-
-include "../db_config.php";
-
-if(!isset($_SESSION['admin_logged_in']) || $_SESSION['role'] !== 'branch_admin') {
-    header("Location: login.php");
-    exit();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect_with_flash('danger', 'Invalid request.');
 }
 
+$name       = trim($_POST['name'] ?? '');
+$email      = trim($_POST['email'] ?? '');
+$password   = $_POST['password'] ?? '';
+$subjects   = $_POST['subject'] ?? [];
+$branch     = trim($_POST['branch'] ?? '');
+$contact_no = trim($_POST['contact_no'] ?? '');
 
-if($_SERVER['REQUEST_METHOD'] === 'POST'){
-    
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
-    $subjects =  $_POST['subject'];
-    $branch = mysqli_real_escape_string($conn, $_POST['branch']);
-    $contact_no = mysqli_real_escape_string($conn, $_POST['contact_no']);
-    
-    $sql = "insert into teachers (name, email, password, branch, contact_no) values (?, ?, ?, ?, ?)";
-    
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssss", $name, $email, $password, $branch, $contact_no);
-    
-    $result = $stmt->execute();
-    
-    if($result){
-        $teacher_id= $stmt->insert_id;
-        
-        $insertSubjectMap= $conn->prepare("insert into teacher_subjects (teacher_id, subject_id) values (?, ?)");
-        
-        foreach($subjects as $subject_id){
-            $insertSubjectMap->bind_param("ii", $teacher_id, $subject_id);
-            $insertSubjectMap->execute();
-        }
-    
-         $_SESSION['message'] = "Teacher added successfully!";
-    }
-    else {
-          $_SESSION['error'] = "Failed to add teacher: " . $stmt->error;
-    }
+if ($name === '' || $email === '' || $password === '' || $branch === '' || $contact_no === '' || empty($subjects)) {
+    redirect_with_flash('danger', 'Please fill all teacher details.');
+}
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    redirect_with_flash('danger', 'Please enter a valid email address.');
+}
+
+// Reject duplicate email
+$dup = $conn->prepare("SELECT id FROM teachers WHERE email = ?");
+$dup->bind_param("s", $email);
+$dup->execute();
+$dup->store_result();
+if ($dup->num_rows > 0) {
+    $dup->close();
+    redirect_with_flash('danger', 'This email is already registered. Please use a different one.');
+}
+$dup->close();
+
+$hash = password_hash($password, PASSWORD_DEFAULT);
+
+$conn->begin_transaction();
+try {
+    $stmt = $conn->prepare("INSERT INTO teachers (name, email, password, branch, contact_no) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $name, $email, $hash, $branch, $contact_no);
+    $stmt->execute();
+    $teacher_id = $stmt->insert_id;
     $stmt->close();
-} else {
-        $_SESSION['error'] = "SQL error: " . $conn->error;
+
+    $map = $conn->prepare("INSERT INTO teacher_subjects (teacher_id, subject_id) VALUES (?, ?)");
+    foreach ($subjects as $subject_id) {
+        $sid = (int) $subject_id;
+        $map->bind_param("ii", $teacher_id, $sid);
+        $map->execute();
     }
-    
-    $_SESSION['error'] = "This email is already registered. Please use a different one.";
-    header("Location: branch_manage_users.php");
-    exit();
-?>
+    $map->close();
+
+    $conn->commit();
+    redirect_with_flash('success', 'Teacher added successfully.');
+} catch (mysqli_sql_exception $e) {
+    $conn->rollback();
+    redirect_with_flash('danger', 'Failed to add teacher. Please try again.');
+}

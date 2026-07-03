@@ -56,7 +56,13 @@
     $discount_type   = $_POST['discount_type'] ?? '';
     $discount_amount = floatval($_POST['discount_amount'] ?? 0);
     $discount_description = $_POST['discount_description'] ?? '';
-    
+    /* EXTRA AMOUNT */
+    $extra_type        = $_POST['extra_type'] ?? '';  
+    $extra_amount      = floatval($_POST['extra_amount'] ?? 0);
+    $extra_description = $_POST['extra_description'] ?? '';
+    if(empty($extra_type)){
+        $extra_amount = 0;
+    }
     // Decide payer
     switch($payment_by){
     case "Guardian":
@@ -137,7 +143,8 @@
     message,terms_agreed,
     payment_by,payment_type,mode_of_education,
     enrolled_by,enroll_date,program_count,
-    discount_type,discount_amount,discount_description
+    discount_type,discount_amount,discount_description,
+    extra_type,extra_amount,extra_description
     )
     VALUES
     (
@@ -151,7 +158,8 @@
     '$message','{$_POST['terms_agreed']}',
     '$payment_by','$payment_type','$mode',
     'admin','$enroll_date','$program_count',
-    '$discount_type','$discount_amount','$discount_description'
+    '$discount_type','$discount_amount','$discount_description',
+    '$extra_type','$extra_amount','$extra_description'
     )
     ");
 
@@ -224,6 +232,12 @@
         $price -= $discount_amount;
     }
 
+    /* APPLY EXTRA AMOUNT (both types apply on first invoice) */
+
+    if($extra_type === "one_time" || $extra_type === "permanent"){
+        $price += $extra_amount;
+    }
+
     /* SAFETY */
 
     if($price < 0){
@@ -243,10 +257,10 @@
 
    mysqli_query($conn,"
     INSERT INTO invoices
-    (student_id,invoice_date,due_date,price,gst,total,status,discount_type,discount_amount,discount_description)
+    (student_id,invoice_date,due_date,price,gst,total,status,discount_type,discount_amount,discount_description,extra_type,extra_amount,extra_description)
     VALUES
     ('$student_login_id',CURDATE(),DATE_ADD(CURDATE(),INTERVAL 15 DAY),
-    '$price','$gst','$total','Pending','$discount_type','$discount_amount','$discount_description')
+    '$price','$gst','$total','Pending','$discount_type','$discount_amount','$discount_description','$extra_type','$extra_amount','$extra_description')
     ");
 
     $invoice_id = mysqli_insert_id($conn);
@@ -300,7 +314,10 @@
     "discount_amount" => $discount_amount,
     "price_after_discount" => $price,
     "gst" => $gst,
-    "total" => $total
+    "total" => $total,
+    "extra_type" => $extra_type,
+    "extra_amount" => $extra_amount,
+    "extra_description" => $extra_description,
 ];
 
     ob_start();

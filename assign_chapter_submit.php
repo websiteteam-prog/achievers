@@ -9,7 +9,10 @@ $sql = "INSERT INTO assigned_chapters (student_id, subject_id, chapter_title, as
         VALUES ('$student_id', '$subject_id', '$chapter_title', CURDATE())";
 
 if (mysqli_query($conn, $sql)) {
-    echo "<script>alert('Chapter assigned successfully!'); window.location.href='assign_chapter.php';</script>";
+echo "<script>
+alert('Chapter assigned successfully!');
+window.location.href='teacher_dashboard.php?page=assign_chapter.php';
+</script>";
 } else {
     echo "Error: " . mysqli_error($conn);
 }

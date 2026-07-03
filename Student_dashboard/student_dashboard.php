@@ -30,12 +30,15 @@ $sql_sub = "SELECT COUNT(*) as cnt FROM student_subjects WHERE student_id = " . 
 $res_sub = mysqli_query($conn, $sql_sub);
 if ($res_sub) $subjects_count = (int) mysqli_fetch_assoc($res_sub)['cnt'];
 
-// Materials count
 $materials_count = 0;
 $course_ids = [];
-$sql_courses = "SELECT course_id FROM course_enrollments WHERE student_id = " . (int)$student_id;
+$sql_courses = "SELECT c.id AS course_id
+                FROM student_subjects ss
+                JOIN courses c ON c.subject_id = ss.subject_id
+                WHERE ss.student_id = " . (int)$student_id;
 $res_courses = mysqli_query($conn, $sql_courses);
 while ($r = mysqli_fetch_assoc($res_courses)) $course_ids[] = (int)$r['course_id'];
+$course_ids = array_values(array_unique($course_ids));
 if (!empty($course_ids)) {
     $ids = implode(',', $course_ids);
     $sql_mat = "SELECT COUNT(*) as cnt FROM course_materials WHERE course_id IN ($ids)";
@@ -264,10 +267,26 @@ if ($res_pay) {
         }
 
         .card-material {
+            height:100%;
             border-radius: 16px;
             overflow: hidden;
             box-shadow: var(--shadow);
             transition: all 0.3s;
+        }
+        
+            .card-material .p-3{
+            height:100%;
+            min-height:300px;
+            display:flex;
+            flex-direction:column;
+             }
+         
+         .material-body{
+            flex:1;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            flex-direction:column;
         }
 
         .card-material:hover {
@@ -664,40 +683,86 @@ if ($res_pay) {
                     </div>
                 </section>
 
-                <!-- Study Materials -->
+                            <!-- Study Materials -->
                 <section class="mb-5">
                     <h4 class="section-title"><i class="bi bi-folder2-open me-2"></i> Recent Study Materials</h4>
-                    <?php if ($materials_count > 0): ?>
+                    <?php
+                  
+                    $pdf_folder = "../courses_meterial/";
+
+                    // Materials for the subjects this student is enrolled in.
+                    $materials = [];
+                    if (!empty($course_ids)) {
+                        $sql_mats = "SELECT cm.*, s.subject_name
+                                 FROM course_materials cm
+                                 JOIN courses c ON cm.course_id = c.id
+                                 JOIN subjects s ON c.subject_id = s.id
+                                 WHERE cm.course_id IN (" . implode(',', $course_ids) . ")
+                                 LIMIT 6";
+                        $res_mats = mysqli_query($conn, $sql_mats);
+                        while ($res_mats && $mat = mysqli_fetch_assoc($res_mats)) {
+                            $materials[] = $mat;
+                        }
+                    }
+                    ?>
+                    <?php if (!empty($materials)): ?>
                         <div class="row g-4">
                             <?php
-                            $sql_mats = "SELECT cm.*, s.subject_name 
-                                     FROM course_materials cm 
-                                     JOIN courses c ON cm.course_id = c.id 
-                                     JOIN subjects s ON c.subject_id = s.id 
-                                     WHERE cm.course_id IN (" . implode(',', $course_ids ?: [0]) . ") 
-                                     LIMIT 6";
-                            $res_mats = mysqli_query($conn, $sql_mats);
-                            while ($mat = mysqli_fetch_assoc($res_mats)):
+                            foreach ($materials as $mat):
                                 $path = $mat['file_path'] ?? '';
-                                $url = $path ? "https://creativetheka.in/" . trim(dirname($path), '/') . "/" . rawurlencode(basename($path)) : '';
+
+                                // Full link the browser will open
+                                $url = '';
+                                if ($path) {
+                                    $url = preg_match('#^https?://#i', $path)
+                                         ? $path                                              // already a full URL
+                                         : rtrim($pdf_folder, '/') . '/' . ltrim($path, '/'); // folder + stored path
+                                }
+
+                                // Does the PDF actually exist on the server?
+                                $pdf_available = false;
+                                if ($url) {
+                                    if (preg_match('#^https?://#i', $url)) {
+                                        $pdf_available = true;                                  // remote URL – assume ok
+                                    } else {
+                                        $pdf_available = file_exists(__DIR__ . '/' . ltrim($url, '/'));
+                                    }
+                                }
                             ?>
                                 <div class="col-lg-4 col-md-6">
                                     <div class="card-material">
-                                        <div class="p-3">
-                                            <h6 class="fw-bold mb-2"><?= htmlspecialchars(basename($path ?: 'Material')) ?></h6>
+                                        <div class="p-3">                                                                   <h6 class="fw-bold mb-2 text-uppercase"><?= htmlspecialchars($mat['file_name'] ?: 'Material') ?></h6>
                                             <small class="text-muted mb-3 d-block"><?= htmlspecialchars($mat['subject_name'] ?? '—') ?></small>
-                                            <?php if ($url): ?>
-                                                <iframe src="<?= htmlspecialchars($url) ?>" class="pdf-iframe" allowfullscreen></iframe>
-                                                <a href="<?= htmlspecialchars($url) ?>" target="_blank" class="btn btn-outline-primary btn-sm w-100 mt-3">
-                                                    <i class="bi bi-box-arrow-up-right me-2"></i> View PDF
-                                                </a>
-                                            <?php else: ?>
-                                                <p class="text-danger small mt-2">File not available</p>
-                                            <?php endif; ?>
+
+                                          <?php if ($pdf_available): ?>
+
+                                    <div class="material-body">
+                                        <i class="bi bi-file-earmark-pdf display-1 text-danger"></i>
+                                        <h4 class="fw-bold mt-3">PDF Available</h4>
+                                    </div>
+                                
+                                    <a href="<?= htmlspecialchars($url) ?>"
+                                       target="_blank"
+                                       class="btn btn-primary w-100">
+                                        <i class="bi bi-box-arrow-up-right me-2"></i> View PDF
+                                    </a>
+                                
+                                <?php else: ?>
+                                
+                                    <div class="material-body">
+                                        <i class="bi bi-file-earmark-x display-1 text-secondary"></i>
+                                        <h5 class="text-danger mt-3">PDF not available</h5>
+                                    </div>
+                                
+                                    <button class="btn btn-secondary w-100" disabled>
+                                        <i class="bi bi-x-circle me-2"></i> No PDF
+                                    </button>
+                                
+                                <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
                         </div>
                     <?php else: ?>
                         <div class="alert alert-light text-center py-5 border-0 shadow-sm">
@@ -707,7 +772,6 @@ if ($res_pay) {
                         </div>
                     <?php endif; ?>
                 </section>
-
                 <!-- Progress & History -->
                 <section class="mb-5">
                     <h4 class="section-title"><i class="bi bi-graph-up-arrow me-2"></i> Learning Progress</h4>

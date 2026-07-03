@@ -69,7 +69,9 @@ $invoice = [
     "discount_amount" => $data['discount_amount'],
     "price_after_discount" => $data['price'], 
     "gst" => $data['gst'],
-    "total" => $data['total']
+    "total" => $data['total'],
+    "extra_type" => $data['extra_type'] ?? '',
+    "extra_amount" => $data['extra_amount'] ?? 0
 ];
 
 $discount_description = $data['discount_description'] ?? '';

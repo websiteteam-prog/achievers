@@ -2,6 +2,7 @@
 include "../../../db_config.php";
 
 $program = $_GET['program'] ?? '';
+$grade   = $_GET['grade'] ?? '';
 
 $type = '';
 
@@ -15,7 +16,34 @@ elseif($program == "Advanced Learners"){
     $type = "advanced";
 }
 
-$result = mysqli_query($conn, "SELECT * FROM subjects WHERE course_type='$type'");
+/*
+|-----------------------------------------
+| Convert grade dynamically
+|-----------------------------------------
+*/
+
+$dbGrade = trim($grade);
+
+// Grade 1 -> 1
+if (preg_match('/^Grade\s+(\d+)$/i', $dbGrade, $match)) {
+
+    $dbGrade = $match[1];
+
+} else {
+
+    // Pre-School -> pre-school
+    // Kindergarten -> kindergarten
+    $dbGrade = strtolower($dbGrade);
+
+}
+
+$result = mysqli_query(
+    $conn,
+    "SELECT *
+     FROM subjects
+     WHERE LOWER(course_type)=LOWER('$type')
+     AND LOWER(grade)=LOWER('$dbGrade')"
+);
 
 $subjects = [];
 

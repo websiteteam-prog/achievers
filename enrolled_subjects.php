@@ -1,145 +1,339 @@
 <?php
 session_start();
-include "db_config.php";
+include "../db_config.php";
 
-// Debug mode ON (sirf testing ke liye)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// Agar login nahi hua to stop karo
-if (!isset($_SESSION['student_email'])) {
-    echo "<h3>Please login to view your enrolled courses.</h3>";
-    exit;
+if (!isset($_SESSION['student_id'])) {
+    header("Location: ../student_login.php");
+    exit();
 }
 
-$email = $_SESSION['student_email'];
+$student_id = $_SESSION['student_id'];
 
-// Enrolled courses with course image fetch karo
 $sql = "
-    SELECT s.course_id, s.course_title, s.grade, s.created_at, c.course_image
-    FROM students s
-    LEFT JOIN early_learner_courses c 
-        ON s.course_id = c.id
-    WHERE s.email = '$email'
+SELECT
+    s.id AS subject_id,
+    s.subject_name,
+    st.grade,
+    c.image AS course_image
+FROM student_subjects ss
+JOIN subjects s
+    ON ss.subject_id = s.id
+JOIN students st
+    ON ss.student_id = st.id
+JOIN assigned_chapters ac
+    ON ac.subject_id = s.id AND ac.student_id = ss.student_id
+LEFT JOIN courses c
+    ON c.subject_id = s.id
+WHERE ss.student_id = ?
+GROUP BY s.id
+ORDER BY s.subject_name ASC
 ";
-$result = mysqli_query($conn, $sql);
 
-if (!$result) {
-    die("Database query failed: " . mysqli_error($conn));
+$stmt = $conn->prepare($sql);
+
+if (!$stmt) {
+    die("Prepare failed: " . $conn->error);
 }
+
+$stmt->bind_param("i", $student_id);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
+
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>My Enrolled Courses</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f7f9fc;
-            margin: 0;
-            padding: 0;
-        }
-        .sidebar {
-            width: 220px;
-            background: #2d3748;
-            color: white;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            padding: 20px;
-        }
-        .sidebar h2 {
-            font-size: 20px;
-            margin-bottom: 30px;
-        }
-        .sidebar a {
-            color: white;
-            display: block;
-            padding: 10px 0;
-            text-decoration: none;
-        }
-        .sidebar a:hover {
-            background: #4a5568;
-        }
-        .content {
-            margin-left: 240px;
-            padding: 30px;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            background: white;
-        }
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #ccc;
-            text-align: left;
-        }
-        th {
-            background: #f0f0f0;
-        }
-        .logout-btn {
-            display: inline-block;
-            background: #e53e3e;
-            color: white;
-            padding: 10px 15px;
-            margin-top: 20px;
-            text-decoration: none;
-        }
-        .course-img {
-            width: 150px;
-            height: 90px;
-            object-fit: cover;
-            border-radius: 4px;
-        }
-    </style>
+
+<title>My Enrolled Courses</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="student.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
+  
+<style>
+
+/* BODY */
+body {
+    background: linear-gradient(135deg, #f8f9ff, #e0e7ff);
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+
+/* MAIN LAYOUT */
+.main-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+
+/* CONTENT AREA FULL WIDTH FIX */
+.content-area {
+
+    margin-left: 260px;
+    padding: 30px;
+
+    width: calc(100% - 260px);
+    max-width: calc(100% - 260px);
+
+}
+
+
+/* CARD */
+.card {
+
+    border-radius: 12px;
+    border: none;
+
+}
+
+
+/* IMAGE */
+.course-img {
+
+    width: 130px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+
+}
+
+
+/* TABLE RESPONSIVE */
+.table-responsive {
+
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+}
+
+
+/* TABLE DEFAULT */
+.table {
+
+    width: 100%;
+    white-space: nowrap;
+
+}
+
+.container-fluid h3{
+   font-size: 42px;
+   font-weight: 400;
+   margin-bottom: 6px !important;
+   background: linear-gradient(to right, #e02121, #2f55a4);
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+   font-family: "Love Ya Like A Sister", cursive;
+   margin-left: 8px;
+}
+
+/* SCROLL ONLY BELOW 1280px */
+@media (max-width:1280px) {
+
+    .table {
+
+        min-width: 900px;
+
+    }
+
+}
+
+
+/* TABLET */
+@media (max-width:992px) {
+
+    .content-area {
+
+        margin-left: 0;
+        width: 100%;
+        max-width: 100%;
+        padding: 20px;
+        padding-top: 80px;
+
+    }
+
+}
+
+
+/* MOBILE */
+@media (max-width:576px) {
+
+    .content-area {
+
+        padding: 15px;
+        padding-top: 75px;
+
+    }
+
+    .course-img {
+
+        width: 100px;
+        height: 65px;
+
+    }
+
+}
+
+
+/* SIDEBAR TOGGLE */
+#sidebarToggle {
+
+    top: 15px;
+    left: 15px;
+    z-index: 1100;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+
+}
+
+</style>
+
 </head>
+
 <body>
-    <div class="sidebar">
-        <h2>Student Panel</h2>
-        <a href="student_dashboard.php">My Profile</a>
-        <a href="enrolled_subjects.php">Enrolled Subjects</a>
-        <a href="study_materials.php">Study Materials</a>
-        <a href="progress.php">Progress Tracker</a>
-        <a href="announcements.php">Announcements</a>
-        <a class="logout-btn" href="logout.php">Logout</a>
-    </div>
-    <div class="content">
-        <h2>My Enrolled Courses</h2>
+
+<div class="main-layout">
+
+    <!-- SIDEBAR -->
+    <?php include 'student_sidebar.php'; ?>
+
+
+    <!-- MOBILE BUTTON -->
+    <button class="btn btn-primary d-lg-none position-fixed"
+        id="sidebarToggle">
+
+        <i class="bi bi-list fs-4"></i>
+
+    </button>
+
+
+    <!-- CONTENT -->
+    <div class="content-area container-fluid">
+
+        <h3 class="mb-4">
+            My Enrolled Courses
+        </h3>
+
+
         <?php if(mysqli_num_rows($result) > 0): ?>
-        <table>
-            <tr>
-                <th>Image</th>
-                <th>Course ID</th>
-                <th>Course Title</th>
-                <th>Grade Program</th>
-                <th>Enrollment Date</th>
-                <th>View</th>
-            </tr>
-            <?php while($row = mysqli_fetch_assoc($result)): ?>
-            <tr>
-                <td>
-                    <?php 
-                    $imgPath = !empty($row['course_image']) ? $row['course_image'] : 'images/default-course.jpg';
-                    ?>
-                    <img src="<?= htmlspecialchars($imgPath); ?>" class="course-img" alt="Course Image">
-                </td>
-                <td><?= htmlspecialchars($row['course_id']); ?></td>
-                <td><?= htmlspecialchars($row['course_title']); ?></td>
-                <td><?= htmlspecialchars($row['grade']); ?></td>
-                <td><?= date('d M Y', strtotime($row['created_at'])); ?></td>
-                  <td>
-            <a href="view_course.php?id=<?= urlencode($row['course_id']); ?>" target="_blank">
-                View
-            </a>
-        </td>
-            </tr>
-            <?php endwhile; ?>
-        </table>
+
+        <div class="card shadow-sm">
+
+            <div class="card-body">
+
+                <!-- TABLE SCROLL WRAPPER -->
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>Image</th>
+                                <th>Subject</th>
+                                <th>Grade</th>
+                                <th>Action</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        <?php while($row = mysqli_fetch_assoc($result)): ?>
+
+                        <tr>
+
+                            <td>
+
+                                <?php
+                                $imgPath = !empty($row['course_image']) 
+                                           ? '../' . $row['course_image']
+                                           : '../images/default-course.jpg';
+                                ?>
+
+                                <img src="<?= htmlspecialchars($imgPath); ?>" 
+                                     class="course-img">
+
+                            </td>
+
+
+                            <td>
+
+                                <?= htmlspecialchars($row['subject_name']); ?>
+
+                            </td>
+
+
+                            <td>
+
+                                <?= htmlspecialchars($row['grade']); ?>
+
+                            </td>
+
+
+                            <td>
+
+                                <a href="course_sidebar.php?id=<?= urlencode($row['subject_id']); ?>"
+                                   class="btn btn-sm btn-primary">
+
+                                   View
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        <?php endwhile; ?>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
         <?php else: ?>
-        <p>You have not enrolled in any courses yet.</p>
+
+        <div class="alert alert-info">
+
+            You have not enrolled in any courses yet.
+
+        </div>
+
         <?php endif; ?>
+
+
     </div>
+
+</div>
+
+
+<script>
+
+/* SIDEBAR TOGGLE */
+const sidebar = document.getElementById('studentSidebar');
+
+document.getElementById('sidebarToggle')
+.addEventListener('click', function(){
+
+    sidebar.classList.toggle('show');
+
+});
+
+</script>
+
 </body>
+
 </html>

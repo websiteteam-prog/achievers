@@ -7,9 +7,9 @@
     ini_set('memory_limit', '1024M');
 
     /* RUN ONLY ON 1ST */
-    if (date('d') != '0222') {
-        exit;
-    }
+    // if (date('d') != '01') {
+    //     exit;
+    // }
 
     /* MAIL */
     use PHPMailer\PHPMailer\PHPMailer;
@@ -28,9 +28,9 @@
     SELECT student_id, first_name, last_name, guardian_email, guardian_name, 
     mother_email, mother_name, father_email, father_name, payment_by, grade, 
     specific_subject, program, program_count,
-    discount_type, discount_amount
+    discount_type, discount_amount, extra_type, extra_amount
     FROM enrollment_inquiries 
-    WHERE status='Active'
+    WHERE status='Active' AND billing_paused = 0
     ");
 
     while ($row = mysqli_fetch_assoc($result)) {
@@ -76,6 +76,8 @@
     }
     $discount_type   = $row['discount_type'] ?? '';
     $discount_amount = floatval($row['discount_amount'] ?? 0);
+    $extra_type   = $row['extra_type'] ?? '';
+    $extra_amount = floatval($row['extra_amount'] ?? 0);
 
     if($grade == "Pre-School" || $grade == 1 || $grade == 2){
 
@@ -113,8 +115,14 @@
     }
 
     // only sibling discount monthly apply
+      // only sibling discount monthly apply
     if($discount_type === "sibling"){
         $total -= $discount_amount;
+    }
+
+    // only PERMANENT extra monthly apply
+    if($extra_type === "permanent"){
+        $total += $extra_amount;
     }
 
     // safety
@@ -125,21 +133,33 @@
     $gst = $total * (5/105);
     $subtotal = $total - $gst;
   
+        $final_extra_type = '';
+    $final_extra_amount = 0;
+
     $final_discount_type = '';
     $final_discount_amount = 0;
 
-    // only sibling store hoga monthly
+      // only sibling store hoga monthly
     if($discount_type === "sibling"){
         $final_discount_type = $discount_type;
         $final_discount_amount = $discount_amount;
     }
+    // only permanent extra stored monthly
+    if($extra_type === "permanent"){
+        $final_extra_type = $extra_type;
+        $final_extra_amount = $extra_amount;
+    }
+
+  
+
+    
 
     mysqli_query($conn, "
     INSERT INTO invoices
-    (student_id,invoice_date,due_date,price,gst,total,status,discount_type,discount_amount)
+    (student_id,invoice_date,due_date,price,gst,total,status,discount_type,discount_amount,extra_type,extra_amount)
     VALUES
     ('$student_id',CURDATE(),DATE_ADD(CURDATE(),INTERVAL 15 DAY),
-    '$subtotal','$gst','$total','Pending','$final_discount_type','$final_discount_amount')
+    '$subtotal','$gst','$total','Pending','$final_discount_type','$final_discount_amount','$final_extra_type','$final_extra_amount')
     ");
 
         $invoice_id = mysqli_insert_id($conn);
@@ -169,7 +189,9 @@
         "discount_amount" => $final_discount_amount,
         "price_after_discount" => $total,
         "gst" => $gst,
-        "total" => $total
+        "total" => $total,
+        "extra_type" => $final_extra_type,
+        "extra_amount" => $final_extra_amount,
     ];
     $price = $subtotal;
 

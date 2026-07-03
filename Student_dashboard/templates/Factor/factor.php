@@ -1,39 +1,16 @@
 <?php
 
-// GLOBAL COUNTERS
-if (!isset($GLOBALS['main_question'])) {
-    $GLOBALS['main_question'] = 1;
-}
-if (!isset($GLOBALS['grid_question'])) {
-    $GLOBALS['grid_question'] = 1;
-}
-if (!isset($GLOBALS['common_question'])) {
-    $GLOBALS['common_question'] = 1;
-}
-if (!isset($GLOBALS['venn_question'])) {
-    $GLOBALS['venn_question'] = 1;
-}
-if (!isset($GLOBALS['gcf_venn_question'])) {
-    $GLOBALS['gcf_venn_question'] = 1;
-}
-
 $data = json_decode($q['question_payload'], true);
-
-if (!isset($GLOBALS['section_question'])) {
-    $GLOBALS['section_question'] = [];
-}
+$correct = json_decode($q['correct_answer'] ?? '', true) ?? [];
 
 $section_id = $q['instruction_id'] ?? 0;
-
-if (!isset($GLOBALS['section_question'][$section_id])) {
-    $GLOBALS['section_question'][$section_id] = 1;
-}
 
 $mode = $data['mode'] ?? 'pairs';
 
 // OLD TYPE
 $number = $data['number'] ?? '';
 $pairs_left = $data['pairs_left'] ?? [];
+$pairs_right = $data['pairs_right'] ?? [];
 $blankCount = $data['blanks'] ?? 0;
 
 // GRID TYPE
@@ -59,6 +36,7 @@ $common_blanks = $data['common_blanks'] ?? 0;
     padding: 25px;
     margin-bottom: 25px;
     width: 100%;
+    overflow-x:auto;
 }
 
 /* Titles */
@@ -69,10 +47,13 @@ $common_blanks = $data['common_blanks'] ?? 0;
 }
 
 /* FACTOR LINES */
-.factor-line {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 8px;
+.factor-line{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:15px;
 }
 
 /* BLANK ROW */
@@ -100,7 +81,7 @@ $common_blanks = $data['common_blanks'] ?? 0;
     grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
     gap: 15px;
     width: 100%;
-    max-width: 500px;
+    max-width: 100%;
 }
 
 .grid-cell {
@@ -131,7 +112,7 @@ $common_blanks = $data['common_blanks'] ?? 0;
 
 .common-box label {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .common-input {
@@ -141,6 +122,10 @@ $common_blanks = $data['common_blanks'] ?? 0;
     font-size: 18px;
     margin-bottom: 15px;
     background: transparent;
+}
+
+input{
+    max-width:100%;
 }
 
 .blank-field-input {
@@ -171,7 +156,7 @@ $common_blanks = $data['common_blanks'] ?? 0;
 
 .common-text {
     font-size: 20px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .common-inputs {
@@ -191,6 +176,14 @@ $common_blanks = $data['common_blanks'] ?? 0;
     background: transparent;
 }
 
+.common-small-input,
+.blank-field-input,
+.line-input,
+.lcm-final,
+.pair-input{
+    width:clamp(60px,10vw,120px);
+}
+
 /* ===== PROFESSIONAL VENN DIAGRAM ===== */
 
 .venn-wrapper {
@@ -201,7 +194,7 @@ $common_blanks = $data['common_blanks'] ?? 0;
 .venn-title {
     font-size: 20px;
     margin-bottom: 20px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .intersection {
@@ -369,6 +362,16 @@ $common_blanks = $data['common_blanks'] ?? 0;
     font-weight: bold;
     font-size: 18px;
 }
+.pool-cell.used {
+    background: rgba(255,255,255,0.15);
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.pool-cell.used::after {
+    content: " \2713";
+}
+
 /* ===== CLEAN BOOK STYLE LCM ===== */
 
 .lcm-wrapper {
@@ -378,7 +381,7 @@ $common_blanks = $data['common_blanks'] ?? 0;
 
 .lcm-title {
     font-size: 20px;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 15px;
 }
 
@@ -418,7 +421,7 @@ align-items:center;
 gap:12px;
 margin-bottom:15px;
 font-size:18px;
-font-weight:600;
+font-weight:700;
 }
 
 .color-box{
@@ -429,9 +432,22 @@ border:2px solid #000;
 
 .activity-grid{
 display:grid;
-grid-template-columns:repeat(10,1fr);
+grid-template-columns:repeat(10,minmax(35px,1fr));
 border:2px solid #8a00ff;
+width:100%;
 max-width:700px;
+}
+
+.activity-wrapper{
+    overflow-x:auto;
+}
+
+.activity-grid{
+    min-width:500px;
+}
+
+select.common-small-input{
+    width:120px;
 }
 
 .activity-cell{
@@ -482,9 +498,40 @@ display:flex;
 flex-direction:column;
 align-items:center;
 gap:6px;
-font-weight:600;
+font-weight:700;
 font-size:18px;
 z-index:10;
+}
+
+.pair-input{
+    width:90px;
+    height:35px;
+    border:none;
+    border-bottom:2px solid #000;
+    background:transparent;
+    text-align:center;
+    font-size:18px;
+    margin-left:10px;
+    outline:none;
+}
+
+.factor-answer-line{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+    margin-top:15px;
+    font-size:20px;
+}
+
+.factor-small-input{
+    width:clamp(35px,6vw,60px);
+    border:none;
+    border-bottom:2px solid #000;
+    background:transparent;
+    text-align:center;
+    outline:none;
+    font-size:18px;
 }
 
 /* ------------------- RESPONSIVE ------------------- */
@@ -521,8 +568,128 @@ z-index:10;
         font-size: 20px;
     }
 
+    .common-text,
+    .common-numbers,
+    .factor-line,
+    .lcm-line{
+        font-size:18px;
+    }
+
+    .grid-cell{
+        font-size:18px;
+        padding:12px;
+    }
+
+    .activity-grid{
+        grid-template-columns:repeat(10,minmax(35px,1fr));
+    }
+
     .grid-box {
         grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    }
+}
+
+
+@media (max-width:768px){
+
+    .quiz-box{
+        padding:15px;
+    }
+
+    .quiz-box h5{
+        font-size:18px;
+    }
+
+    .common-answer-row{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .common-inputs{
+        width:100%;
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+    }
+
+    .factor-answer-line{
+        align-items:flex-start;
+    }
+
+    .factor-answer-line strong{
+        width:100%;
+    }
+
+    .grid-box{
+        max-width:100%;
+        grid-template-columns:repeat(auto-fit,minmax(45px,1fr));
+        gap:8px;
+        padding:12px;
+    }
+
+    .grid-cell{
+        font-size:15px;
+        padding:10px;
+    }
+
+    .activity-grid{
+        overflow-x:auto;
+        display:grid;
+        min-width:500px;
+    }
+
+    .lcm-line{
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+        line-height:2;
+    }
+
+    .line-input{
+        margin:0;
+    }
+
+       .venn-container{
+        height:auto;
+        aspect-ratio:auto;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:25px;
+    }
+
+    .circle{
+        position:relative;
+        width:260px;
+        max-width:90%;
+        left:auto !important;
+        right:auto !important;
+        top:auto !important;
+    }
+
+    .circle-label{
+        position:static;
+        transform:none;
+        margin-bottom:10px;
+        white-space:normal;
+    }
+
+    .venn-left-numbers,
+    .venn-right-numbers,
+    .venn-common-numbers{
+         display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+        justify-content:center;
+    }
+
+    .venn-bottom{
+        margin-top:20px;
+    }
+
+    .venn-bottom::before,
+    .venn-bottom::after{
+        display:none;
     }
 }
 
@@ -563,42 +730,71 @@ z-index:10;
         padding: 12px;
     }
 }
+
+/* =====================================
+   TABLET
+===================================== */
+
+@media (max-width:992px){
+
+    .quiz-box h5{
+        font-size:20px;
+    }
+
+    .common-text,
+    .common-numbers,
+    .factor-line,
+    .lcm-line{
+        font-size:18px;
+    }
+
+    .grid-cell{
+        font-size:18px;
+        padding:12px;
+    }
+
+    .activity-grid{
+        grid-template-columns:repeat(10,minmax(35px,1fr));
+    }
+}
 </style>
 
 <div class="quiz-box">
 
    <h5><strong>
 
-<?php 
+<?php
+$display_no = $q['_sub_no'] ?? 1;
+
 if ($mode == "grid") {
-    echo $GLOBALS['grid_question']++ . ") Factors of $number";
-} 
+    echo $display_no . ") Factors of $number";
+}
 elseif ($mode == "common") {
-    echo $GLOBALS['common_question']++ . ")";
+    echo $display_no . ")";
 }
 elseif ($mode == "venn") {
-    echo $GLOBALS['venn_question']++ . ")";
+    echo $display_no . ")";
 }
 elseif ($mode == "gcf_direct") {
     $numbers = $data['numbers'] ?? [];
-    echo $GLOBALS['section_question'][$section_id]++ . ")" . implode(" , ", $numbers);
+    echo $display_no . ")" . implode(" , ", $numbers);
 }
 elseif ($mode == "gcf_venn") {
-    echo $GLOBALS['gcf_venn_question']++ . ")";
+    echo $display_no . ")";
 }
 elseif ($mode == "multiples_between") {
-    echo $GLOBALS['section_question'][$section_id]++ . ") Multiples of "
+    echo $display_no . ") Multiples of "
          . $data['number'] . "( between "
          . $data['start'] . " and "
          . $data['end'].")";
 }
 elseif ($mode == "multiples_identify") {
-    echo $GLOBALS['section_question'][$section_id]++ . ")"
+    echo $display_no . ")"
          . implode(", ", $data['numbers'])
          . " are multiples of";
 }
 elseif ($mode == "multiples_first5") {
-    echo $GLOBALS['section_question'][$section_id]++ . ") Multiples of "
+    echo $display_no . ") Multiples of "
          . $data['number'];
 }
 
@@ -606,14 +802,14 @@ elseif ($mode == "true_false_single") {
     // numbering handled inside question row
 }
 elseif ($mode == "lcm_steps") {
-    echo $GLOBALS['section_question'][$section_id]++ . ") "
+    echo $display_no . ") "
          . $data['num1'] . " and " . $data['num2'];
 }
 elseif ($mode == "multiples_find_base") {
-    echo $GLOBALS['section_question'][$section_id]++ . ")";
+    echo $display_no . ")";
 }
 else {
-    echo $GLOBALS['section_question'][$section_id]++ . ")";
+    echo $display_no . ") " . ($q['question_text'] ?? '');
 }
 ?>
 
@@ -622,19 +818,37 @@ else {
     <?php if ($mode == "pairs"): ?>
 
         <!-- OLD TEMPLATE OUTPUT -->
-        <?php foreach($pairs_left as $left): ?>
-            <div class="factor-line"><?= $left ?> &times;</div>
+       <?php foreach($pairs_left as $i => $left): ?>
+
+        <div class="factor-line">
+            <?= $left ?> &times;
+        
+            <input type="text"
+                   name="answer[<?= $q['id'] ?>][pairs][]"
+                   class="pair-input">
+        </div>
+        
         <?php endforeach; ?>
 
-        <p><strong>Factors of <?= $number ?> are:</strong></p>
+        <div class="factor-answer-line">
 
-        <div class="blank-row">
-            <?php for($i = 0; $i < $blankCount; $i++): ?>
-              <input type="text" 
-                name="answer[<?= $q['id'] ?>][values][]" 
-                class="blank-field-input">
-            <?php endfor; ?>
-        </div>
+        <strong>Factors of <?= $number ?> are:</strong>
+    
+        <?php for($i=0;$i<$blankCount;$i++): ?>
+    
+            <input type="text"
+                   name="answer[<?= $q['id'] ?>][values][]"
+                   class="factor-small-input">
+    
+            <?php if($i < $blankCount-1): ?>
+                <span>,</span>
+            <?php endif; ?>
+    
+        <?php endfor; ?>
+    
+        <span>.</span>
+    
+    </div>
 
     <?php elseif ($mode == "grid"): ?>
 
@@ -681,6 +895,88 @@ else {
     </div>
 
 </div>
+<?php elseif ($mode == "common_full"): ?>
+
+<?php
+$factors1 = $data['factors1'] ?? [];
+$factors2 = $data['factors2'] ?? [];
+$common   = $data['common'] ?? [];
+?>
+
+<div class="common-box">
+
+    <!-- Number 1 -->
+    <div class="factor-answer-line">
+
+        <strong><?= $num1 ?> :</strong>
+
+        <?php foreach($factors1 as $i=>$v): ?>
+
+            <input
+                type="text"
+                name="answer[<?= $q['id'] ?>][factors1][]"
+                class="factor-small-input">
+
+            <?php if($i < count($factors1)-1): ?>
+                ,
+            <?php endif; ?>
+
+        <?php endforeach; ?>
+
+    </div>
+
+    <br>
+
+    <!-- Number 2 -->
+
+    <div class="factor-answer-line">
+
+        <strong><?= $num2 ?> :</strong>
+
+        <?php foreach($factors2 as $i=>$v): ?>
+
+            <input
+                type="text"
+                name="answer[<?= $q['id'] ?>][factors2][]"
+                class="factor-small-input">
+
+            <?php if($i < count($factors2)-1): ?>
+                ,
+            <?php endif; ?>
+
+        <?php endforeach; ?>
+
+    </div>
+
+    <br>
+
+    <!-- Common -->
+
+    <div class="factor-answer-line">
+
+        <strong>
+
+            Common factors of <?= $num1 ?> and <?= $num2 ?> are:
+
+        </strong>
+
+        <?php foreach($common as $i=>$v): ?>
+
+            <input
+                type="text"
+                name="answer[<?= $q['id'] ?>][common][]"
+                class="factor-small-input">
+
+            <?php if($i < count($common)-1): ?>
+                ,
+            <?php endif; ?>
+
+        <?php endforeach; ?>
+
+    </div>
+
+</div>
+
 <?php elseif ($mode == "venn"): ?>
 
 <div class="venn-wrapper">
@@ -894,10 +1190,7 @@ $correct_lcm = $correct['lcm'] ?? '';
 <div class="common-answer-row">
 
 <strong>
-<?= isset($q['_sub_no'])
-      ? $q['_sub_no']
-      : $GLOBALS['section_question'][$section_id]++ ?>
-)
+<?= $display_no ?>)
 </strong>
 
 <span class="common-text">
@@ -1006,7 +1299,13 @@ Common Multiples
 </div>
 
 </div>
-<?php elseif ($mode == "multiples_venn"): ?>
+<?php elseif ($mode == "multiples_venn"):
+
+$left_count   = count($correct['left'] ?? []);
+$right_count  = count($correct['right'] ?? []);
+$common_count = count($correct['common'] ?? []);
+$pool_numbers = $data['numbers'] ?? [];
+?>
 
 <div class="venn-wrapper">
 
@@ -1020,7 +1319,7 @@ Multiples of <?= $data['num1'] ?>
 
 <div class="venn-left-numbers">
 
-<?php for($i=0;$i<4;$i++): ?>
+<?php for($i=0;$i<$left_count;$i++): ?>
 
 <input type="text"
 name="answer[<?= $q['id'] ?>][left][]"
@@ -1041,7 +1340,7 @@ Multiples of <?= $data['num2'] ?>
 
 <div class="venn-right-numbers">
 
-<?php for($i=0;$i<4;$i++): ?>
+<?php for($i=0;$i<$right_count;$i++): ?>
 
 <input type="text"
 name="answer[<?= $q['id'] ?>][right][]"
@@ -1057,9 +1356,7 @@ class="venn-small">
 <!-- COMMON -->
 <div class="venn-common-numbers">
 
-<?php 
-$common_count = count(json_decode($q['correct_answer'], true)['common'] ?? []);
-for($i=0;$i<$common_count;$i++): ?>
+<?php for($i=0;$i<$common_count;$i++): ?>
 
 <input type="text"
 name="answer[<?= $q['id'] ?>][common][]"
@@ -1076,12 +1373,12 @@ Common multiples of <?= $data['num1'] ?> and <?= $data['num2'] ?>
 </div>
 
 
-<!-- NUMBER BOX -->
-<div class="grid-box">
+<!-- NUMBER POOL: reference list of available numbers, click to mark as placed -->
+<div class="grid-box number-pool" data-qid="<?= $q['id']; ?>">
 
-<?php foreach($data['numbers'] as $num): ?>
+<?php foreach($pool_numbers as $num): ?>
 
-<div class="grid-cell">
+<div class="grid-cell pool-cell" onclick="this.classList.toggle('used')">
 <?= $num ?>
 </div>
 
@@ -1118,7 +1415,7 @@ function toggleSelect(el){
 
     let selected = [];
 
-    // FIX: include BOTH grid-cell + activity-cell
+    //  FIX: include BOTH grid-cell + activity-cell
     parentBox.querySelectorAll(".selected").forEach(cell=>{
         selected.push(cell.getAttribute("data-value"));
     });

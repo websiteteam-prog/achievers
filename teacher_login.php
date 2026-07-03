@@ -12,15 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $teacher = mysqli_fetch_assoc($result);
 
     if ($teacher) {
-
-        // ✅ Plain password OR hashed password dono allow
         if (
-            $teacher['password'] === $password || 
+            $teacher['password'] === $password ||
             password_verify($password, $teacher['password'])
         ) {
-          $_SESSION['teacher_id'] = $teacher['id'];
+            $_SESSION['teacher_id'] = $teacher['id'];
 
-            // 🔥 auto detect name column
             if (!empty($teacher['name'])) {
                 $_SESSION['teacher_name'] = $teacher['name'];
             } elseif (!empty($teacher['teacher_name'])) {
@@ -46,384 +43,195 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $error = "Invalid credentials or inactive account.";
         }
-
     } else {
         $error = "Invalid credentials or inactive account.";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Teacher Login | Achiever's Castle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<title>Teacher Login | Achiever's Castle</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-<!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
-  
+<link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
 <style>
-*{
-    font-family:'Poppins',sans-serif;
-    box-sizing: border-box;
+:root{
+  --navy:#1e3c72;
+  --navy2:#2a5298;
+  --red:#e8063c;
+  --ink:#05364d;
 }
-
-html, body{
-    width:100%;
-    overflow-x:hidden;
-}
+*{box-sizing:border-box;font-family:'Poppins',sans-serif;}
+html,body{height:100%;margin:0;}
 
 body{
-    margin:0;
-    height:100vh;  
-    overflow:hidden; 
-    background: linear-gradient(135deg,#1e3c72,#2a5298);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:0; 
-    position:relative;
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#c9d9f5,#e5ddf7);
+  padding:16px;position:relative;overflow:hidden;
 }
+body::before,body::after{
+  content:"";position:absolute;border-radius:50%;
+  background:rgba(30,60,114,.10);      
+  animation:float 7s infinite ease-in-out;z-index:0;
+}
+body::before{width:260px;height:260px;top:-90px;left:-90px;}
+body::after{width:220px;height:220px;bottom:-80px;right:-80px;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(22px)}}
 
+/* card */
+.auth-card{
+  position:relative;z-index:1;display:flex;width:100%;max-width:880px;min-height:520px;
+  background:#fff;border-radius:22px;overflow:hidden;
+  box-shadow:
+    0 30px 70px rgba(30,60,114,.18),
+    0 8px 20px rgba(0,0,0,.05);
+  border-top:4px solid var(--red);
+  animation:rise .7s ease;
+}
+@keyframes rise{from{opacity:0;transform:translateY(35px)}to{opacity:1;transform:translateY(0)}}
 
-/* Floating circles */
-body::before,
-body::after{
+/* LEFT brand panel → soft light blue, dark text */
+.auth-left{
+  flex:1;padding:50px 34px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;
+    overflow:hidden;
+    background:linear-gradient(160deg,#edf5ff 0%,#dcecff 65%,#ffeef3 100%);
+  color:#1e3c72;
+}
+.auth-left::before{
     content:"";
     position:absolute;
+    width:320px;
+    height:320px;
     border-radius:50%;
-    background:rgba(255,255,255,0.08);
-    animation: float 6s infinite ease-in-out;
-    z-index:0;
-}
-body::before{
-    width:250px;
-    height:250px;
-    top:-80px;
-    left:-80px;
-}
-body::after{
-    width:200px;
-    height:200px;
-    bottom:-70px;
-    right:-70px;
+    background:rgba(30,60,114,.05);
+    top:-120px;
+    left:-120px;
 }
 
-@keyframes float{
-    0%,100%{transform:translateY(0px);}
-    50%{transform:translateY(20px);}
-}
-
-/* Main Container */
-.login-container{
-    margin:20px;
-    width:100%;
-    max-width:900px;
-    max-height:90vh;
-    backdrop-filter: blur(15px);
-    background: rgba(255,255,255,0.15);
-    border-radius:25px;
-    box-shadow:0 25px 60px rgba(0,0,0,0.3);
-    display:flex;
-    overflow:hidden;
-    animation: fadeIn 0.8s ease;
-    z-index:1;
-}
-
-@keyframes fadeIn{
-    from{opacity:0; transform:translateY(40px);}
-    to{opacity:1; transform:translateY(0);}
-}
-
-/* LEFT SIDE */
-.left-side{
-    flex:1;
-    background:linear-gradient(160deg,#e53935,#b71c1c);
-    color:white;
-    padding:50px 30px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-}
-
-.left-side img{
+.auth-left::after{
+    content:"";
+    position:absolute;
     width:220px;
-    max-width:100%;
-    margin-bottom:10px;
-    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+    height:220px;
+    border-radius:50%;
+    background:rgba(232,6,60,.05);
+    right:-90px;
+    bottom:-90px;
+}
+.auth-left img{
+  width:190px;max-width:82%;margin-bottom:18px;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.12));
+   transition:.4s;
 }
 
-.left-side h2{
-    font-weight:700;
-    letter-spacing:1px;
+.auth-left img:hover{
+    transform:scale(1.05);
+}
+.auth-left h2{
+  font-family:"Love Ya Like A Sister",cursive;
+  font-size:40px;margin:0 0 8px;font-weight:400;color:#234a87;;
+}
+.auth-left p{color:#4f6d99;font-size:14px;line-height:1.6;margin:0;}
+.auth-left .badge-role{
+  margin-top:18px;background:#fff;color:var(--navy);border:1px solid #cfe0ff;
+  padding:6px 16px;border-radius:30px;font-size:13px;font-weight:600;letter-spacing:.4px;
+  box-shadow:0 4px 10px rgba(30,60,114,.10);
 }
 
-.left-side p{
-    font-size:14px;
-    opacity:0.9;
+/* RIGHT form panel */
+.auth-right{flex:1;padding:50px 42px;display:flex;flex-direction:column;justify-content:center;}
+.auth-right h3{
+  font-family:"Love Ya Like A Sister",cursive;font-size:30px;margin:0 0 6px;font-weight:400;
+  background:linear-gradient(to right,var(--red),var(--navy));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
 }
+.auth-right .lead{color:#6b7280;font-size:14px;margin-bottom:26px;}
 
-/* RIGHT SIDE */
-.right-side{
-    flex:1;
-    background:white;
-    padding:50px 40px;
-}
-
-.form-label{
-    font-weight:600;
-    color:#1e3c72;
-}
-
+.form-label{font-weight:600;color:var(--ink);font-size:14px;margin-bottom:6px;}
+.input-wrap{position:relative;margin-bottom:16px;}
+.input-wrap .l-ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--navy);}
+.input-wrap .r-ic{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#999;cursor:pointer;}
 .form-control{
-    border-radius:12px;
-    padding:12px;
-    transition:0.3s;
+  height:50px;border-radius:12px;
+  padding:10px 42px;background:#f8fbff;font-size:15px;
 }
+.form-control:focus{border-color:var(--red);box-shadow:0 0 0 .2rem rgba(232,6,60,.15);background:#fff;}
 
-.form-control:focus{
-    border-color:#e53935;
-    box-shadow:0 0 0 0.2rem rgba(229,57,53,0.25);
+.row-links{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin:2px 0 20px;}
+.row-links a{color:var(--red);text-decoration:none;font-weight:600;}
+.row-links a:hover{text-decoration:underline;}
+.row-links label{color:#6b7280;}
+
+.btn-auth{
+  width:100%;height:50px;border:none;border-radius:30px;color:#fff;font-weight:700;font-size:16px;
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
+  box-shadow:0 10px 22px rgba(30,60,114,.30);transition:.35s;margin-top:6px;
 }
+.btn-auth:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 18px 35px rgba(30,60,114,.35);background:linear-gradient(135deg,var(--red),#a10329);}
 
-.btn-login{
-    background:#1e3c72;
-    color:white;
-    border:none;
-    border-radius:12px;
-    padding:12px;
-    font-weight:600;
-    transition:0.3s;
+.err{background:#ffe5e9;color:#a10329;padding:10px 14px;border-radius:10px;font-size:14px;text-align:center;margin-bottom:16px;}
+.foot{text-align:center;margin-top:22px;font-size:12px;color:#8a94a6;}
+
+/* responsive */
+@media(max-width:820px){
+  .auth-card{flex-direction:column;max-width:430px;min-height:auto;}
+  .auth-left{padding:34px 24px;}
+  .auth-left img{width:150px;}
+  .auth-left h2{font-size:32px;}
+  .auth-right{padding:32px 26px;}
+  body::before,body::after{display:none;}
 }
-
-.btn-login:hover{
-    background:#e53935;
-    transform:translateY(-2px);
-}
-
-.error-message{
-    background:#ffe5e5;
-    color:#b71c1c;
-    padding:10px;
-    border-radius:8px;
-    text-align:center;
-    margin-bottom:15px;
-}
-
-.footer-text{
-    text-align:center;
-    margin-top:20px;
-    font-size:13px;
-    color:#777;
-}
-
-  .right-side h3{
-        font-weight: 400;
-        font-size: 30px;
-        margin-bottom: 29px !important;
-        background: linear-gradient(to right, #e02121, #2f55a4);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-family:"Love Ya Like A Sister", cursive;
-    }
-/* =====================
-   TABLET RESPONSIVE
-===================== */
-@media (max-width: 992px){
-
-    .login-container{
-        max-width:750px;
-    }
-
-    .left-side img{
-        width:180px;
-    }
-
-    .right-side{
-        padding:40px 30px;
-    }
-}
-
-/* =====================
-   MOBILE RESPONSIVE
-===================== */
-@media (max-width: 768px){
-
-    body{
-        align-items:flex-start;
-        justify-content:flex-start;
-    }
-
-    .login-container{
-        width:100%;
-        max-width:420px;
-        max-height:none;
-        margin:auto;
-        flex-direction: column;
-        border-radius:18px;
-    }
-
-    /* LEFT SIDE */
-    .left-side{
-        padding:30px 20px;
-        min-height:200px;
-    }
-
-    .left-side img{
-        width:130px;
-        margin-bottom:5px;
-    }
-
-    .left-side h2{
-        font-size:28px !important;
-        line-height:1.2;
-    }
-
-    .left-side p{
-        font-size:13px;
-    }
-
-    /* RIGHT SIDE */
-    .right-side{
-        padding:25px 20px;
-    }
-
-    .right-side h3{
-        font-size:24px;
-        text-align:center;
-        margin-bottom:20px !important;
-    }
-
-    .btn-login{
-        font-size:15px;
-        padding:11px;
-    }
-
-    .footer-text{
-        font-size:12px;
-    }
-
-    /* Hide background bubbles */
-    body::before,
-    body::after{
-        display:none;
-    }
-}
-
-
-/* =====================
-   SMALL MOBILE
-===================== */
-@media (max-width: 480px){
-
-    .login-container{
-        border-radius:14px;
-    }
-
-    .left-side{
-        padding:25px 15px;
-    }
-
-    .left-side img{
-        width:110px;
-    }
-
-    .left-side h2{
-        font-size:24px !important;
-    }
-
-    .right-side{
-        padding:20px 15px;
-    }
-
-    .form-control{
-        padding:10px;
-        font-size:14px;
-    }
-
-    .btn-login{
-        font-size:14px;
-        padding:10px;
-    }
-}
-
 </style>
-
 </head>
 <body>
+<div class="auth-card">
+  <div class="auth-left">
+    <img src="images/logo.png" alt="Achiever's Castle">
+    <h2>Welcome Teacher</h2>
+    <p>Empowering young minds.<br>Inspiring future leaders.</p>
+    <span class="badge-role"><i class="bi bi-mortarboard-fill"></i> Teacher Portal</span>
+  </div>
+  <div class="auth-right">
+    <h3>Login to Your Dashboard</h3>
+    <p class="lead">Sign in to continue teaching 🌟</p>
 
-<div class="login-container">
+    <?php if (isset($error)) echo "<div class='err'>$error</div>"; ?>
 
-    <!-- LEFT SIDE -->
-    <div class="left-side">
-        <img src="images/logo3.png" alt="Achiever's Castle Logo">
-        <h2 style="font-family: 'Love Ya Like A Sister', cursive; font-weight:400;font-size:44px; ">Welcome Teacher</h2>
-        <p>Empowering young minds.<br>Inspiring future leaders.</p>
-        <i class="bi bi-stars" style="font-size:40px;margin-top:15px;"></i>
-    </div>
+    <form method="POST">
+      <label class="form-label">Email Address</label>
+      <div class="input-wrap">
+        <i class="bi bi-envelope-fill l-ic"></i>
+        <input type="email" name="email" class="form-control" placeholder="you@example.com" required autofocus>
+      </div>
 
-    <!-- RIGHT SIDE -->
-    <div class="right-side">
+      <label class="form-label">Password</label>
+      <div class="input-wrap">
+        <i class="bi bi-lock-fill l-ic"></i>
+        <input type="password" name="password" id="pwd" class="form-control" placeholder="Enter your password" required>
+        <i class="bi bi-eye-slash r-ic" id="togglePwd"></i>
+      </div>
 
-        <?php if (isset($error)) echo "<div class='error-message'>$error</div>"; ?>
+      <div class="row-links">
+        <span></span>
+        <a href="teacher_forgot_password.php">Forgot Password?</a>
+      </div>
 
-        <h3 class="mb-4">Login to Your Dashboard</h3>
+      <button type="submit" class="btn-auth">Login Now</button>
+    </form>
 
-        <form method="POST">
-
-            <div class="mb-3">
-                <label class="form-label">Email Address</label>
-                <input type="email" class="form-control" name="email" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password" class="form-control" name="password" id="password" required>
-            </div>
-
-           <div class="d-flex justify-content-between align-items-center mb-3">
-
-            <!-- Show Password -->
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" onclick="togglePassword()" id="showPass">
-                <label class="form-check-label" for="showPass">
-                    Show Password
-                </label>
-            </div>
-
-            <!-- Forgot Password -->
-            <a href="teacher_forgot_password.php">
-                Forgot Password?
-            </a>
-
-        </div>
-            <button type="submit" class="btn btn-login w-100">Login Now</button>
-        </form>
-
-        <div class="footer-text">
-            © <?php echo date("Y"); ?> Achiever's Castle | Happy Teaching 🌟
-        </div>
-
-    </div>
+    <div class="foot">© <?php echo date("Y"); ?> Achiever's Castle | Happy Teaching 🌟</div>
   </div>
 </div>
-
 <script>
-  function togglePassword() {
-    var passwordInput = document.getElementById("password");
-    if (passwordInput.type === "password") {
-      passwordInput.type = "text";
-    } else {
-      passwordInput.type = "password";
-    }
-  }
+const t=document.getElementById('togglePwd'),p=document.getElementById('pwd');
+t.addEventListener('click',()=>{p.type=p.type==='password'?'text':'password';t.classList.toggle('bi-eye');t.classList.toggle('bi-eye-slash');});
 </script>
-
 </body>
 </html>

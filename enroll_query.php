@@ -628,7 +628,7 @@ $total = $price;
                   </div>
                   <div class="form-group">
                       <label>Grade *</label>
-                      <select name="grade" required>
+                      <select name="grade" id="grade" required>
                           <option value="">Select Grade</option>
                           <option value="Pre-School">Pre-School</option>
                           <!--<option value="Pre-Kindergarten">Pre-Kindergarten</option>-->
@@ -669,7 +669,7 @@ $total = $price;
 
                 <div class="form-group">
                     <label>Program *</label>
-                    <select name="program" id="program" required>
+                    <select name="program" id="program" required readonly>
                         <option value="">Select Program</option>
                         <option value="Early Starters">Early Starters</option>
                         <option value="Elementary">Elementary</option>
@@ -861,7 +861,14 @@ programCountSelect.addEventListener("change", function(){
     subjectSection.style.display = "block"; 
     subjectContainer.innerHTML = "Loading...";
 
-    fetch("admin/invoice_system/enroll/get_subjects.php?program=" + program)
+    let grade = document.getElementById("grade").value;
+
+    fetch(
+        "admin/invoice_system/enroll/get_subjects.php?program=" +
+        encodeURIComponent(program) +
+        "&grade=" +
+        encodeURIComponent(grade)
+    )
     .then(res => res.json())
     .then(data => {
 
@@ -893,7 +900,53 @@ subjectContainer.addEventListener("change", function(){
     }
 
 });
+        /* ===========================
+        GRADE -> PROGRAM DEPENDENCY
+        =========================== */
 
+        document.getElementById("grade").addEventListener("change", function(){
+
+            let grade = this.value;
+
+            programSelect.value = "";
+            programCountSection.style.display = "none";
+            subjectSection.style.display = "none";
+            subjectContainer.innerHTML = "";
+            programCountSelect.innerHTML =
+                '<option value="">Select Number of Programs</option>';
+
+            if(grade === "") return;
+
+            if(
+                grade === "Pre-School" ||
+                grade === "Kindergarten" ||
+                grade === "Grade 1" ||
+                grade === "Grade 2"
+            ){
+                programSelect.value = "Early Starters";
+            }
+            else if([
+                "Grade 3",
+                "Grade 4",
+                "Grade 5",
+                "Grade 6",
+                "Grade 7",
+                "Grade 8"
+            ].includes(grade)){
+                programSelect.value = "Elementary";
+            }
+            else if([
+                "Grade 9",
+                "Grade 10",
+                "Grade 11",
+                "Grade 12"
+            ].includes(grade)){
+                programSelect.value = "Advanced Learners";
+            }
+
+            programSelect.dispatchEvent(new Event("change"));
+
+        });
 document.querySelector(".enroll-form").addEventListener("submit", function(e){
 
     let paymentBy = document.querySelector("[name='payment_by']").value;

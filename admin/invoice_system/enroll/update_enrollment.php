@@ -11,7 +11,12 @@ $discount_type   = $_POST['discount_type'] ?? '';
 $discount_amount = floatval($_POST['discount_amount'] ?? 0);
 $discount_removed = $_POST['discount_removed'] ?? 0;
 $discount_description = $_POST['discount_description'] ?? '';
-
+$extra_type        = $_POST['extra_type'] ?? '';
+$extra_amount      = floatval($_POST['extra_amount'] ?? 0);
+$extra_description = $_POST['extra_description'] ?? '';
+if(empty($extra_type)){
+    $extra_amount = 0;
+}
 if(empty($discount_type)){
     $discount_amount = 0;
 }
@@ -53,11 +58,30 @@ if(empty($subjectsArr)){
 }
 
 /* EXPIRE OLD PLAN */
+/* GET THE CURRENT ACTIVE PLAN'S INVOICE (before expiring) */
+$activePlan = mysqli_fetch_assoc(mysqli_query($conn,"
+    SELECT invoice_id 
+    FROM student_plan_history
+    WHERE student_id='$student_id' AND status='Active'
+    ORDER BY id DESC LIMIT 1
+"));
+$old_invoice_id = $activePlan['invoice_id'] ?? 0;
+
+/* EXPIRE OLD PLAN */
 mysqli_query($conn,"
 UPDATE student_plan_history 
 SET status='Expired', end_date=CURDATE()
 WHERE student_id='$student_id' AND status='Active'
 ");
+
+/* CANCEL THE OLD PLAN'S INVOICE — only if it was never paid */
+if($old_invoice_id){
+    mysqli_query($conn,"
+    UPDATE invoices 
+    SET status='Cancelled'
+    WHERE id='$old_invoice_id' AND status='Pending'
+    ");
+}
 
 /* GET GRADE */
 $grade = $_POST['grade'];
@@ -107,7 +131,10 @@ APPLY DISCOUNT
 if(!empty($discount_type)){
     $price -= $discount_amount;
 }
-
+/* APPLY EXTRA AMOUNT */
+if($extra_type === "one_time" || $extra_type === "permanent"){
+    $price += $extra_amount;
+}
 if($price < 0){
     $price = 0;
 }
@@ -129,8 +156,11 @@ SET program='$program',
     grade='$grade',
     discount_type='$discount_type',
     discount_amount='$discount_amount',
-    discount_description='$discount_description'
-WHERE student_id='$student_id'
+    discount_description='$discount_description',
+    extra_type='$extra_type',
+    extra_amount='$extra_amount',
+    extra_description='$extra_description'
+    WHERE student_id='$student_id'
 ");
 
 /* GST */
@@ -139,10 +169,10 @@ WHERE student_id='$student_id'
 
 mysqli_query($conn,"
 INSERT INTO invoices
-(student_id, invoice_date, due_date, price, gst, total, status, discount_type, discount_amount, discount_description)
+(student_id, invoice_date, due_date, price, gst, total, status, discount_type, discount_amount, discount_description, extra_type, extra_amount, extra_description)
 VALUES
 ('$student_id', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY),
-'$price', '$gst', '$total', 'Pending', '$discount_type', '$discount_amount', '$discount_description')
+'$price', '$gst', '$total', 'Pending', '$discount_type', '$discount_amount', '$discount_description', '$extra_type', '$extra_amount', '$extra_description')
 ");
 
 $invoice_id = mysqli_insert_id($conn);
@@ -194,7 +224,10 @@ $invoice = [
     "discount_amount" => $discount_amount,
     "price_after_discount" => $price,
     "gst" => $gst,
-    "total" => $total
+    "total" => $total,
+    "extra_type" => $extra_type,
+    "extra_amount" => $extra_amount,
+    "extra_description" => $extra_description,
 ];
 ob_start();
 include "../../../invoice_template.php";

@@ -7,7 +7,6 @@
     :root {
   --primary: #1e3c72;
   --accent: #2a5298;
-  --bg-light: #f4f7fb;
   --theme-red:#e8063c;
 }
 
@@ -71,7 +70,7 @@ font-weight: 400;
   left:0;
   width:100%;
   height:4px;
-  background:#e60023;
+  background:var(--theme-red);
 }
 
 .stat-card:hover {
@@ -89,7 +88,8 @@ font-weight: 400;
   background:#f1f3f5;
   border-radius:50%;
   font-size:34px;
-  color:#0d6efd; }
+  color:var(--accent);
+}
 
 .stat-number {
   font-size: 50px;
@@ -118,6 +118,68 @@ font-weight: 400;
   margin-bottom: 1rem;
   padding-left: 0.6rem;
   border-left: 4px solid var(--accent);
+}
+
+/* ================= QUICK ACTIONS ================= */
+
+.quick-actions-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap:16px;
+  margin-bottom:2.5rem;
+}
+
+.quick-action {
+  background:#fff;
+  border:none;
+  border-radius:14px;
+  padding:1.2rem 1rem;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.06);
+  transition:0.25s;
+  cursor:pointer;
+}
+
+.quick-action i {
+  font-size:26px;
+  color:var(--accent);
+  transition:0.25s;
+}
+
+.quick-action span {
+  font-size:14px;
+  font-weight:600;
+  text-align:center;
+}
+
+.quick-action:hover {
+  transform:translateY(-4px);
+  box-shadow:0 10px 24px rgba(0,0,0,0.12);
+  background:linear-gradient(135deg, #1e3c72, #2a5298);
+  color:#fff;
+}
+
+.quick-action:hover i {
+  color:#fff;
+}
+
+.quick-action.disabled {
+  opacity:0.55;
+  cursor:not-allowed;
+}
+
+.quick-action.disabled:hover {
+  transform:none;
+  background:#fff;
+  color:inherit;
+  box-shadow:0 4px 14px rgba(0,0,0,0.06);
+}
+
+.quick-action.disabled:hover i {
+  color:var(--accent);
 }
 
 /* ================= CARDS (BOTTOM) ================= */
@@ -176,11 +238,11 @@ font-weight: 400;
   }
 
   #refresh-btn{
-    width: auto;                 
+    width: auto;
     padding:10px 18px;
     font-size:14px;
-    border-radius:20px;          
-    align-self:flex-start;       
+    border-radius:20px;
+    align-self:flex-start;
   }
 
 .stat-card{
@@ -194,7 +256,7 @@ font-weight: 400;
   .stat-icon{
     width:55px;
     height:55px;
-    font-size:22px;   
+    font-size:22px;
   }
 
   .section-title{
@@ -204,6 +266,24 @@ font-weight: 400;
   .card-body{
     padding:1rem !important;
   }
+
+  .quick-actions-grid{
+    grid-template-columns: repeat(2, 1fr);
+    gap:10px;
+  }
+
+  .quick-action{
+    padding:1rem 0.6rem;
+  }
+
+  .quick-action i{
+    font-size:22px;
+  }
+
+  .quick-action span{
+    font-size:12.5px;
+  }
+
 /* container spacing */
   #recent-activity .activity-list{
     display:flex;
@@ -277,41 +357,79 @@ font-weight: 400;
       </div>
     </div>
 
-    <!-- Pending Assignments -->
+    <!-- My Subjects -->
     <div class="col-md-3 ">
       <div class="stat-card text-center">
         <div>
         <div class="stat-icon"><i class="bi bi-clipboard-check-fill"></i></div>
-        <p class="stat-number" id="pending-assignments">0</p>
-        <p class="stat-label">Pending Assignments</p>
+        <p class="stat-number" id="my-subjects-count">0</p>
+        <p class="stat-label">My Subjects</p>
         </div>
         <small class="trend text-muted" id="pending-trend"></small>
       </div>
     </div>
 
-    <!-- Today's Classes -->
+    <!-- Student Documents -->
     <div class="col-md-3 ">
       <div class="stat-card text-center">
         <div>
         <div class="stat-icon"><i class="bi bi-calendar-event-fill"></i></div>
-        <p class="stat-number" id="today-classes">0</p>
-        <p class="stat-label">Today's Classes</p>
+        <p class="stat-number" id="pending-documents">0</p>
+        <p class="stat-label">Student Documents</p>
         </div>
         <small class="trend text-muted" id="classes-trend"></small>
       </div>
     </div>
 
-    <!-- Avg Score -->
+    <!-- Assessments -->
     <div class="col-md-3 ">
       <div class="stat-card text-center">
         <div>
         <div class="stat-icon"><i class="bi bi-bar-chart-fill"></i></div>
-        <p class="stat-number" id="avg-score">—</p>
-        <p class="stat-label">Active Students</p>
+        <p class="stat-number" id="teacher-assessments">0</p>
+        <p class="stat-label">Assessments</p>
         </div>
-        <small class="trend text-muted" id="score-trend"></small>
+        <small class="trend text-muted" id="active-students-trend"></small>
       </div>
     </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <h5 class="section-title">Quick Actions</h5>
+  <div class="quick-actions-grid">
+    <button type="button" class="quick-action" data-target="my_students.php">
+      <i class="bi bi-people-fill"></i>
+      <span>Manage Students</span>
+    </button>
+    <button type="button" class="quick-action" data-target="suggest_course_changes.php">
+      <i class="bi bi-lightbulb"></i>
+      <span>Suggest Course Change</span>
+    </button>
+    <button type="button" class="quick-action" data-target="calendar.php">
+      <i class="bi bi-calendar-event"></i>
+      <span>My Calendar</span>
+    </button>
+    <button type="button" class="quick-action" data-target="send_email_updates.php">
+      <i class="bi bi-envelope-paper"></i>
+      <span>Email Students &amp; Parents</span>
+    </button>
+    <button type="button" class="quick-action" data-target="attendance.php">
+      <i class="bi bi-clipboard-check"></i>
+      <span>Record Attendance</span>
+    </button>
+    <button type="button" class="quick-action" data-target="assign_chapter.php">
+      <i class="bi bi-book"></i>
+      <span>Assign Chapters</span>
+    </button>
+    <button
+    class="quick-action"
+    data-target="my_students.php">
+
+    <i class="bi bi-folder2-open"></i>
+
+    <span>Student Documents</span>
+
+    </button>
   </div>
 
   <div class="row g-4">
@@ -319,13 +437,13 @@ font-weight: 400;
     <div class="col-lg-6">
       <h5 class="section-title">My Subjects</h5>
       <div class="card" style="border-radius:16px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
-        <div class="card-body p-4" id="at-risk-students">
+        <div class="card-body p-4" id="teacher-subjects">
           <div class="text-center py-5"><span class="loading-spinner"></span></div>
         </div>
       </div>
     </div>
 
- 
+
   <!-- My Recent Activity -->
   <div class="col-lg-6">
     <h5 class="section-title">My Recent Activity</h5>
@@ -343,30 +461,31 @@ font-weight: 400;
 
 <script>
 $(document).ready(function() {
-function setGreeting() {
-  const hour = new Date().getHours();
-  let greetingText = "Hello 👋";
 
-  if (hour >= 5 && hour < 12) {
-    greetingText = "Good Morning ☀️";
-  } else if (hour >= 12 && hour < 17) {
-    greetingText = "Good Afternoon 🌤️";
-  } else if (hour >= 17 && hour < 21) {
-    greetingText = "Good Evening 🌇";
-  } else {
-    greetingText = "Good Night 🌙";
+  function setGreeting() {
+    const hour = new Date().getHours();
+    let greetingText = "Hello 👋";
+
+    if (hour >= 5 && hour < 12) {
+      greetingText = "Good Morning ☀️";
+    } else if (hour >= 12 && hour < 17) {
+      greetingText = "Good Afternoon 🌤️";
+    } else if (hour >= 17 && hour < 21) {
+      greetingText = "Good Evening 🌇";
+    } else {
+      greetingText = "Good Night 🌙";
+    }
+
+    elements.greeting.text(`${greetingText}, ${teacherName} 👋`);
   }
 
-  elements.greeting.text(`${greetingText}, ${teacherName} 👋`);
-}
   const BASE_API = './api/';
 
   const API_ENDPOINTS = {
-    greeting: BASE_API + 'teacher_greeting.php',
     myStudents: BASE_API + 'get_my_students_count.php',
-    pendingAssignments: BASE_API + 'get_pending_assignments.php',
-    todayClasses: BASE_API + 'get_today_classes.php',
-    activeStudents: BASE_API + 'get_active_students.php',
+    subjectsCount: BASE_API + 'get_my_subjects_count.php',
+    pendingDocuments: BASE_API + 'get_pending_documents.php',
+    teacherAssessments: BASE_API + 'get_teacher_assessments.php',
     teacherSubjects: BASE_API + 'get_teacher_subjects.php',
     recentActivity: BASE_API + 'get_teacher_recent_activity.php'
   };
@@ -374,10 +493,15 @@ function setGreeting() {
   const elements = {
     greeting: $('#greeting'),
     students: $('#my-students'), studentsTrend: $('#students-trend'),
-    pending: $('#pending-assignments'), pendingTrend: $('#pending-trend'),
-    classes: $('#today-classes'), classesTrend: $('#classes-trend'),
-    score: $('#avg-score'), scoreTrend: $('#score-trend'),
-    atRisk: $('#at-risk-students'),
+   subjectsCount: $('#my-subjects-count'),
+  subjectsTrend: $('#subjects-trend'),
+
+  documents: $('#pending-documents'),
+  documentsTrend: $('#documents-trend'),
+
+  assessments: $('#teacher-assessments'),
+  assessmentsTrend: $('#teacher-assessments-trend'),
+    subjects: $('#teacher-subjects'),
     activity: $('#recent-activity'),
     footer: $('#activity-footer'),
     readMoreBtn: $('#read-more-btn'),
@@ -409,6 +533,34 @@ function setGreeting() {
     }
   }
 
+  function renderActivity(container, items) {
+    let html = '<div class="list-group activity-list">';
+    if (!items || items.length === 0) {
+      html += '<div class="list-group-item text-muted text-center py-4">No recent activity</div>';
+    } else {
+      items.forEach(item => {
+        html += `<div class="list-group-item">
+                   <div class="d-flex justify-content-between">
+                     <span>${item.description}</span>
+                     <small class="text-muted">${item.time_ago}</small>
+                   </div>
+                 </div>`;
+      });
+    }
+    html += '</div>';
+    container.html(html);
+  }
+
+  function loadRecentActivity() {
+    return fetchData(API_ENDPOINTS.recentActivity, elements.activity, res => {
+      renderActivity(elements.activity, res.data);
+
+      elements.readMoreBtn.show();
+      elements.showLessBtn.hide();
+      elements.footer.toggle(!!(res.data && res.data.length > 0));
+    });
+  }
+
   async function loadDashboard() {
     setGreeting();
     elements.refreshText.text('Refreshing...');
@@ -416,64 +568,52 @@ function setGreeting() {
 
     try {
       await Promise.all([
-        
         fetchData(API_ENDPOINTS.myStudents, elements.students, res => {
           elements.students.text(res.data.count || 0);
           elements.studentsTrend.html(res.data.trend || '');
         }),
-        fetchData(API_ENDPOINTS.pendingAssignments, elements.pending, res => {
-          elements.pending.text(res.data.count || 0);
-          elements.pendingTrend.html(res.data.trend || 'No assignments');
-        }),
-        fetchData(API_ENDPOINTS.todayClasses, elements.classes, res => {
-          elements.classes.text(res.data.count || 0);
-          elements.classesTrend.html(res.data.next || 'No class today');
-        }),
-        fetchData(API_ENDPOINTS.activeStudents, elements.score, res => {
-         elements.score.text(res.data.count || 0);
-          elements.scoreTrend.html(res.data.trend || ' ');
-        }),
-      fetchData(API_ENDPOINTS.teacherSubjects, elements.atRisk, res => {
-        let html = '';
+        fetchData(API_ENDPOINTS.subjectsCount, elements.subjectsCount, res => {
+        elements.subjectsCount.text(res.data.count || 0);
+        elements.subjectsTrend.text(res.data.trend);
+    }),
 
-        if (!res.data || res.data.length === 0) {
-          html = `<div class="text-center py-5 text-muted">No subjects assigned</div>`;
-        } else {
-          html = '<div class="list-group activity-list">';
-          res.data.forEach(s => {
-           html += `<div class="list-group-item">
-          ${s.subject_name}
-        </div>`;
-          });
-          html += '</div>';
-        }
+    fetchData(API_ENDPOINTS.pendingDocuments, elements.documents, res => {
+        elements.documents.text(res.data.count || 0);
+        elements.documentsTrend.text(res.data.trend);
+    }),
 
-        elements.atRisk.html(html);
-        }),
-        fetchData(API_ENDPOINTS.recentActivity, elements.activity, res => {
-          let html = '<div class="list-group activity-list">';
+    fetchData(API_ENDPOINTS.teacherAssessments, elements.assessments, res => {
+        elements.assessments.text(res.data.count || 0);
+        elements.assessmentsTrend.text(res.data.trend);
+    }),
+        fetchData(API_ENDPOINTS.teacherSubjects, elements.subjects, res => {
+          let html = '';
+
           if (!res.data || res.data.length === 0) {
-            html += '<div class="list-group-item text-muted text-center py-4">No recent activity</div>';
+            html = `<div class="text-center py-5 text-muted">No subjects assigned</div>`;
           } else {
-            res.data.forEach(item => {
+            html = '<div class="list-group activity-list">';
+            res.data.forEach(s => {
               html += `<div class="list-group-item">
-                         <div class="d-flex justify-content-between">
-                           <span>${item.description}</span>
-                           <small class="text-muted">${item.time_ago}</small>
-                         </div>
-                       </div>`;
+                          <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                              <h6 class="mb-1 fw-bold text-primary">${s.subject_name}</h6>
+                              <small class="text-muted">
+                                Grade : <b>${s.grade}</b> &nbsp; | &nbsp; ${s.course_type.replaceAll('_',' ')}
+                              </small>
+                            </div>
+                            <div>
+                              <span class="badge bg-primary rounded-pill">${s.total_students} Students</span>
+                            </div>
+                          </div>
+                        </div>`;
             });
+            html += '</div>';
           }
-          html += '</div>';
-          elements.activity.html(html);
 
-          // Show footer only if there are activities
-          if (res.data && res.data.length > 0) {
-            elements.footer.show();
-            elements.readMoreBtn.show();
-            elements.showLessBtn.hide();
-          }
-        })
+          elements.subjects.html(html);
+        }),
+        loadRecentActivity()
       ]);
     } finally {
       elements.refreshText.text('Refresh');
@@ -490,18 +630,7 @@ function setGreeting() {
       dataType: 'json',
       success: function(res) {
         if (res.success && res.data) {
-          let html = '<div class="list-group activity-list">';
-          res.data.forEach(item => {
-            html += `<div class="list-group-item">
-                       <div class="d-flex justify-content-between">
-                         <span>${item.description}</span>
-                         <small class="text-muted">${item.time_ago}</small>
-                       </div>
-                     </div>`;
-          });
-          html += '</div>';
-          elements.activity.html(html);
-
+          renderActivity(elements.activity, res.data);
           elements.readMoreBtn.hide();
           elements.showLessBtn.show();
         }
@@ -512,9 +641,15 @@ function setGreeting() {
     });
   });
 
-  // Show Less Button
+  // Show Less Button - only resets the activity panel, not the whole dashboard
   elements.showLessBtn.on('click', function() {
-    loadDashboard();   // Reload default 3 activities
+    loadRecentActivity();
+  });
+
+  // Quick Actions - reuse the sidebar's existing SPA navigation (data-page/.menu-link)
+  $('.quick-action:not(.disabled)').on('click', function() {
+    const page = $(this).data('target');
+    $('.menu-link[data-page="' + page + '"]').trigger('click');
   });
 
   loadDashboard();

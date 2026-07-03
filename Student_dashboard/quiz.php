@@ -13,7 +13,7 @@ if ($subject_id == 0) {
     die("Invalid subject ID");
 }
 
-$student_id = $_SESSION['student_id'] ?? 1; // testing ke liye
+$student_id = $_SESSION['student_id'] ?? 1;
 
 $selected_topic = null;
 $instructions = []; // 
@@ -41,30 +41,49 @@ if ($topic_id) {
     $stmt4->execute();
     $result4 = $stmt4->get_result();
 
-    // âœ… GROUP BY instruction
+   
     while ($row = $result4->fetch_assoc()) {
         $instructions[$row['instruction_id']]['instruction'] = $row['instruction'];
         $instructions[$row['instruction_id']]['questions'][] = $row;
     }
 }
 
-  /* ======================
-    PAGINATION LOGIC
+ /* ======================
+    PAGINATION LOGIC 
   ====================== */
-  $instruction_ids = array_keys($instructions);
-  $total_instructions = count($instruction_ids);
+  $QUESTIONS_PER_PAGE = 2; 
+
+  $all_questions = [];
+  $inst_counter = 0;           
+  foreach ($instructions as $inst_id => $inst) {
+      $inst_counter++;
+      $q_sub_counter = 0;     
+      foreach ($inst['questions'] as $q) {
+          $q_sub_counter++;
+          $q['_instruction_text'] = $inst['instruction'];
+          $q['_instruction_no']   = $inst_counter;   
+          $q['_sub_no']           = $q_sub_counter;  
+          $all_questions[] = $q;
+      }
+  }
+
+  $total_questions = count($all_questions);
+  $total_pages = (int)ceil($total_questions / $QUESTIONS_PER_PAGE);
 
   $page = isset($_GET['page']) ? (int)$_GET['page'] : 0;
-
   if ($page < 0) $page = 0;
-  if ($page >= $total_instructions) $page = $total_instructions - 1;
+  $is_first_page = ($page == 0);
+  if ($total_pages > 0 && $page >= $total_pages) $page = $total_pages - 1;
 
-  $current_instruction_id = $instruction_ids[$page] ?? null;
-  $current_instruction = $instructions[$current_instruction_id] ?? null;
 
+  $current_questions = array_slice(
+      $all_questions,
+      $page * $QUESTIONS_PER_PAGE,
+      $QUESTIONS_PER_PAGE
+  );
 
   // ---------------------------
-  // ATTEMPT TIMESTAMP (same as your code)
+  // ATTEMPT TIMESTAMP 
   // ---------------------------
   if ($topic_id) {
       $sess_key = 'attempt_time_for_topic_' . $topic_id;
@@ -83,7 +102,7 @@ if ($topic_id) {
   <link href="student.css" rel="stylesheet"/>
   <title>Student Dashboard</title>
   <style>
-    /* Existing styles remain the same */
+
     body {
       min-height: 100vh;
       font-family: 'Segoe UI', sans-serif;
@@ -277,7 +296,7 @@ if ($topic_id) {
   <div class="info-box info-blue">
     <?php if (!isset($_SESSION['score'])) $_SESSION['score'] = 0; ?>
     <div class="text">Score: <?= intval($_SESSION['score']) ?></div>
-    <div class="text">Total Questions: <?= $total_instructions ?></div>
+    <div class="text">Total Questions: <?= $total_questions ?></div>
     <div class="text">Grade</div>
   </div>
 </div>
@@ -285,13 +304,13 @@ if ($topic_id) {
 <!-- Quiz Form -->
     <form method="post" action="submit_quiz.php" class="mt-4">
       <?php
-    // ðŸ”¥ Inject previous answers as hidden inputs (NO TEMPLATE CHANGE NEEDED)
+
     if (!empty($_SESSION['quiz_answers'])) {
         foreach ($_SESSION['quiz_answers'] as $qid => $ans) {
 
-            // Skip current page questions (they already exist)
-            if (!empty($current_instruction)) {
-                foreach ($current_instruction['questions'] as $qtemp) {
+           // Skip current page questions (they already exist)
+            if (!empty($current_questions)) {
+                foreach ($current_questions as $qtemp) {
                     if ($qtemp['id'] == $qid) {
                         continue 2;
                     }
@@ -313,19 +332,46 @@ if ($topic_id) {
   <?php endif; ?>
 
   <div class="row">
-  <?php
+<?php
   $char = '1';
+  $last_instruction_no = null;
 
-  if (!empty($current_instruction)):
+if (!empty($current_questions)):
+    foreach ($current_questions as $loop_i => $q):
+
+      $index = $q['_sub_no'] - 1;   
+      $char  = $q['_sub_no']; 
+      $is_last_question =
+(
+    $q['_sub_no']
+    ==
+    count($instructions[$q['instruction_id']]['questions'])
+);
+      $is_first_question = ($loop_i === 0);
+      $GLOBALS['square_missing_started'] =
+$GLOBALS['square_missing_started'] ?? false;
+
+if (
+    $q['question_type'] === 'square_missing_digit'
+    && !$GLOBALS['square_missing_started']
+) {
+    $is_first_missing_digit = true;
+    $GLOBALS['square_missing_started'] = true;
+} else {
+    $is_first_missing_digit = false;
+}
+
+      $is_first_page = ($page == 0);
   ?>
 
-    <h5>
-      Ques.<?= ($page + 1) . ') ' . htmlspecialchars($current_instruction['instruction']); ?>
-    </h5>
+    <?php if ($q['_instruction_no'] !== $last_instruction_no): ?>
+      <h5>
+        Ques.<?= $q['_instruction_no'] . ') ' . htmlspecialchars($q['_instruction_text']); ?>
+      </h5>
+      <?php $last_instruction_no = $q['_instruction_no']; ?>
+    <?php endif; ?>
 
     <?php
-    foreach ($current_instruction['questions'] as $index => $q) {
-
       switch ($q['question_type']) {
 
         case 'fill_blank2':
@@ -524,8 +570,8 @@ if ($topic_id) {
                 case 'pattern_match_rule' :    
             include 'templates/Probability/number_pattern_complete.php';
             break;
-        case 'exponent_notation':
-            include 'templates/exponent/exponent_notation.php';
+        case 'dynamic_fill_table':
+            include 'templates/exponent/dynamic_fill_table.php';
             break;   
              case 'primary_secondary':
             include 'templates/DataHandling/primary_secondary.php'; 
@@ -602,12 +648,24 @@ if ($topic_id) {
             case 'algebra_universal':
             include 'templates/Algebra/algebra_universal.php';  
             break;
-      }
-    }
+            case 'compare_powers':
+            include 'templates/Algebra/compare_powers.php';
+            break;
+            case 'integer_order_list':
+            include 'templates/Integer/integer_order_list.php';
+            break;
+            case 'coordinate_points_input_negative':
+            include 'templates/Integer/coordinate_points_input_negative.php';
+            break;
+            case 'integer_number_line':
+            include 'templates/Integer/integer_number_line.php';
+            break;
+     }
     ?>
+    <?php endforeach; ?>
 
   <?php else: ?>
-    <p>No instructions found.</p>
+    <p>No questions found.</p>
   <?php endif; ?>
   </div>
 
@@ -619,7 +677,7 @@ if ($topic_id) {
             class="btn btn-secondary">Previous</button>
   <?php endif; ?>
 
-  <?php if ($page < $total_instructions - 1): ?>
+  <?php if ($page < $total_pages - 1): ?>
     <button type="submit" name="save_page" value="<?= $page + 1 ?>" 
             class="btn btn-primary">Next</button>
   <?php endif; ?>
@@ -633,7 +691,6 @@ if ($topic_id) {
 
 </form>
 
-      <!-- Ã°Å¸Å’Å¸ Bottom Explanation Section -->
       <div class="bottom-explain-box">
           <div class="text">
               <strong>See Explanation:</strong> <span class="small-text">Click below to review answers and explanations.</span>

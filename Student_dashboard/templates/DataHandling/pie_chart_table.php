@@ -2,13 +2,35 @@
 $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 
 $payload = json_decode($q['question_payload'] ?? '', true) ?: [];
+$correct = json_decode($q['correct_answer'] ?? '', true) ?: [];
+$student = json_decode($q['student_answer'] ?? '', true) ?: [];
 
 $items = $payload['items'] ?? [];
 $real_question_id = $q['id'] ?? 0;
 
-// ✅ image only once
+$correct_angles = $correct['angles'] ?? [];
+$correct_total_value = $correct['total_value'] ?? array_sum(array_column($items, 'value'));
+$correct_total_angle = $correct['total_angle'] ?? 360;
+
+$student_angles = $student['angles'] ?? [];
+$student_total_value = $student['total_value'] ?? '';
+$student_total_angle = $student['total_angle'] ?? '';
+
+$draw_mode = !empty($payload['draw_chart']);
+$ro = $draw_mode ? 'readonly' : '';
+
 if (!isset($GLOBALS['pie_table_img'])) {
     $GLOBALS['pie_table_img'] = false;
+}
+
+$cell_class = function ($student_val, $correct_val) {
+    if (!isset($GLOBALS['is_pie_result_page']) || $student_val === '' || $student_val === null) {
+        return '';
+    }
+    return ((string)$student_val === (string)$correct_val) ? 'correct-cell' : 'wrong-cell';
+};
+if (isset($is_result_page)) {
+    $GLOBALS['is_pie_result_page'] = true;
 }
 ?>
 
@@ -52,7 +74,25 @@ if (!isset($GLOBALS['pie_table_img'])) {
     border-bottom:2px solid #333;
     text-align:center;
     outline:none;
+    background: transparent;
 }
+
+/* ✅ readonly angle = pie se aaya, type nahi kar sakte */
+.table-wrap input[readonly]{
+    cursor:not-allowed;
+    color:#0d6efd;
+    font-weight:bold;
+    border-bottom:2px dashed #aaa;
+}
+
+.table-wrap tr.total-row td,
+.table-wrap tr.total-row th{
+    font-weight:bold;
+    background:#f7f7f7;
+}
+
+.correct-cell{ background:#d4edda; }
+.wrong-cell{ background:#f8d7da; }
 </style>
 
 <!-- ✅ IMAGE -->
@@ -68,6 +108,17 @@ if (!isset($GLOBALS['pie_table_img'])) {
     <h6><?= $char ?>. <?= $h($q['question_text']) ?></h6>
     <?php $char++; ?>
 
+    <?php
+    /*
+    |----------------------------------------------------------------------
+    | ✅ Pie Chart PEHLE (table se upar)
+    |----------------------------------------------------------------------
+    */
+    if (!empty($payload['draw_chart'])) {
+        include __DIR__ . "/pie_chart_draw.php";
+    }
+    ?>
+
     <div class="table-wrap">
         <table>
             <tr>
@@ -81,13 +132,34 @@ if (!isset($GLOBALS['pie_table_img'])) {
                 <td><?= $h($row['label']) ?></td>
                 <td><?= $h($row['value']) ?></td>
 
-                <td>
+                <td class="<?= $cell_class($student_angles[$i] ?? '', $correct_angles[$i] ?? '') ?>">
                     <input type="text"
-                        name="answer[<?= $real_question_id ?>][angles][<?= $i ?>]">
+                        name="answer[<?= $real_question_id ?>][angles][<?= $i ?>]"
+                        value="<?= $h($student_angles[$i] ?? '') ?>" <?= $ro ?>>
                 </td>
             </tr>
             <?php endforeach; ?>
+
+            <tr class="total-row">
+                <th>Total</th>
+                <th>
+                    <input type="text"
+                        name="answer[<?= $real_question_id ?>][total_value]"
+                        value="<?= $h($student_total_value) ?>">
+                </th>
+                <th class="<?= $cell_class($student_total_angle, $correct_total_angle) ?>">
+                    <input type="text"
+                        name="answer[<?= $real_question_id ?>][total_angle]"
+                        value="<?= $h($student_total_angle) ?>" <?= $ro ?>>
+                </th>
+            </tr>
         </table>
     </div>
+
+    <?php if (isset($is_result_page) && (string)$student_total_value !== (string)$correct_total_value): ?>
+        <div style="color:#198754;font-size:14px;margin-top:6px;">
+            Correct total no. of students: <?= $h($correct_total_value) ?>
+        </div>
+    <?php endif; ?>
 
 </div>

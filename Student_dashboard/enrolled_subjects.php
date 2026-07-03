@@ -92,15 +92,18 @@ body {
 
 
 /* IMAGE */
-.course-img {
-
-    width: 130px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 6px;
-
+.course-img{
+    width:280px;
+    height:158px;
+    object-fit:cover;
+    border-radius:10px;
+    display:block;
 }
 
+.table th:first-child,
+.table td:first-child{
+    width:320px;
+}
 
 /* TABLE RESPONSIVE */
 .table-responsive {

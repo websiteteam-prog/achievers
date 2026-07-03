@@ -176,6 +176,9 @@ if (!isset($student)) {
         <a href="enrolled_subjects.php" class="<?= ($currentpage === 'enrolled_subjects.php') ? 'active' : '' ?>">
             <i class="bi bi-journal-bookmark-fill"></i> Enrolled Subjects
         </a>
+        <a href="student_documents.php" class="<?= ($currentpage === 'student_documents.php') ? 'active' : '' ?>">
+            <i class="bi bi-file-earmark-arrow-up-fill"></i> My Documents
+        </a>
         <a href="student_assessments.php" class="<?= ($currentpage === 'student_assessments.php') ? 'active' : '' ?>">
             <i class="bi bi-file-earmark-check-fill"></i> My Assessments
         </a>

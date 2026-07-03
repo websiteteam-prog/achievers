@@ -9,7 +9,7 @@ SELECT COUNT(*) c
 FROM invoices 
 LEFT JOIN enrollment_inquiries 
 ON invoices.student_id=enrollment_inquiries.student_id
-WHERE 1=1
+WHERE invoices.status != 'Cancelled'
 "))['c'];
 $paid=mysqli_fetch_assoc(mysqli_query($conn,"
 SELECT COUNT(*) c 
@@ -32,6 +32,7 @@ $search = $_GET['search'] ?? '';
 $date   = $_GET['date'] ?? '';
 $status = $_GET['status'] ?? '';
 $enroll_status = $_GET['enroll_status'] ?? '';
+$billing = $_GET['billing'] ?? '';
 // ✅ PAGINATION
 $limit = 5; 
 $page_no = isset($_GET['p']) ? (int)$_GET['p'] : 1;
@@ -40,6 +41,14 @@ if($page_no < 1) $page_no = 1;
 
 $offset = ($page_no - 1) * $limit;
 $where = "WHERE 1=1";
+$where .= " AND invoices.status != 'Cancelled'";
+
+// 🔁 BILLING FILTER
+if($billing === 'paused'){
+    $where .= " AND enrollment_inquiries.billing_paused = 1";
+} elseif($billing === 'active'){
+    $where .= " AND enrollment_inquiries.billing_paused = 0";
+}
 
 if(!empty($enroll_status)){
     $enroll_status = mysqli_real_escape_string($conn, $enroll_status);
@@ -77,6 +86,7 @@ $recent=mysqli_query($conn,"
 SELECT invoices.*, 
        enrollment_inquiries.first_name, 
        enrollment_inquiries.enroll_date, 
+       enrollment_inquiries.billing_paused, 
 
        CASE 
     WHEN sph.status = 'Expired' THEN 'Expired'
@@ -192,6 +202,14 @@ value="<?php echo $_GET['date'] ?? ''; ?>">
 </div>
 
 <div class="filter-item">
+<select name="billing">
+<option value="">All Billing</option>
+<option value="active" <?php if(($_GET['billing'] ?? '')=='active') echo 'selected'; ?>>Active</option>
+<option value="paused" <?php if(($_GET['billing'] ?? '')=='paused') echo 'selected'; ?>>Paused</option>
+</select>
+</div>
+
+<div class="filter-item">
 <select name="enroll_status">
 <option value="">All Enrollment</option>
 
@@ -219,7 +237,7 @@ class="reset-btn">
 Reset
 </a>
 
-<a href="invoice_system/dashboard/export_excel.php?search=<?php echo $search; ?>&date=<?php echo $date; ?>&status=<?php echo $status; ?>&enroll_status=<?php echo $enroll_status; ?>" 
+<a href="invoice_system/dashboard/export_excel.php?search=<?php echo $search; ?>&date=<?php echo $date; ?>&status=<?php echo $status; ?>&enroll_status=<?php echo $enroll_status; ?>&billing=<?php echo $billing; ?>" 
 class="btn-success">
 Download 
 </a>
@@ -243,6 +261,7 @@ Download
 <th>Enroll Date</th>
 <th>Status</th>
 <th>Enrollment</th>
+<th>Billing</th>
 <th>Action</th>
 </tr>
 </thead>
@@ -251,7 +270,7 @@ Download
 
 <?php if(mysqli_num_rows($recent) == 0){ ?>
 <tr>
-<td colspan="7" style="text-align:center;">No invoices found</td>
+<td colspan="8" style="text-align:center;">No invoices found</td>
 </tr>
 <?php }  else { ?>
 
@@ -260,11 +279,11 @@ Download
 $today = date("Y-m-d");
 $is_overdue = ($row['due_date'] < $today && strtolower($row['status']) != "paid");
 ?>
-<tr class="<?php echo (strtolower($row['enroll_status'])=='cancelled') ? 'cancel-row' : ''; ?>">
+<tr class="<?php echo (strtolower($row['enroll_status'])=='cancelled') ? 'cancel-row' : ''; ?> <?php echo (($row['billing_paused'] ?? 0)==1) ? 'paused-row' : ''; ?>">
 <td><?php echo $row['invoice_number']?></td>
 <td><?php echo $row['first_name']?></td>
 <td>$<?php echo number_format($row['total'],2)?></td>
-<td><?php echo date("d M Y", strtotime($row['invoice_date'])); ?></td>
+<td><?php echo !empty($row['enroll_date']) ? date("d M Y", strtotime($row['enroll_date'])) : '-'; ?></td>
 <td>
 <?php if($row['status']=="Paid"){ ?>
 
@@ -298,6 +317,34 @@ else{
     echo '<span class="badge bg-dark">Unknown</span>';
 }
 ?>
+</td>
+<td>
+<?php 
+$estatus = strtolower($row['enroll_status']);
+
+if($estatus == "cancelled" || $estatus == "expired"): 
+?>
+    <span class="billing-status na"><i class="bi bi-dash-circle"></i> N/A</span>
+
+<?php elseif(($row['billing_paused'] ?? 0) == 1): ?>
+    <div class="billing-wrap">
+        <span class="billing-status paused"><i class="bi bi-pause-circle-fill"></i> Paused</span>
+        <button class="billing-btn resume toggle-billing"
+                data-student="<?php echo $row['student_id']; ?>" data-pause="0">
+            <i class="bi bi-play-fill"></i> Resume
+        </button>
+    </div>
+
+<?php else: ?>
+    <div class="billing-wrap">
+        <span class="billing-status active"><i class="bi bi-broadcast"></i> Active</span>
+        <button class="billing-btn pause toggle-billing"
+                data-student="<?php echo $row['student_id']; ?>" data-pause="1">
+            <i class="bi bi-pause-fill"></i> Pause
+        </button>
+    </div>
+
+<?php endif; ?>
 </td>
 <td class="action-btns">
 
@@ -597,6 +644,11 @@ font-family: "Love Ya Like A Sister", cursive;
   width:160px;
 }
 
+.table th:nth-child(7),
+.table td:nth-child(7){
+  min-width:130px;
+}
+
 .table th:last-child,
 .table td:last-child{
   width:180px;
@@ -669,6 +721,182 @@ font-family: "Love Ya Like A Sister", cursive;
 }
 .action-btns:hover{color :white;}
 
+/* ===== BILLING PAUSE/RESUME ===== */
+.billing-wrap{
+  display:flex;
+  flex-direction:row;    
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  white-space:nowrap;
+}
+
+/* status pill */
+.billing-status{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:11px;
+  font-weight:600;
+  padding:3px 10px;
+  border-radius:20px;
+  letter-spacing:.2px;
+  display:none;
+}
+.billing-status.active{
+  background:#e7f7ee;
+  color:#158a52;
+}
+.billing-status.paused{
+  background:#fdeaea;
+  color:#c0392b;
+}
+.billing-status.active i{ color:#22c55e; }
+
+/* toggle button */
+.billing-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  border:none;
+  cursor:pointer;
+  font-size:13px;          
+  font-weight:600;
+  color:#fff;
+  padding:8px 18px;       
+  min-width:110px;        
+  height:36px;           
+  border-radius:25px;     
+  transition:all .2s ease;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+}
+
+.billing-btn.pause{
+  background:linear-gradient(160deg,#f59e0b,#f97316);
+}
+.billing-btn.resume{
+  background:linear-gradient(160deg,#0ea5e9,#2563eb);
+}
+.billing-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 18px rgba(0,0,0,.22);
+}
+.billing-btn:active{ transform:translateY(0); }
+.billing-btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* dim the whole row when paused */
+.paused-row td{
+  background:#fbfbfd;
+  opacity:.85;
+}
+.paused-row td:first-child{
+  box-shadow: inset 3px 0 0 #f59e0b;   /* amber left strip */
+}
+
+/* toast */
+.billing-toast{
+  position:fixed;
+  bottom:25px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#05364d;
+  color:#fff;
+  padding:10px 22px;
+  border-radius:30px;
+  font-size:13px;
+  font-weight:500;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  opacity:0;
+  transition:all .3s ease;
+  z-index:9999;
+}
+.billing-toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+.billing-status.na{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  font-size:13px;
+  font-weight:600;
+  padding:8px 18px;
+  min-width:110px;        
+  height:36px;
+  border-radius:25px;
+  background:#eef0f3;
+  color:#8a94a6;
+}
+
+.invoice-table .table th,
+.invoice-table .table td{
+  padding:14px 12px;
+  vertical-align:middle;
+  border-bottom:1px solid #eef1f5;
+  text-align:left;
+}
+
+/* header look */
+.invoice-table .table thead th{
+  font-weight:600;
+  color:#05364d;
+  background:#f1f3f6;
+  border-bottom:2px solid #e6e9ef;
+  white-space:nowrap;
+}
+
+/* center the badge / button columns: Status, Enrollment, Billing, Action */
+.invoice-table .table th:nth-child(5), .invoice-table .table td:nth-child(5),
+.invoice-table .table th:nth-child(6), .invoice-table .table td:nth-child(6),
+.invoice-table .table th:nth-child(7), .invoice-table .table td:nth-child(7),
+.invoice-table .table th:nth-child(8), .invoice-table .table td:nth-child(8){
+  text-align:center;
+}
+
+/* invoice number: one line, bold */
+.invoice-table .table td:first-child{
+  white-space:nowrap;
+  font-weight:600;
+}
+
+/* enroll date: keep on one line */
+.invoice-table .table td:nth-child(4),
+.invoice-table .table th:nth-child(4){
+  width:auto;
+  white-space:nowrap;
+}
+
+/* remove the fixed 180px that squeezed the Action column */
+.invoice-table .table td:last-child,
+.invoice-table .table th:last-child{
+  width:auto;
+}
+
+/* ACTION column: keep buttons centered & together, no overflow */
+.invoice-table .action-btns{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  min-width:auto;
+  flex-wrap:nowrap;
+}
+.invoice-table .action-btns .btn{
+  min-width:100px;
+  flex-shrink:0;
+}
+
+/* BILLING column centered */
+.invoice-table .billing-wrap{
+  justify-content:center;
+}
+
+@media(max-width:768px){
+  .billing-wrap{ min-width:120px; }
+}
 
 /* ===== MOBILE ===== */
 
@@ -792,6 +1020,32 @@ $(document).on('click', '.page-btn', function(e){
 
     $.get('invoice_system/dashboard/invoice_dashboard.php?' + query, function(data){
         $('#page-content').html(data);
+    });
+});
+// PAUSE / RESUME billing
+$(document).on('click', '.toggle-billing', function(e){
+    e.preventDefault();
+
+    let btn   = $(this);
+    let sid   = btn.data('student');
+    let pause = btn.data('pause');
+
+    btn.prop('disabled', true);
+
+    $.post('invoice_system/dashboard/toggle_billing.php', { student_id: sid, pause: pause }, function(){
+
+        // tiny toast
+        let msg = (pause == 1) ? 'Billing paused' : 'Billing resumed';
+        let $toast = $('<div class="billing-toast">'+ msg +'</div>').appendTo('body');
+        setTimeout(function(){ $toast.addClass('show'); }, 30);
+        setTimeout(function(){ $toast.removeClass('show'); }, 1800);
+        setTimeout(function(){ $toast.remove(); }, 2200);
+
+        // reload dashboard keeping filters/page
+        let query = new URLSearchParams(window.location.search).toString();
+        $.get('invoice_system/dashboard/invoice_dashboard.php?' + query, function(data){
+            $('#page-content').html(data);
+        });
     });
 });
 </script>
