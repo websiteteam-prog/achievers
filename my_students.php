@@ -331,7 +331,7 @@ min-width:850px;
 Total : <?= $total_students ?>
 </span>
 
-<a href="manage_students.php" class="btn-manage-student">
+<a href="#" class="btn-manage-student menu-link" data-page="manage_students.php">
 <i class="bi bi-person-gear"></i>
 Manage Students
 </a>

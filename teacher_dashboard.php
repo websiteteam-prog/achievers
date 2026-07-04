@@ -428,8 +428,9 @@ history.pushState(
   }
 
 
-  // click menu
-  $(".menu-link").click(function(e){
+  // click menu (delegated so links injected later via AJAX, e.g. inside
+  // my_students.php or manage_students.php, respond to clicks too)
+  $(document).on("click", ".menu-link", function(e){
   e.preventDefault();
   let page=$(this).data("page");
   loadPage(page,true);
