@@ -47,6 +47,7 @@ if (!empty($ass['due_date'])) {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Assessment Expired</title>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
             <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
             <style>
                 body { background: linear-gradient(160deg, #1e3a8a, #2563eb); min-height: 100vh; font-family: 'Segoe UI', sans-serif; margin:0; padding:0; display:flex; align-items:center; justify-content:center; margin-left: 21%;}
@@ -93,6 +94,7 @@ if (!empty($ass['submitted_at'])) {
         <!DOCTYPE html>
         <html><head><meta charset="UTF-8"><title>Already Submitted</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
         <style>
             body { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); min-height: 100vh; display:flex; align-items:center; justify-content:center; }
@@ -151,6 +153,7 @@ if ($time_limit_minutes > 0) {
             <!DOCTYPE html>
             <html><head><meta charset="UTF-8"><title>Time Up!</title>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
             <style>
                 body { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); min-height: 100vh; display:flex; align-items:center; justify-content:center; }
                 .card { max-width: 500px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
@@ -214,6 +217,7 @@ if (empty($all_questions)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($ass['title']) ?> - Take Assessment</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
     <!-- Google Font -->
 <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
