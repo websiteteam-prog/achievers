@@ -62,18 +62,40 @@ $students = [];
 $stmt = $conn->prepare(
     "
     SELECT
-        id,
+        s.id,
+        si.image_path,
         TRIM(
             CONCAT(
-                COALESCE(first_name,''),
-                IF(first_name IS NOT NULL AND last_name IS NOT NULL,' ',''),
-                COALESCE(last_name,'')
+                COALESCE(s.first_name,''),
+                IF(s.first_name IS NOT NULL AND s.last_name IS NOT NULL,' ',''),
+                COALESCE(s.last_name,'')
             )
         ) AS name
-    FROM students
-    ORDER BY first_name,last_name,id
+
+    FROM teacher_subjects ts
+
+    INNER JOIN student_subjects ss
+    ON ts.subject_id = ss.subject_id
+
+    INNER JOIN students s
+    ON s.id = ss.student_id
+
+    LEFT JOIN student_images si
+    ON si.student_id = s.id
+
+    WHERE ts.teacher_id = ?
+
+    GROUP BY
+    s.id,
+    si.image_path,
+    s.first_name,
+    s.last_name
+
+    ORDER BY s.first_name,s.last_name,s.id
     "
 );
+
+$stmt->bind_param("i", $teacher_id);
 
 $stmt->execute();
 
@@ -87,8 +109,9 @@ while ($row = $result->fetch_assoc())
 
     $students[] =
     [
-        'id'   => $row['id'],
-        'name' => $name
+        'id'         => $row['id'],
+        'name'       => $name,
+        'image_path' => $row['image_path']
     ];
 }
 
@@ -146,8 +169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
     {
         $msg =
         "
-        <div class='alert alert-danger'>
+        <div class='alert alert-danger alert-dismissible fade show' role='alert'>
+            <i class='bi bi-exclamation-circle-fill me-2'></i>
             Assessment title required
+            <button type='button' class='btn-close' data-bs-dismiss='alert'></button>
         </div>
         ";
 
@@ -377,8 +402,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 
         $msg =
         "
-        <div class='alert alert-danger'>
+        <div class='alert alert-danger alert-dismissible fade show' role='alert'>
+            <i class='bi bi-exclamation-circle-fill me-2'></i>
             ".$e->getMessage()."
+            <button type='button' class='btn-close' data-bs-dismiss='alert'></button>
         </div>
         ";
 
@@ -400,33 +427,231 @@ rel="stylesheet"
 
 <style>
 
-.form-container
-{
+.assign-container{
 padding:5px;
 }
 
-.checkbox-list label
-{
-display:block;
-padding:8px;
-border-radius:6px;
-cursor:pointer;
-}
-
-.checkbox-list label:hover
-{
-background:#f1f5f9;
-}
-
-.section-title
-{
-font-size:22px;
-font-weight:600;
-margin-bottom:20px;
+.assign-header{
 display:flex;
-gap:10px;
+justify-content:space-between;
 align-items:center;
+margin-bottom:25px;
+flex-wrap:wrap;
+gap:15px;
 }
+
+.header-left{
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.header-icon{
+width:55px;
+height:55px;
+border-radius:16px;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+display:flex;
+align-items:center;
+justify-content:center;
+color:#fff;
+font-size:24px;
+box-shadow:0 8px 20px rgba(30,60,114,.25);
+}
+
+.header-title{
+margin:0;
+font-size:24px;
+font-weight:700;
+color:#1e3c72;
+letter-spacing:.2px;
+}
+
+.header-subtitle{
+margin:0;
+font-size:14px;
+color:#6b7280;
+}
+
+.header-right{
+display:flex;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.subject-badge{
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+color:#fff;
+padding:8px 18px;
+border-radius:40px;
+font-weight:600;
+font-size:13px;
+box-shadow:0 5px 15px rgba(0,0,0,.12);
+}
+
+.card{
+border:none;
+border-radius:0px;
+overflow:hidden;
+box-shadow:0 10px 30px rgba(17,24,39,.08);
+animation:fadeInUp .4s ease;
+}
+
+@keyframes fadeInUp{
+from{opacity:0;transform:translateY(10px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+.form-card{
+padding:28px;
+}
+
+.form-card label{
+font-weight:600;
+font-size:13.5px;
+color:#374151;
+margin-bottom:6px;
+display:block;
+}
+
+.form-card .form-select,
+.form-card .form-control{
+border-radius:10px;
+border:1px solid #e2e8f0;
+padding:10px 14px;
+font-size:14.5px;
+}
+
+.form-card .form-select:focus,
+.form-card .form-control:focus{
+border-color:#2a5298;
+box-shadow:0 0 0 .2rem rgba(42,82,152,.15);
+}
+
+.form-check{
+padding-left:1.9em;
+}
+
+.section-heading{
+font-size:18px;
+font-weight:700;
+color:#1e3c72;
+margin:35px 0 15px;
+display:flex;
+align-items:center;
+gap:8px;
+}
+
+.panel-box{
+border:1px solid #e2e8f0;
+border-radius:10px;
+padding:16px;
+max-height:300px;
+overflow:auto;
+background:#fbfcfe;
+}
+
+.checkbox-list label{
+display:flex;
+align-items:center;
+gap:12px;
+padding:10px 12px;
+border-radius:8px;
+cursor:pointer;
+border-bottom:1px solid #edf1f7;
+margin-bottom:4px;
+}
+
+.checkbox-list label:last-child{
+border-bottom:none;
+margin-bottom:0;
+}
+
+.checkbox-list label:hover{
+background:#f8fbff;
+}
+
+.checkbox-list input[type="checkbox"]{
+flex-shrink:0;
+}
+
+.student-cell{
+display:flex;
+align-items:center;
+gap:12px;
+}
+
+.avatar{
+width:38px;
+height:38px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+color:#fff;
+font-weight:600;
+font-size:14px;
+flex-shrink:0;
+}
+
+.student-photo{
+width:38px;
+height:38px;
+border-radius:50%;
+object-fit:cover;
+object-position:center;
+border:2px solid #fff;
+box-shadow:0 3px 10px rgba(0,0,0,.15);
+flex-shrink:0;
+}
+
+.student-name{
+font-weight:600;
+font-size:14.5px;
+color:#374151;
+}
+
+.empty-state-mini{
+padding:40px 20px;
+text-align:center;
+color:#9ca3af;
+}
+
+.empty-state-mini i{
+font-size:45px;
+color:#d8d8d8;
+display:block;
+margin-bottom:12px;
+}
+
+.btn-submit-assign{
+display:inline-flex;
+align-items:center;
+gap:8px;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+color:#fff;
+border:none;
+padding:12px 34px;
+border-radius:40px;
+font-weight:600;
+font-size:15px;
+transition:.25s ease;
+}
+
+.btn-submit-assign:hover{
+transform:translateY(-2px);
+box-shadow:0 12px 26px rgba(30,60,114,.32);
+color:#fff;
+}
+
+hr{
+margin:30px 0;
+border-top:1px solid #edf1f7;
+}
+
 
 /* ============================= */
 /* MOBILE RESPONSIVE FIX */
@@ -435,83 +660,61 @@ align-items:center;
 @media (max-width: 575px)
 {
 
-.form-container
-{
+.assign-container{
 padding:0;
 }
 
-
-/* Title responsive */
-.section-title
-{
-font-size:18px;
-flex-wrap:wrap;
+.assign-header{
+flex-direction:column;
+align-items:flex-start;
 }
 
+.header-right{
+width:100%;
+justify-content:space-between;
+}
 
-/* All inputs full width */
-.row.g-4 > div
-{
+.header-title{
+font-size:18px;
+}
+
+.form-card{
+padding:16px;
+}
+
+.row.g-4 > div{
 width:100%;
 flex:0 0 100%;
 max-width:100%;
 }
 
-
-/* Fix datetime input */
-input[type="datetime-local"]
-{
+input[type="datetime-local"]{
 width:100%;
 }
 
-
-/* Fix selects */
-select.form-select
-{
+select.form-select{
 width:100%;
 }
 
-
-/* Fix number input */
-input[type="number"]
-{
+input[type="number"]{
 width:100%;
 }
 
-
-/* Checkbox container */
-.checkbox-list
-{
+.panel-box{
 max-height:250px;
 padding:10px;
 }
 
-
-/* Checkbox label wrap */
-.checkbox-list label
-{
+.checkbox-list label{
 font-size:14px;
 word-break:break-word;
 }
 
-
-/* Button full width */
-button.btn-lg
-{
+.btn-submit-assign{
 width:100%;
 padding:12px;
 font-size:16px;
-}
-
-
-/* Remove side spacing */
-.col-lg-8,
-.col-lg-4,
-.col-md-4,
-.col-md-3
-{
-padding-left:0;
-padding-right:0;
+justify-content:center;
 }
 
 }
@@ -524,109 +727,57 @@ padding-right:0;
 @media (max-width: 575px)
 {
 
-/* give inner breathing space */
-.form-container
-{
+.form-card{
 padding:12px;
 }
 
-
-/* proper spacing between rows */
-.row.g-4
-{
+.row.g-4{
 row-gap:14px !important;
 }
 
-
-/* fix all inputs */
 .form-control,
-.form-select
-{
+.form-select{
 width:100%;
 padding:10px 12px;
 font-size:15px;
 border-radius:8px;
 }
 
-
-/* fix textarea specifically */
-textarea.form-control
-{
+textarea.form-control{
 padding:12px;
 min-height:90px;
 resize:vertical;
 }
 
-
-/* datetime input fix */
-input[type="datetime-local"]
-{
+input[type="datetime-local"]{
 padding:10px 12px;
 }
 
-
-/* number input */
-input[type="number"]
-{
+input[type="number"]{
 padding:10px 12px;
 }
 
-
-/* checkbox alignment */
-.form-check
-{
+.form-check{
 padding-left:28px;
 }
 
-.form-check-input
-{
+.form-check-input{
 margin-left:-28px;
 margin-top:4px;
 }
 
-
-/* select dropdown spacing */
-select.form-select
-{
+select.form-select{
 padding:10px 12px;
 }
 
-
-/* student checkbox container */
-.checkbox-list
-{
+.panel-box{
 padding:12px;
 max-height:220px;
 }
 
-
-/* checkbox label */
-.checkbox-list label
-{
+.checkbox-list label{
 padding:6px 4px;
 font-size:14px;
-}
-
-
-/* button fix */
-button.btn-lg
-{
-width:100%;
-padding:12px;
-font-size:16px;
-border-radius:8px;
-}
-
-
-/* remove column side cut */
-.col-lg-8,
-.col-lg-4,
-.col-md-4,
-.col-md-3,
-.col-12
-{
-padding-left:4px !important;
-padding-right:4px !important;
 }
 
 }
@@ -639,30 +790,25 @@ padding-right:4px !important;
 @media (max-width: 360px)
 {
 
-.form-container
-{
+.form-card{
 padding:10px;
 }
 
-.section-title
-{
+.header-title{
 font-size:16px;
 }
 
 .form-control,
-.form-select
-{
+.form-select{
 font-size:14px;
 padding:9px 10px;
 }
 
-textarea.form-control
-{
+textarea.form-control{
 min-height:80px;
 }
 
-button.btn-lg
-{
+.btn-submit-assign{
 font-size:15px;
 padding:10px;
 }
@@ -673,20 +819,43 @@ padding:10px;
 
 
 
-<div class="form-container">
+<div class="assign-container">
 
+<div class="assign-header">
 
-<div class="section-title">
+<div class="header-left">
 
-<i class="bi bi-clipboard-plus text-primary"></i>
+<div class="header-icon">
+<i class="bi bi-clipboard-plus"></i>
+</div>
 
-Assign Assessment
+<div>
+<h2 class="header-title">Assign Assessment</h2>
+<p class="header-subtitle">
+Create a new assessment and assign it to your students
+</p>
+</div>
+
+</div>
+
+<div class="header-right">
+
+<span class="subject-badge">
+<i class="bi bi-mortarboard-fill me-1"></i>
+Students : <?= count($students) ?>
+</span>
+
+</div>
 
 </div>
 
 
 <?= $msg ?>
 
+
+<div class="card">
+
+<div class="form-card">
 
 <form method="POST" action="teacher_question_pages/assign_assessment.php">
 
@@ -695,6 +864,8 @@ Assign Assessment
 
 
 <div class="col-lg-8">
+
+<label>Assessment Title</label>
 
 <input
 type="text"
@@ -709,6 +880,8 @@ required>
 
 <div class="col-lg-4">
 
+<label>Due Date</label>
+
 <input
 type="datetime-local"
 name="due_date"
@@ -720,18 +893,21 @@ class="form-control form-control-lg">
 
 <div class="col-12">
 
+<label>Description</label>
+
 <textarea
 name="description"
 class="form-control"
 rows="3"
-placeholder="Description">
-</textarea>
+placeholder="Description"></textarea>
 
 </div>
 
 
 
 <div class="col-md-4">
+
+<label>Time Limit (minutes)</label>
 
 <input
 type="number"
@@ -744,6 +920,8 @@ value="30">
 
 
 <div class="col-md-4">
+
+<label>&nbsp;</label>
 
 <div class="form-check mt-2">
 
@@ -763,11 +941,13 @@ Allow Retake
 
 
 
-<hr>
+<div class="col-12"><hr></div>
 
 
 
 <div class="col-md-3">
+
+<label>Grade</label>
 
 <select id="grade" class="form-select">
 
@@ -793,6 +973,8 @@ Grade <?= $g ?>
 
 <div class="col-md-3">
 
+<label>Subject</label>
+
 <select id="subject_id" class="form-select">
 
 <option>
@@ -806,6 +988,8 @@ Grade <?= $g ?>
 
 
 <div class="col-md-3">
+
+<label>Chapter</label>
 
 <select id="chapter_id" class="form-select">
 
@@ -821,6 +1005,8 @@ Grade <?= $g ?>
 
 <div class="col-md-3">
 
+<label>Topic</label>
+
 <select name="topic_id" id="topic_id" class="form-select">
 
 <option>
@@ -831,23 +1017,31 @@ Grade <?= $g ?>
 
 </div>
 
-<div class="col-12 mt-4">
-
-<h5>Select Questions</h5>
-
-<div id="question-list" class="border p-3 rounded" style="max-height:300px;overflow:auto;">
-
-Select topic to load questions
-
-</div>
-
-</div>
 
 <div class="col-12">
 
-<h5>Assign Students</h5>
+<h3 class="section-heading">
+<i class="bi bi-question-circle"></i>
+Select Questions
+</h3>
 
-<div class="checkbox-list border rounded p-3" style="max-height:300px;overflow:auto;">
+<div id="question-list" class="panel-box">
+Select topic to load questions
+</div>
+
+</div>
+
+
+<div class="col-12">
+
+<h3 class="section-heading">
+<i class="bi bi-people"></i>
+Assign Students
+</h3>
+
+<div class="panel-box checkbox-list">
+
+<?php if (!empty($students)): ?>
 
 <?php foreach($students as $s): ?>
 
@@ -855,24 +1049,53 @@ Select topic to load questions
 
 <input type="checkbox" name="student_ids[]" value="<?= $s['id'] ?>">
 
+<div class="student-cell">
+
+<?php if(!empty($s['image_path'])): ?>
+
+<img
+    src="Student_dashboard/<?= htmlspecialchars($s['image_path']) ?>"
+    class="student-photo"
+    alt="Student">
+
+<?php else: ?>
+
+<div class="avatar">
+    <?= strtoupper(substr($s['name'],0,1)); ?>
+</div>
+
+<?php endif; ?>
+
+<span class="student-name">
 <?= htmlspecialchars($s['name']) ?>
+</span>
+
+</div>
 
 </label>
 
 <?php endforeach; ?>
 
+<?php else: ?>
+
+<div class="empty-state-mini">
+<i class="bi bi-people"></i>
+No students are currently assigned to your subjects.
+</div>
+
+<?php endif; ?>
+
 </div>
 
 </div>
 
 
 
-<div class="col-12 text-center mt-4">
+<div class="col-12 mt-4">
 
-<button type="submit" class="btn btn-primary btn-lg px-5">
-
+<button type="submit" class="btn-submit-assign">
+<i class="bi bi-send-fill"></i>
 Assign Assessment
-
 </button>
 
 </div>
@@ -883,8 +1106,13 @@ Assign Assessment
 
 </form>
 
+</div>
 
 </div>
+
+
+</div>
+
 <script>
 
 $(document).ready(function(){

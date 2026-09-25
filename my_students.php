@@ -14,7 +14,7 @@ include 'db_config.php';
 */
 
 if(!isset($_SESSION['teacher_id'])){
-    echo "<div class='alert alert-danger'>Unauthorized access.</div>";
+    echo "<script>window.location.href='teacher_login.php';</script>";
     exit;
 }
 
@@ -24,6 +24,9 @@ $teacher_id=(int)$_SESSION['teacher_id'];
 |--------------------------------------------------------------------------
 | FETCH STUDENTS
 |--------------------------------------------------------------------------
+| Fallback: if a student's own phone/email is missing, pull it from
+| enrollment_inquiries (matched via student_id) — guardian, then mother,
+| then father, whichever is available first.
 */
 
 $sql="
@@ -31,6 +34,7 @@ $sql="
 SELECT
 
 s.id,
+si.image_path,
 
 CONCAT(
 s.first_name,
@@ -38,9 +42,9 @@ s.first_name,
 IFNULL(s.last_name,'')
 ) AS name,
 
-s.email,
-s.phone,
-s.gender,
+MAX(COALESCE(NULLIF(s.email,''), ei.guardian_email, ei.mother_email, ei.father_email)) AS email,
+MAX(COALESCE(NULLIF(s.phone,''), ei.guardian_phone, ei.mother_phone, ei.father_phone)) AS phone,
+
 s.dob,
 
 COUNT(DISTINCT sd.id) AS documents
@@ -53,9 +57,15 @@ ON ts.subject_id=ss.subject_id
 INNER JOIN students s
 ON s.id=ss.student_id
 
+LEFT JOIN student_images si
+ON si.student_id = s.id
+
 LEFT JOIN student_documents sd
 ON sd.student_id=s.id
 AND sd.subject_id=ss.subject_id
+
+LEFT JOIN enrollment_inquiries ei
+ON ei.student_id = s.id
 
 WHERE ts.teacher_id=?
 
@@ -64,9 +74,6 @@ GROUP BY
 s.id,
 s.first_name,
 s.last_name,
-s.email,
-s.phone,
-s.gender,
 s.dob
 
 ORDER BY s.first_name
@@ -172,7 +179,7 @@ color:#fff;
 
 .card{
 border:none;
-border-radius:18px;
+border-radius:0px;
 overflow:hidden;
 box-shadow:0 10px 30px rgba(17,24,39,.08);
 animation:fadeInUp .4s ease;
@@ -183,17 +190,13 @@ from{opacity:0;transform:translateY(10px);}
 to{opacity:1;transform:translateY(0);}
 }
 
-.table-responsive{
-border-radius:18px;
-}
-
 .students-table{
 width:100%;
 border-collapse:collapse;
 }
 
 .students-table th{
-background:linear-gradient(135deg,#1e3c72,#2a5298);
+background:#2a5298;
 color:#fff;
 padding:16px 15px;
 font-size:13px;
@@ -225,38 +228,48 @@ gap:12px;
 }
 
 .avatar{
-width:42px;
-height:42px;
-border-radius:50%;
-background:linear-gradient(135deg,#1e3c72,#2a5298);
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:700;
-color:#fff;
-box-shadow:0 4px 12px rgba(30,60,114,.3);
-border:2px solid #fff;
-outline:2px solid #e7edf7;
+
+    width:54px;
+    height:54px;
+
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    overflow:hidden;
+
+    background:linear-gradient(135deg,#1e3c72,#2a5298);
+    color:#fff;
+    font-weight:700;
+    font-size:18px;
+
+    border:3px solid #fff;
+    box-shadow:0 3px 12px rgba(0,0,0,.18);
+
+    flex-shrink:0;
+
 }
 
-.gender-badge{
-display:inline-flex;
-align-items:center;
-gap:6px;
-padding:6px 14px;
-border-radius:30px;
-font-size:12px;
-font-weight:600;
-}
+.student-photo{
 
-.gender-male{
-background:#d9f3ff;
-color:#0c7abf;
-}
+    width:54px;
+    height:54px;
 
-.gender-female{
-background:#ffe0ef;
-color:#d63384;
+    border-radius:50%;
+
+    object-fit:cover;
+    object-position:center;
+
+    border:3px solid #fff;
+
+    box-shadow:0 3px 12px rgba(0,0,0,.18);
+
+    flex-shrink:0;
+
+    image-rendering:auto;
+
 }
 
 .btn-view{
@@ -286,6 +299,10 @@ color:#d8d8d8;
 .students-header{
 flex-direction:column;
 align-items:flex-start;
+}
+
+.btn-view {
+padding: 7px 14px;
 }
 
 .header-right{
@@ -331,11 +348,6 @@ min-width:850px;
 Total : <?= $total_students ?>
 </span>
 
-<a href="manage_students.php" class="btn-manage-student">
-<i class="bi bi-person-gear"></i>
-Manage Students
-</a>
-
 </div>
 
 </div>
@@ -364,8 +376,6 @@ Manage Students
 
 <th>Phone</th>
 
-<th>Gender</th>
-
 <th>DOB</th>
 
 <th width="170">Documents</th>
@@ -386,6 +396,10 @@ $btnClass=$row['documents']>0
 ? "btn-primary"
 : "btn-outline-secondary";
 
+$phone = $row['phone'] ?? '';
+$email = $row['email'] ?? '';
+$dob = $row['dob'] ?? null;
+
 ?>
 
 <tr>
@@ -398,9 +412,20 @@ $btnClass=$row['documents']>0
 
 <div class="student-cell">
 
+<?php if(!empty($row['image_path'])): ?>
+
+<img
+    src="Student_dashboard/<?= htmlspecialchars($row['image_path']) ?>"
+    class="student-photo"
+    alt="Student">
+
+<?php else: ?>
+
 <div class="avatar">
-<?= strtoupper(substr($row['name'],0,1)); ?>
+    <?= strtoupper(substr($row['name'],0,1)); ?>
 </div>
+
+<?php endif; ?>
 
 <div>
 <div class="fw-bold">
@@ -413,35 +438,15 @@ $btnClass=$row['documents']>0
 </td>
 
 <td>
-<?= htmlspecialchars($row['email']) ?>
+<?= $email !== '' ? htmlspecialchars($email) : '<span class="text-muted">—</span>' ?>
 </td>
 
 <td>
-<?= htmlspecialchars($row['phone']) ?>
+<?= $phone !== '' ? htmlspecialchars($phone) : '<span class="text-muted">—</span>' ?>
 </td>
 
 <td>
-
-<?php if(strtolower($row['gender'])=="male"){ ?>
-
-<span class="gender-badge gender-male">
-<i class="bi bi-gender-male"></i>
-Male
-</span>
-
-<?php }else{ ?>
-
-<span class="gender-badge gender-female">
-<i class="bi bi-gender-female"></i>
-Female
-</span>
-
-<?php } ?>
-
-</td>
-
-<td>
-<?= date("d M Y",strtotime($row['dob'])) ?>
+<?= $dob ? date("d M Y",strtotime($dob)) : '<span class="text-muted">—</span>' ?>
 </td>
 
 <td>
@@ -453,7 +458,6 @@ data-name="<?= htmlspecialchars($row['name']) ?>">
 
 <?php if($row['documents']>0){ ?>
 
-<i class="bi bi-folder2-open me-1"></i>
 View
 <span class="badge bg-light text-dark ms-1">
 <?= $row['documents'] ?>

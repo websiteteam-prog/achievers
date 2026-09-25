@@ -9,26 +9,30 @@ include "../../../db_config.php";
  {
     min-height: 400px;
 }
+
 .enroll-section{
-padding:0px 10px;
-background:#f7f9fc;
+    background:transparent;
+    padding:0 10px 30px;
 }
 
 .enroll-title{
-font-family:"Love Ya Like A Sister", cursive;
-font-size:36px;
-text-align:center;
-color:#05364d;
-margin-bottom:30px;
+    font-family:"Love Ya Like A Sister", cursive;
+    font-size:36px;
+    text-align:center;
+    color:#05364d;
+
+    margin:0 0 30px;
+    padding-top:25px;
 }
 
 .enroll-form{
-max-width:900px;
-margin:auto;
-background:#fff;
-padding:35px 30px;
-border-radius:18px;
-box-shadow:0 10px 35px rgba(0,0,0,0.08);
+    max-width:900px;
+    margin:0 auto;
+    background:#fff;
+    padding:35px 30px;
+    border-radius:18px;
+    box-shadow:0 10px 35px rgba(0,0,0,.08);
+    margin-bottom:50px;
 }
 
 .form-row{
@@ -225,9 +229,9 @@ input[type="number"] {
 
 <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
 
-<div class="enroll-section">
+<div class="enroll-section m-0 p-0">
 
-<h2 class="enroll-title">Admin Student Enrollment</h2>
+<h2 class="enroll-title">Student Enrollment</h2>
 
 <form id="enrollForm" class="enroll-form">
 

@@ -11,23 +11,25 @@ include '../db_config.php';
 
 $teacher_id=(int)$_SESSION['teacher_id'];
 
-$sql="
-SELECT COUNT(*) total
+$sql = "
+SELECT COUNT(*) AS total
 FROM student_documents sd
 INNER JOIN teacher_subjects ts
-ON ts.subject_id=sd.subject_id
-WHERE ts.teacher_id=$teacher_id
-AND sd.status='pending'
+ON ts.subject_id = sd.subject_id
+WHERE ts.teacher_id = ?
+AND sd.status='Pending'
 ";
 
-$result=mysqli_query($conn,$sql);
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i",$teacher_id);
+$stmt->execute();
 
-$row=mysqli_fetch_assoc($result);
+$row = $stmt->get_result()->fetch_assoc();
 
 echo json_encode([
-"success"=>true,
-"data"=>[
-"count"=>(int)$row['total'],
-"trend"=>"Pending Approval"
-]
+    "success"=>true,
+    "data"=>[
+        "count"=>(int)$row['total'],
+        "trend"=>"Awaiting Review"
+    ]
 ]);

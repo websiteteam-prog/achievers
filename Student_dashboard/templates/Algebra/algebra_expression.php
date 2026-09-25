@@ -46,7 +46,6 @@ $payload = json_decode(
     font-size:18px;
     font-weight:700;
     white-space:nowrap;
-    margin-top: 20px;
 }
 
 .expression-input{

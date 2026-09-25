@@ -14,14 +14,34 @@ $area = $payload['area'] ?? '';
 $image = $q['question_image'] ?? '';
 
 ?>
+<?php if ($index == 0): ?>
 
+<div class="square-header">
+
+    <div></div>
+
+    <div class="header-square">
+        Squares:
+    </div>
+
+    <div class="header-area">
+        Area of square
+    </div>
+
+    <div class="header-side">
+        side length ( in cm )
+    </div>
+
+</div>
+
+<?php endif; ?>
 <style>
 
 .side-row{
     display:grid;
-    grid-template-columns: 60px 180px 220px 220px;
+    grid-template-columns:60px 220px 250px 250px;
     align-items:center;
-    margin-bottom:40px;
+    margin-bottom:45px;
 }
 
 .side-no{
@@ -29,11 +49,14 @@ $image = $q['question_image'] ?? '';
 }
 
 .side-img img{
-    width:100px;
+    width:120px;
     height:auto;
+    margin-top:25px;
+    margin-left: 54px;
 }
 
 .side-area{
+    text-align:center;
     font-size:32px;
 }
 
@@ -42,6 +65,7 @@ $image = $q['question_image'] ?? '';
     align-items:center;
     gap:10px;
     font-size:24px;
+    justify-content:center;
 }
 
 .side-input{
@@ -52,6 +76,21 @@ $image = $q['question_image'] ?? '';
     text-align:center;
     font-size:24px;
     outline:none;
+}
+
+.square-header{
+    display:grid;
+    grid-template-columns:60px 220px 250px 250px;
+    align-items:center;
+    margin:30px 0 40px;
+    font-weight:700;
+    font-size:18px;
+}
+
+.header-square,
+.header-area,
+.header-side{
+    text-align:center;
 }
 
 @media(max-width:768px){

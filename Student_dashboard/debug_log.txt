@@ -1693,3 +1693,438 @@ MATCH! QID 48: '8263' === '8263'
 FINAL SCORE: 2 / 2
 === SUBMIT END ===
 
+=== NEW SUBMIT START ===
+Assessment ID: 4
+Student ID: 1
+
+Student Answers Received:
+Array
+(
+    [1204] => Array
+        (
+            [answer] => 48
+        )
+
+    [1205] => Array
+        (
+            [answer] => 
+        )
+
+    [1206] => Array
+        (
+            [answer] => 
+        )
+
+    [1207] => Array
+        (
+            [answer] => 
+        )
+
+    [1208] => Array
+        (
+            [answer] => 
+        )
+
+)
+
+
+=== NEW SUBMIT START ===
+Assessment ID: 4
+Student ID: 1
+
+Student Answers Received:
+Array
+(
+    [1204] => Array
+        (
+            [answer] => 48
+        )
+
+    [1205] => Array
+        (
+            [answer] => 
+        )
+
+    [1206] => Array
+        (
+            [answer] => 
+        )
+
+    [1207] => Array
+        (
+            [answer] => 
+        )
+
+    [1208] => Array
+        (
+            [answer] => 
+        )
+
+)
+
+
+Questions Found in DB (5):
+QID: 1204 | Correct: '{"mean":"33"}'
+QID: 1205 | Correct: '{"mean":"31"}'
+QID: 1206 | Correct: '{"mean":"29"}'
+QID: 1207 | Correct: '{"mean":"19.33"}'
+QID: 1208 | Correct: '{"mean":"25.5"}'
+
+NO MATCH QID 1204: '48' vs '{"mean":"33"}'
+NO MATCH QID 1205: '' vs '{"mean":"31"}'
+NO MATCH QID 1206: '' vs '{"mean":"29"}'
+NO MATCH QID 1207: '' vs '{"mean":"19.33"}'
+NO MATCH QID 1208: '' vs '{"mean":"25.5"}'
+FINAL SCORE: 0 / 5
+=== SUBMIT END ===
+
+=== NEW SUBMIT START ===
+Assessment ID: 4
+Student ID: 1
+
+Student Answers Received:
+Array
+(
+    [1204] => Array
+        (
+            [answer] => 48
+        )
+
+    [1205] => Array
+        (
+            [answer] => 
+        )
+
+    [1206] => Array
+        (
+            [answer] => 
+        )
+
+    [1207] => Array
+        (
+            [answer] => 
+        )
+
+    [1208] => Array
+        (
+            [answer] => 
+        )
+
+)
+
+
+Questions Found in DB (5):
+QID: 1204 | Correct: '{"mean":"33"}'
+QID: 1205 | Correct: '{"mean":"31"}'
+QID: 1206 | Correct: '{"mean":"29"}'
+QID: 1207 | Correct: '{"mean":"19.33"}'
+QID: 1208 | Correct: '{"mean":"25.5"}'
+
+NO MATCH QID 1204: '48' vs '{"mean":"33"}'
+NO MATCH QID 1205: '' vs '{"mean":"31"}'
+NO MATCH QID 1206: '' vs '{"mean":"29"}'
+NO MATCH QID 1207: '' vs '{"mean":"19.33"}'
+NO MATCH QID 1208: '' vs '{"mean":"25.5"}'
+FINAL SCORE: 0 / 5
+=== SUBMIT END ===
+
+=== NEW SUBMIT START ===
+Assessment ID: 4
+Student ID: 1
+
+Student Answers Received:
+Array
+(
+    [1204] => Array
+        (
+            [answer] => 52
+        )
+
+    [1205] => Array
+        (
+            [answer] => 
+        )
+
+    [1206] => Array
+        (
+            [answer] => 
+        )
+
+    [1207] => Array
+        (
+            [answer] => 
+        )
+
+    [1208] => Array
+        (
+            [answer] => 
+        )
+
+)
+
+
+Questions Found in DB (5):
+QID: 1204 | Correct: '{"mean":"33"}'
+QID: 1205 | Correct: '{"mean":"31"}'
+QID: 1206 | Correct: '{"mean":"29"}'
+QID: 1207 | Correct: '{"mean":"19.33"}'
+QID: 1208 | Correct: '{"mean":"25.5"}'
+
+NO MATCH QID 1204: '52' vs '{"mean":"33"}'
+NO MATCH QID 1205: '' vs '{"mean":"31"}'
+NO MATCH QID 1206: '' vs '{"mean":"29"}'
+NO MATCH QID 1207: '' vs '{"mean":"19.33"}'
+NO MATCH QID 1208: '' vs '{"mean":"25.5"}'
+FINAL SCORE: 0 / 5
+=== SUBMIT END ===
+
+=== NEW SUBMIT START ===
+Assessment ID: 4
+Student ID: 1
+
+Student Answers Received:
+Array
+(
+    [1204] => Array
+        (
+            [answer] => 
+        )
+
+    [1205] => Array
+        (
+            [answer] => 26
+        )
+
+    [1206] => Array
+        (
+            [answer] => 
+        )
+
+    [1207] => Array
+        (
+            [answer] => 
+        )
+
+    [1208] => Array
+        (
+            [answer] => 
+        )
+
+)
+
+
+Questions Found in DB (5):
+QID: 1204 | Correct: '{"mean":"33"}'
+QID: 1205 | Correct: '{"mean":"31"}'
+QID: 1206 | Correct: '{"mean":"29"}'
+QID: 1207 | Correct: '{"mean":"19.33"}'
+QID: 1208 | Correct: '{"mean":"25.5"}'
+
+NO MATCH QID 1204: '' vs '{"mean":"33"}'
+NO MATCH QID 1205: '26' vs '{"mean":"31"}'
+NO MATCH QID 1206: '' vs '{"mean":"29"}'
+NO MATCH QID 1207: '' vs '{"mean":"19.33"}'
+NO MATCH QID 1208: '' vs '{"mean":"25.5"}'
+FINAL SCORE: 0 / 5
+=== SUBMIT END ===
+
+=== NEW SUBMIT START ===
+Assessment ID: 4
+Student ID: 1
+
+Student Answers Received:
+Array
+(
+    [1204] => Array
+        (
+            [answer] => 78
+        )
+
+    [1205] => Array
+        (
+            [answer] => 
+        )
+
+    [1206] => Array
+        (
+            [answer] => 
+        )
+
+    [1207] => Array
+        (
+            [answer] => 
+        )
+
+    [1208] => Array
+        (
+            [answer] => 
+        )
+
+)
+
+
+Questions Found in DB (5):
+QID: 1204 | Correct: '{"mean":"33"}'
+QID: 1205 | Correct: '{"mean":"31"}'
+QID: 1206 | Correct: '{"mean":"29"}'
+QID: 1207 | Correct: '{"mean":"19.33"}'
+QID: 1208 | Correct: '{"mean":"25.5"}'
+
+NO MATCH QID 1204: '78' vs '{"mean":"33"}'
+NO MATCH QID 1205: '' vs '{"mean":"31"}'
+NO MATCH QID 1206: '' vs '{"mean":"29"}'
+NO MATCH QID 1207: '' vs '{"mean":"19.33"}'
+NO MATCH QID 1208: '' vs '{"mean":"25.5"}'
+FINAL SCORE: 0 / 5
+=== SUBMIT END ===
+
+=== NEW SUBMIT START ===
+Assessment ID: 4
+Student ID: 1
+
+Student Answers Received:
+Array
+(
+    [1204] => Array
+        (
+            [answer] => 48
+        )
+
+    [1205] => Array
+        (
+            [answer] => 26
+        )
+
+    [1206] => Array
+        (
+            [answer] => 
+        )
+
+    [1207] => Array
+        (
+            [answer] => 
+        )
+
+    [1208] => Array
+        (
+            [answer] => 
+        )
+
+)
+
+
+Questions Found in DB (5):
+QID: 1204 | Correct: '{"mean":"33"}'
+QID: 1205 | Correct: '{"mean":"31"}'
+QID: 1206 | Correct: '{"mean":"29"}'
+QID: 1207 | Correct: '{"mean":"19.33"}'
+QID: 1208 | Correct: '{"mean":"25.5"}'
+
+NO MATCH QID 1204: '48' vs '{"mean":"33"}'
+NO MATCH QID 1205: '26' vs '{"mean":"31"}'
+NO MATCH QID 1206: '' vs '{"mean":"29"}'
+NO MATCH QID 1207: '' vs '{"mean":"19.33"}'
+NO MATCH QID 1208: '' vs '{"mean":"25.5"}'
+FINAL SCORE: 0 / 5
+=== SUBMIT END ===
+
+=== NEW SUBMIT START ===
+Assessment ID: 4
+Student ID: 1
+
+Student Answers Received:
+Array
+(
+    [1204] => Array
+        (
+            [answer] => 3
+        )
+
+    [1205] => Array
+        (
+            [answer] => 13
+        )
+
+    [1206] => Array
+        (
+            [answer] => 22
+        )
+
+    [1207] => Array
+        (
+            [answer] => 29
+        )
+
+    [1208] => Array
+        (
+            [answer] => 36
+        )
+
+)
+
+
+Questions Found in DB (5):
+QID: 1204 | Correct: '{"mean":"33"}'
+QID: 1205 | Correct: '{"mean":"31"}'
+QID: 1206 | Correct: '{"mean":"29"}'
+QID: 1207 | Correct: '{"mean":"19.33"}'
+QID: 1208 | Correct: '{"mean":"25.5"}'
+
+NO MATCH QID 1204: '3' vs '{"mean":"33"}'
+NO MATCH QID 1205: '13' vs '{"mean":"31"}'
+NO MATCH QID 1206: '22' vs '{"mean":"29"}'
+NO MATCH QID 1207: '29' vs '{"mean":"19.33"}'
+NO MATCH QID 1208: '36' vs '{"mean":"25.5"}'
+FINAL SCORE: 0 / 5
+=== SUBMIT END ===
+
+=== NEW SUBMIT START ===
+Assessment ID: 4
+Student ID: 1
+
+Student Answers Received:
+Array
+(
+    [1204] => Array
+        (
+            [answer] => 33
+        )
+
+    [1205] => Array
+        (
+            [answer] => 
+        )
+
+    [1206] => Array
+        (
+            [answer] => 
+        )
+
+    [1207] => Array
+        (
+            [answer] => 
+        )
+
+    [1208] => Array
+        (
+            [answer] => 
+        )
+
+)
+
+
+Questions Found in DB (5):
+QID: 1204 | Correct: '{"mean":"33"}'
+QID: 1205 | Correct: '{"mean":"31"}'
+QID: 1206 | Correct: '{"mean":"29"}'
+QID: 1207 | Correct: '{"mean":"19.33"}'
+QID: 1208 | Correct: '{"mean":"25.5"}'
+
+NO MATCH QID 1204: '33' vs '{"mean":"33"}'
+NO MATCH QID 1205: '' vs '{"mean":"31"}'
+NO MATCH QID 1206: '' vs '{"mean":"29"}'
+NO MATCH QID 1207: '' vs '{"mean":"19.33"}'
+NO MATCH QID 1208: '' vs '{"mean":"25.5"}'
+FINAL SCORE: 0 / 5
+=== SUBMIT END ===
+

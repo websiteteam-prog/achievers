@@ -15,6 +15,9 @@ $blankCount = $data['blanks'] ?? 0;
 
 // GRID TYPE
 $grid = $data['grid'] ?? [];
+// MATCH TEXT
+$leftItems  = $data['left'] ?? [];
+$rightItems = $data['right'] ?? [];
 
 // COMMON FACTORS TYPE
 $num1 = $data['num1'] ?? null;
@@ -269,7 +272,7 @@ input{
 /* Circles scale with container */
 .circle {
     position: absolute;
-    width: 45%;
+    width: 50%;
     aspect-ratio: 1 / 1;
     border: 3px solid #8a00ff;
     border-radius: 50%;
@@ -334,13 +337,17 @@ input{
 
 /* Input responsive */
 .venn-small {
-    width: clamp(40px, 6vw, 60px);
+    /*width: clamp(40px, 6vw, 60px);*/
     border: none;
     border-bottom: 2px solid #000;
     text-align: center;
-    font-size: clamp(14px, 2vw, 18px);
+    /*font-size: clamp(14px, 2vw, 18px);*/
     background: transparent;
     margin-left: 6px;
+    width:46px !important;
+    height:26px !important;
+    font-size:14px !important;
+    margin:0 !important;
 }
 
 .cross-grid {
@@ -431,11 +438,13 @@ border:2px solid #000;
 }
 
 .activity-grid{
-display:grid;
-grid-template-columns:repeat(10,minmax(35px,1fr));
-border:2px solid #8a00ff;
-width:100%;
-max-width:700px;
+    display:grid;
+    grid-template-columns:repeat(6, minmax(70px, 1fr));
+    gap:10px;
+    border:2px solid #8a00ff;
+    width:100%;
+    max-width:700px;
+    padding:10px;
 }
 
 .activity-wrapper{
@@ -534,6 +543,78 @@ z-index:10;
     font-size:18px;
 }
 
+/* ================= MATCH TEXT ================= */
+
+.match-wrapper{
+    position:relative;
+    display:flex;
+    justify-content:space-between;
+    gap:80px;
+    margin-top:20px;
+}
+
+.match-column{
+    width:45%;
+}
+
+.match-heading{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+.match-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:18px;
+    background:#fff;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.match-item:hover{
+    background:#f7f7f7;
+}
+
+.match-item.active{
+    border:2px solid #1f75fe;
+}
+
+.match-dot{
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:#1f75fe;
+    flex-shrink:0;
+}
+
+.match-wrapper svg{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    overflow:visible;
+}
+
+@media(max-width:768px){
+
+.match-wrapper{
+    flex-direction:column;
+    gap:20px;
+}
+
+.match-column{
+    width:100%;
+}
+
+}
+
 /* ------------------- RESPONSIVE ------------------- */
 
 @media (max-width: 480px) {
@@ -581,7 +662,7 @@ z-index:10;
     }
 
     .activity-grid{
-        grid-template-columns:repeat(10,minmax(35px,1fr));
+        grid-template-columns:repeat(6, minmax(70px, 1fr));
     }
 
     .grid-box {
@@ -656,6 +737,8 @@ z-index:10;
         flex-direction:column;
         align-items:center;
         gap:25px;
+        max-width:720px;
+        aspect-ratio:2 / 1;
     }
 
     .circle{
@@ -675,12 +758,26 @@ z-index:10;
     }
 
     .venn-left-numbers,
-    .venn-right-numbers,
-    .venn-common-numbers{
-         display:flex;
+    .venn-right-numbers{
+        display:flex;
         flex-wrap:wrap;
-        gap:8px;
+        gap:6px;
+        max-width:120px;
+        max-height:78%;
+        overflow:auto;
         justify-content:center;
+        align-content:center;
+    }
+    .venn-left-numbers{  left:32%; }
+    .venn-right-numbers{ right:32%; }
+    
+    /* CENTER lens: vertical stack, compact, lens ke andar */
+    .venn-common-numbers{
+        flex-direction:column;
+        gap:4px;
+        max-width:60px;
+        max-height:88%;
+        overflow:auto;
     }
 
     .venn-bottom{
@@ -754,7 +851,7 @@ z-index:10;
     }
 
     .activity-grid{
-        grid-template-columns:repeat(10,minmax(35px,1fr));
+        grid-template-columns:repeat(6, minmax(70px, 1fr));
     }
 }
 </style>
@@ -767,7 +864,19 @@ z-index:10;
 $display_no = $q['_sub_no'] ?? 1;
 
 if ($mode == "grid") {
-    echo $display_no . ") Factors of $number";
+
+    // Only for Puzzle Time
+    if (!empty($data['show_question'])) {
+
+        echo nl2br(htmlspecialchars($q['question_text']));
+
+    } else {
+
+        // Existing behaviour (unchanged)
+        echo $display_no . ") Factors of " . htmlspecialchars($number);
+
+    }
+
 }
 elseif ($mode == "common") {
     echo $display_no . ")";
@@ -797,7 +906,17 @@ elseif ($mode == "multiples_first5") {
     echo $display_no . ") Multiples of "
          . $data['number'];
 }
+elseif ($mode == "factor_list") {
 
+    echo $display_no . ") "
+         . ($q['question_text'] ?? '');
+
+}
+elseif ($mode == "match_text") {
+
+    echo $display_no . ") " . ($q['question_text'] ?? '');
+
+}
 elseif ($mode == "true_false_single") {
     // numbering handled inside question row
 }
@@ -977,7 +1096,16 @@ $common   = $data['common'] ?? [];
 
 </div>
 
-<?php elseif ($mode == "venn"): ?>
+<?php elseif ($mode == "venn"):
+
+$factors1 = $data['factors1'] ?? [];
+$factors2 = $data['factors2'] ?? [];
+$common   = $data['common'] ?? [];
+
+// left = sirf num1 ke, right = sirf num2 ke (common nikaal ke)
+$left_only  = array_values(array_diff($factors1, $common));
+$right_only = array_values(array_diff($factors2, $common));
+?>
 
 <div class="venn-wrapper">
 
@@ -986,26 +1114,50 @@ $common   = $data['common'] ?? [];
         <!-- LEFT CIRCLE -->
         <div class="circle left-circle">
             <div class="circle-label">Factors of <?= $num1 ?></div>
+
+            <div class="venn-left-numbers">
+                <?php
+                    $left_count  = $data['left_blanks']  ?? max(1, count($left_only));
+                    
+                    for($i=0;$i<$left_count;$i++):
+                    ?>
+                    <input type="text"
+                        name="answer[<?= $q['id'] ?>][left][]"
+                        class="venn-small">
+               <?php endfor; ?>
+            </div>
         </div>
 
         <!-- RIGHT CIRCLE -->
         <div class="circle right-circle">
             <div class="circle-label">Factors of <?= $num2 ?></div>
+
+            <div class="venn-right-numbers">
+                <?php
+            $right_count = $data['right_blanks'] ?? max(1, count($right_only));
+
+            for($i=0;$i<$right_count;$i++):
+            ?>
+                    <input type="text"
+                        name="answer[<?= $q['id'] ?>][right][]"
+                        class="venn-small">
+                <?php endfor; ?>
+            </div>
+        </div>
+
+        <!-- COMMON (overlap / lens) -->
+        <div class="venn-common-numbers">
+            <?php foreach($common as $v): ?>
+                <input type="text"
+                    name="answer[<?= $q['id'] ?>][common][]"
+                    class="venn-small">
+            <?php endforeach; ?>
         </div>
 
     </div>
 
-    <!-- Bottom Common Line (ONLY ONE INPUT) -->
-   <div class="venn-bottom">
-        Common factors of <?= $num1 ?> and <?= $num2 ?>:
-
-        <?php
-        $common = $data['common'] ?? [];
-        foreach($common as $value): ?>
-            <input type="text"
-                name="answer[<?= $q['id'] ?>][values][]"
-                class="venn-small">
-        <?php endforeach; ?>
+    <div class="venn-bottom">
+        Common factors of <?= $num1 ?> and <?= $num2 ?>
     </div>
 
 </div>
@@ -1025,7 +1177,15 @@ $common   = $data['common'] ?? [];
 
 </div>
 
-<?php elseif ($mode == "gcf_venn"): ?>
+<?php elseif ($mode == "gcf_venn"):
+
+$factors1 = $data['factors1'] ?? [];
+$factors2 = $data['factors2'] ?? [];
+$common   = $data['common'] ?? [];
+
+$left_only  = array_values(array_diff($factors1, $common));
+$right_only = array_values(array_diff($factors2, $common));
+?>
 
 <div class="venn-wrapper">
 
@@ -1034,26 +1194,50 @@ $common   = $data['common'] ?? [];
         <!-- LEFT CIRCLE -->
         <div class="circle left-circle">
             <div class="circle-label">Factors of <?= $num1 ?></div>
+
+            <div class="venn-left-numbers">
+                <?php foreach($left_only as $v): ?>
+                    <input type="text"
+                        name="answer[<?= $q['id'] ?>][left][]"
+                        class="venn-small">
+                <?php endforeach; ?>
+            </div>
         </div>
 
         <!-- RIGHT CIRCLE -->
         <div class="circle right-circle">
             <div class="circle-label">Factors of <?= $num2 ?></div>
+
+            <div class="venn-right-numbers">
+                <?php foreach($right_only as $v): ?>
+                    <input type="text"
+                        name="answer[<?= $q['id'] ?>][right][]"
+                        class="venn-small">
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <!-- COMMON (overlap / lens) -->
+        <div class="venn-common-numbers">
+            <?php foreach($common as $v): ?>
+                <input type="text"
+                    name="answer[<?= $q['id'] ?>][common][]"
+                    class="venn-small">
+            <?php endforeach; ?>
         </div>
 
     </div>
 
-    <!-- Bottom Section -->
+    <!-- Bottom: common line + GCF input -->
     <div class="venn-bottom">
+        Common factors of <?= $num1 ?> and <?= $num2 ?>
 
-        Common factors of <?= $num1 ?> and <?= $num2 ?> <nbsp>
-
-        <strong>GCF =</strong>
-
-        <input type="text"
-            name="answer[<?= $q['id'] ?>]"
-            class="venn-small">
-
+        <div style="margin-top:15px;font-weight:700;">
+            G.C.F =
+            <input type="text"
+                name="answer[<?= $q['id'] ?>][gcf]"
+                class="common-small-input">
+        </div>
     </div>
 
 </div>
@@ -1087,6 +1271,99 @@ $common   = $data['common'] ?? [];
 
 </div>
 
+<?php elseif ($mode == "factor_list"): ?>
+
+<div class="common-box">
+
+    <div class="factor-answer-line">
+
+        <strong>
+            Factors of <?= $data['number'] ?> are:
+        </strong>
+
+        <?php
+        $count = $data['blank_count'] ?? 0;
+
+        for($i=0;$i<$count;$i++):
+        ?>
+
+            <input
+                type="text"
+                name="answer[<?= $q['id'] ?>][values][]"
+                class="factor-small-input">
+
+            <?php if($i < $count-1): ?>
+                ,
+            <?php endif; ?>
+
+        <?php endfor; ?>
+
+    </div>
+
+</div>
+<?php elseif ($mode == "match_text"): ?>
+
+<?php
+
+$roman=["i","ii","iii","iv","v","vi","vii","viii","ix","x"];
+
+?>
+
+<div class="match-wrapper" id="matchWrap<?= $q['id']?>">
+
+<svg id="matchSvg<?= $q['id']?>"></svg>
+
+<div class="match-column">
+
+<div class="match-heading">
+Column 1
+</div>
+
+<?php foreach($leftItems as $k=>$item): ?>
+
+<div class="match-item match-left"
+     data-value="<?= $item ?>">
+
+<div>
+<?= $roman[$k] ?>) <?= $item ?>
+</div>
+
+<div class="match-dot"></div>
+
+</div>
+
+<?php endforeach; ?>
+
+</div>
+
+
+
+<div class="match-column">
+
+<div class="match-heading">
+Column 2
+</div>
+
+<?php foreach($rightItems as $item): ?>
+
+<div class="match-item match-right"
+     data-label="<?= $item['label'] ?>">
+
+<div>
+<?= $item['label'] ?>) <?= $item['text'] ?>
+</div>
+
+<div class="match-dot"></div>
+
+</div>
+
+<?php endforeach; ?>
+
+</div>
+
+</div>
+
+<div id="matchAnswers<?= $q['id']?>"></div>
 <?php elseif ($mode == "multiples_identify"): ?>
 
 <div class="common-box">
@@ -1213,33 +1490,61 @@ $correct_lcm = $correct['lcm'] ?? '';
 <div class="activity-header">
 
 <div class="color-box"
-style="background:<?= $data['color'] ?>"></div>
+style="background:<?= htmlspecialchars($data['color'] ?? '#1f75fe') ?>"></div>
 
 <div class="activity-text">
-Multiples of <?= $data['number'] ?>
+
+<?php if (isset($data['numbers'])): ?>
+
+    Follow the boxes with prime numbers
+
+<?php else: ?>
+
+    Multiples of <?= htmlspecialchars((string)($data['number'] ?? '')) ?>
+
+<?php endif; ?>
+
 </div>
 
 </div>
+
 
 <div class="activity-grid"
      data-qid="<?= $q['id'] ?>"
-     data-color="<?= $data['color'] ?>">
+     data-color="<?= htmlspecialchars($data['color'] ?? '#1f75fe') ?>">
 
-<?php for($i=1;$i<=100;$i++): ?>
+<?php if (isset($data['numbers'])): ?>
 
-<div class="activity-cell"
-     data-value="<?= $i ?>"
-     onclick="toggleSelect(this)">
-<?= $i ?>
+    <?php foreach($data['numbers'] as $value): ?>
+
+        <div class="activity-cell"
+             data-value="<?= htmlspecialchars((string)$value) ?>"
+             onclick="toggleSelect(this)">
+            <?= htmlspecialchars((string)$value) ?>
+        </div>
+
+    <?php endforeach; ?>
+
+<?php else: ?>
+
+    <?php for($i=1;$i<=100;$i++): ?>
+
+        <div class="activity-cell"
+             data-value="<?= $i ?>"
+             onclick="toggleSelect(this)">
+            <?= $i ?>
+        </div>
+
+    <?php endfor; ?>
+
+<?php endif; ?>
+
 </div>
 
-<?php endfor; ?>
-
-</div>
 
 <input type="hidden"
-name="answer[<?= $q['id'] ?>]"
-id="selected_<?= $q['id'] ?>">
+       name="answer[<?= $q['id'] ?>]"
+       id="selected_<?= $q['id'] ?>">
 
 </div>
 
@@ -1422,5 +1727,82 @@ function toggleSelect(el){
 
     hiddenInput.value = JSON.stringify(selected);
 }
+
+document.querySelectorAll(".match-wrapper").forEach(function(wrapper){
+
+    let selectedLeft = null;
+
+    const svg = wrapper.querySelector("svg");
+
+    function drawLine(left,right){
+
+        const wrapRect = wrapper.getBoundingClientRect();
+
+        const a = left.querySelector(".match-dot").getBoundingClientRect();
+        const b = right.querySelector(".match-dot").getBoundingClientRect();
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+
+        line.setAttribute("x1",a.left+a.width/2-wrapRect.left);
+
+        line.setAttribute("y1",a.top+a.height/2-wrapRect.top);
+
+        line.setAttribute("x2",b.left+b.width/2-wrapRect.left);
+
+        line.setAttribute("y2",b.top+b.height/2-wrapRect.top);
+
+        line.setAttribute("stroke","#1f75fe");
+
+        line.setAttribute("stroke-width","3");
+
+        svg.appendChild(line);
+
+    }
+
+    wrapper.querySelectorAll(".match-left").forEach(function(left){
+
+        left.onclick=function(){
+
+            wrapper.querySelectorAll(".match-left").forEach(function(x){
+
+                x.classList.remove("active");
+
+            });
+
+            selectedLeft=this;
+
+            this.classList.add("active");
+
+        };
+
+    });
+
+    wrapper.querySelectorAll(".match-right").forEach(function(right){
+
+        right.onclick=function(){
+
+            if(!selectedLeft) return;
+
+            drawLine(selectedLeft,this);
+
+            let hidden=document.createElement("input");
+
+            hidden.type="hidden";
+
+            hidden.name="answer[<?= $q['id']?>]["+selectedLeft.dataset.value+"]";
+
+            hidden.value=this.dataset.label;
+
+            wrapper.parentNode.querySelector("#matchAnswers<?= $q['id']?>").appendChild(hidden);
+
+            selectedLeft.classList.remove("active");
+
+            selectedLeft=null;
+
+        };
+
+    });
+
+});
 
 </script>

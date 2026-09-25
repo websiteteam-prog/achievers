@@ -244,10 +244,14 @@
         $price = 0;
     }
 
-    /* GST */
-
+    /* GST (tuition based) */
     $gst = $price * (5/105);
-    $total = $price;
+
+    /* ⭐ FIRST-TIME ENROLLMENT FEE — $50. */
+    $feeCheck = mysqli_query($conn,"SELECT COUNT(*) AS c FROM invoices WHERE student_id='$student_login_id'");
+    $enrollment_fee = ((int)(mysqli_fetch_assoc($feeCheck)['c'] ?? 0) == 0) ? 50 : 0;
+
+    $total = $price + $enrollment_fee;   // tuition + one-time fee
 
    
     /* -----------------------------
@@ -255,12 +259,12 @@
     -----------------------------*/
 
 
-   mysqli_query($conn,"
+     mysqli_query($conn,"
     INSERT INTO invoices
-    (student_id,invoice_date,due_date,price,gst,total,status,discount_type,discount_amount,discount_description,extra_type,extra_amount,extra_description)
+    (student_id,invoice_date,due_date,price,gst,total,enrollment_fee,status,discount_type,discount_amount,discount_description,extra_type,extra_amount,extra_description)
     VALUES
     ('$student_login_id',CURDATE(),DATE_ADD(CURDATE(),INTERVAL 15 DAY),
-    '$price','$gst','$total','Pending','$discount_type','$discount_amount','$discount_description','$extra_type','$extra_amount','$extra_description')
+    '$price','$gst','$total','$enrollment_fee','Pending','$discount_type','$discount_amount','$discount_description','$extra_type','$extra_amount','$extra_description')
     ");
 
     $invoice_id = mysqli_insert_id($conn);
@@ -315,11 +319,11 @@
     "price_after_discount" => $price,
     "gst" => $gst,
     "total" => $total,
+    "enrollment_fee" => $enrollment_fee,  
     "extra_type" => $extra_type,
     "extra_amount" => $extra_amount,
     "extra_description" => $extra_description,
 ];
-
     ob_start();
 
     $student['invoice_number'] = $invoice_number;

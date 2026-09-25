@@ -1,0 +1,19 @@
+[33me2782df[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m)[m HEAD@{0}: reset: moving to HEAD~1
+[33me46eba2[m HEAD@{1}: commit: assign_chapter.php
+[33me2782df[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m)[m HEAD@{2}: commit: edit enroll changes
+[33me6b42d2[m HEAD@{3}: commit: admin enroll changes
+[33m5003ad4[m HEAD@{4}: commit: factor change
+[33m21215f6[m[33m ([m[1;31morigin/dev[m[33m)[m HEAD@{5}: commit: grADE 7TH templates
+[33m8b90a01[m HEAD@{6}: commit: new template changes
+[33m465992d[m HEAD@{7}: commit: admin pwd reset design
+[33mee2d1f1[m HEAD@{8}: commit: admin flow
+[33m08b86e1[m HEAD@{9}: commit: invoice changes
+[33m032a899[m HEAD@{10}: commit: dashboard changes
+[33mebd302e[m HEAD@{11}: commit: work in invoice system"
+[33mb7f459b[m HEAD@{12}: commit: all other changes
+[33mb0e7201[m HEAD@{13}: commit: student dashboard changes
+[33m88557c5[m HEAD@{14}: commit: made changes in program page
+[33m4014132[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m HEAD@{15}: checkout: moving from main to dev
+[33m4014132[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m HEAD@{16}: commit: My first commit
+[33m108010c[m HEAD@{17}: Branch: renamed refs/heads/master to refs/heads/main
+[33m108010c[m HEAD@{19}: commit (initial): first commit

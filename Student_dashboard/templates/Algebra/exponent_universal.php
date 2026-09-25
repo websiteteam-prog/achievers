@@ -12,18 +12,38 @@ $payload = json_decode(
 
 $sentence = $payload['sentence'] ?? '';
 $label    = trim($payload['label'] ?? '');
+$underline = $payload['underline'] ?? '';
 
 $h = fn($s) => htmlspecialchars(
     (string)$s,
     ENT_QUOTES | ENT_SUBSTITUTE,
     'UTF-8'
 );
+
+$displaySentence = $h($sentence);
+
+if($underline !== ''){
+
+    $displaySentence = preg_replace(
+        '/' . preg_quote($underline,'/') . '/',
+        '<span class="exp-highlight">$0</span>',
+        $displaySentence,
+        1
+    );
+
+}
 ?>
 
 <style>
 
-.exp-wrap{
-    margin-bottom:35px;
+.exp-card{
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    padding:25px 30px;
+    margin-bottom:25px;
+    width:100%;
+    margin-top: 15px;
 }
 
 /* =========================
@@ -31,10 +51,10 @@ $h = fn($s) => htmlspecialchars(
 ========================= */
 
 .exp-question{
-    font-size:20px;
+    font-size:18px;
     font-weight:600;
     line-height:1.6;
-    color:#111;
+    color:#000;
 }
 
 /* =========================
@@ -45,8 +65,11 @@ $h = fn($s) => htmlspecialchars(
     display:flex;
     align-items:center;
     gap:12px;
-    margin-left:40px;
-    margin-top:8px;
+    margin-top:18px;
+}
+
+.exp-answer-row:has(.exp-input):not(:has(.exp-label)){
+    margin-left:0;
 }
 
 .exp-label{
@@ -59,17 +82,15 @@ $h = fn($s) => htmlspecialchars(
 
 .exp-input{
     width:260px;
-    min-width:260px;
+    flex:0 0 260px;
 
     border:none;
-    border-bottom:2px solid #7b2cff;
-
+    border-bottom:2px solid #000;
     background:transparent;
     outline:none;
 
-    font-size:18px;
+    font-size:17px;
     text-align:center;
-
     padding:4px 0;
 }
 
@@ -84,9 +105,24 @@ $h = fn($s) => htmlspecialchars(
 .exp-inline-row{
     display:flex;
     align-items:center;
-    gap:12px;
+    gap:15px;
     flex-wrap:wrap;
-    margin-top: 20px;
+    margin-top:18px;
+    margin-bottom:18px;
+}
+
+.exp-highlight{
+
+    color:#ef3d34;
+
+    text-decoration:underline;
+
+    text-decoration-thickness:3px;
+
+    text-underline-offset:3px;
+
+    font-weight:700;
+
 }
 
 /* =========================
@@ -95,8 +131,13 @@ $h = fn($s) => htmlspecialchars(
 
 @media(max-width:768px){
 
+    .exp-card{
+        padding:18px 20px;
+        border-radius:12px;
+    }
+
     .exp-question{
-        font-size:18px;
+        font-size:17px;
     }
 
     .exp-answer-row{
@@ -124,31 +165,43 @@ $h = fn($s) => htmlspecialchars(
 
 }
 
+@media(max-width:480px){
+
+    .exp-card{
+        padding:15px;
+    }
+
+    .exp-question{
+        font-size:16px;
+    }
+
+}
+
 </style>
 
-<div class="exp-wrap">
+<div class="exp-card">
 
 <?php if($label !== ''): ?>
 
-    <!-- Q1 & Q2 -->
+<div class="exp-inline-row">
 
-    <div class="exp-question">
+    <span class="exp-question">
         <?= ($index + 1) ?>)
-        <?= $h($sentence) ?>
-    </div>
+        <?= $displaySentence ?>
+    </span>
 
-    <div class="exp-answer-row">
-
+    <?php if($label !== '='): ?>
         <span class="exp-label">
             <?= $h($label) ?>
         </span>
+    <?php endif; ?>
 
-        <input
-            type="text"
-            class="exp-input"
-            name="answer[<?= $id ?>]">
+    <input
+        type="text"
+        class="exp-input"
+        name="answer[<?= $id ?>]">
 
-    </div>
+</div>
 
 <?php else: ?>
 
@@ -158,7 +211,7 @@ $h = fn($s) => htmlspecialchars(
 
         <span class="exp-question">
             <?= ($index + 1) ?>)
-            <?= $h($sentence) ?>
+           <?= $displaySentence ?>
         </span>
 
         <input

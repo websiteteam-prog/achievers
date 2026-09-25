@@ -1,6 +1,7 @@
 <?php
 $payload = json_decode($q['question_payload'] ?? '', true) ?: [];
 $isPieChart = ($payload['type'] ?? '') === 'pie_chart';
+$allow_html = !empty($payload['allow_html']);
 
 if (!isset($GLOBALS['pie_image_shown'])) {
     $GLOBALS['pie_image_shown'] = false;
@@ -8,29 +9,32 @@ if (!isset($GLOBALS['pie_image_shown'])) {
 ?>
 <style>
 /* Container spacing and styling */
-.container-fluid {
-    margin: 10px auto;  
-    padding: 15px 20px; 
-    border-radius: 12px; 
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
-    background-color: #ffffff; 
-    transition: 0.3s;
-    width: 100%;
-    max-width: 900px;   
+.fill-blank-card{
+
+margin:10px auto;
+
+padding:15px 20px;
+
+border-radius:12px;
+
+box-shadow:0 2px 6px rgba(0,0,0,.1);
+
+background:#fff;
+
 }
 
 /* Hover effect for subtle lift */
-.container-fluid:hover {
+.fill-blank-card:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     transform: translateY(-2px);
 }
 
 /* Question text */
-.container-fluid h6 {
-    font-weight: 600;
-    margin-bottom: 10px; 
-    margin-top: 0;
-    color: #333; 
+.fill-blank-card h6{
+    font-weight:600;
+    margin-bottom:10px;
+    margin-top:0;
+    color:#333;
 }
 
 /* Input field design (bottom border full width) */
@@ -83,12 +87,33 @@ if (!isset($GLOBALS['pie_image_shown'])) {
 
     <?php $GLOBALS['pie_image_shown'] = true; ?>
 
-<?php endif; ?>
-
-<!-- ✅ CARD START -->
-<div class="container-fluid col-lg-12 col-sm-12 col-md-12">
-
-    <h6><?= $char.'. '. htmlspecialchars($q['question_text']) ?></h6>
+    <?php endif; ?>
+    
+    <!-- ✅ CARD START -->
+    <div class="fill-blank-card">
+    
+        <?php
+    
+    $questionText = '';
+    
+    if (!empty($q['question_text'])) {
+    
+        $questionText = $q['question_text'];
+    
+    } elseif (!empty($payload['expression'])) {
+    
+        $questionText = $payload['expression'];
+    
+    } elseif (!empty($payload['question'])) {
+    
+        $questionText = $payload['question'];
+    
+    }
+    
+    ?>
+    <h6>
+    <?= $char.'. '. ($allow_html ? $questionText : htmlspecialchars($questionText)) ?>
+    </h6>
     <?php $char++; ?>
 
     <input type="text"
@@ -107,16 +132,14 @@ document.addEventListener("DOMContentLoaded", function(){
 
             let val = input.value;
 
-            // ✅ remove extra spaces around commas
+            // Remove extra spaces around commas
             val = val.split(",")
                      .map(v => v.trim())
-                     .filter(v => v !== "")
+                     .filter(Boolean)
                      .join(",");
 
-            // ✅ convert to proper format (capitalize words)
-            val = val.replace(/\b\w/g, c => c.toUpperCase());
-
             input.value = val;
+
         });
 
     });

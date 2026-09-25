@@ -35,7 +35,19 @@ if($page > $total_pages){
 
 $offset = ($page - 1) * $limit;
 /* ---------------- MAIN QUERY ---------------- */
-$query = "SELECT student_id, first_name, last_name, program, program_count, specific_subject, grade
+$query = "SELECT
+            student_id,
+            first_name,
+            last_name,
+            program,
+            program_count,
+            specific_subject,
+            grade,
+            (SELECT image_path
+               FROM student_images
+              WHERE student_id = enrollment_inquiries.student_id
+              ORDER BY id DESC
+              LIMIT 1) AS image_path
           FROM enrollment_inquiries
           $where
           ORDER BY id DESC
@@ -87,6 +99,7 @@ value="<?=htmlspecialchars($student_filter);?>">
 <table class="table table-hover">
 <thead>
 <tr>
+<th width="60">Sr</th>
 <th>Student</th>
 <th>Grade</th>
 <th>Program</th>
@@ -99,17 +112,34 @@ value="<?=htmlspecialchars($student_filter);?>">
 <tbody>
 <?php if(mysqli_num_rows($result)==0){ ?>
 <tr>
-<td colspan="6" style="text-align:center;">No students found</td>
+<td colspan="7" style="text-align:center;">No students found</td>
 </tr>
-<?php } else { while($row=mysqli_fetch_assoc($result)){ ?>
+<?php } else {
+    $sr = $offset + 1;               // continue numbering across pages
+    while($row=mysqli_fetch_assoc($result)){ ?>
 <tr>
-<td><?=htmlspecialchars($row['first_name']." ".$row['last_name']);?></td>
+
+<td><strong><?=$sr;?></strong></td>
+
+<td>
+  <div class="student-cell">
+    <?php $nm = trim($row['first_name']." ".$row['last_name']); ?>
+    <?php if(!empty($row['image_path'])): ?>
+      <img src="../Student_dashboard/<?=htmlspecialchars($row['image_path']);?>"
+           class="student-photo" alt="Student">
+    <?php else: ?>
+      <div class="avatar"><?=strtoupper(substr($nm,0,1));?></div>
+    <?php endif; ?>
+    <span class="student-name"><?=htmlspecialchars($nm);?></span>
+  </div>
+</td>
 <td><?=htmlspecialchars($row['grade']);?></td>
 <td><?=htmlspecialchars($row['program']);?></td>
 <td><?=htmlspecialchars($row['program_count']);?></td>
 <td><?=htmlspecialchars($row['specific_subject']);?></td>
 
 <td class="action-btns">
+
 <a href="#" class="btn btn-edit menu-link"
 data-page="invoice_system/enroll/edit_enrollment.php?student_id=<?=$row['student_id'];?>">
 <i class="bi bi-pencil"></i> Edit
@@ -119,9 +149,16 @@ data-page="invoice_system/enroll/edit_enrollment.php?student_id=<?=$row['student
 data-page="invoice_system/enroll/plan_history.php?student_id=<?=$row['student_id'];?>">
 <i class="bi bi-clock-history"></i> History
 </a>
+
+<a href="#" class="btn btn-delete delete-student"
+data-id="<?=$row['student_id'];?>"
+data-name="<?=htmlspecialchars($row['first_name']." ".$row['last_name']);?>">
+<i class="bi bi-trash"></i> Delete
+</a>
+
 </td>
 </tr>
-<?php }} ?>
+<?php $sr++; }} ?>
 </tbody>
 </table>
 </div>
@@ -178,7 +215,7 @@ function loadData(page = 1){
             $(".table-scroll").css("opacity","0.5");
         },
         success:function(res){
-            $("#page-content").html(res);
+            $("#page-body").html(res);
         }
     });
 }
@@ -224,6 +261,28 @@ $(document).off("click","#resetFilter").on("click","#resetFilter",function(){
 
 });
 
+});
+
+$(document).off("click.delStudent").on("click.delStudent", ".delete-student", function(e){
+    e.preventDefault();
+
+    let id   = $(this).data("id");
+    let name = $(this).data("name");
+
+    if(!confirm("Delete " + name + " ?\nThe student will be cancelled and removed from this list.")) return;
+
+    $.post("delete_student.php", { id: id, mode: "cancel" })
+     .done(function(){
+         // reload the current enrollment list, keeping active filters
+         let program = $("#program_filter").val() || '';
+         let student = $("#student_name").val()   || '';
+         $.get("invoice_system/enroll/manage_enrollment.php",
+               { page: 1, program: program, student_name: student },
+               function(res){ $("#page-body").html(res); });
+     })
+     .fail(function(){
+         alert("Unable to delete student. Please try again.");
+     });
 });
 </script>
 
@@ -292,7 +351,7 @@ $(document).off("click","#resetFilter").on("click","#resetFilter",function(){
 
 .table{
   width:100%;
-  min-width:750px;
+  min-width:1100px;
 }
 
 .table thead{
@@ -329,12 +388,53 @@ $(document).off("click","#resetFilter").on("click","#resetFilter",function(){
   font-size:13px;
 }
 
+.btn-delete{
+  background: linear-gradient(160deg,#b91c1c,#ef4444);
+  color:white;
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:13px;
+  border:none;
+  cursor:pointer;
+}
+.btn-delete:hover{ color:#fff; opacity:.92; }
+
 .btn-history{
   background: linear-gradient(160deg,#166534,#22c55e);
   color:white;
   padding:6px 12px;
   border-radius:20px;
   font-size:13px;
+}
+
+.student-cell{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.avatar{
+  width:44px; height:44px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
+  color:#fff; font-weight:700; font-size:16px;
+  overflow:hidden;
+  border:3px solid #fff;
+  box-shadow:0 3px 10px rgba(0,0,0,.18);
+  flex-shrink:0;
+}
+.student-photo{
+  width:44px; height:44px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #fff;
+  box-shadow:0 3px 10px rgba(0,0,0,.18);
+  flex-shrink:0;
+}
+.student-name{
+  font-weight:600;
+  color:#1f2937;
+  white-space:nowrap;   
 }
 
 .pagination-container {

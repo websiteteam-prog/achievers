@@ -43,7 +43,7 @@ $h = fn($s) => htmlspecialchars(
     font-size:18px;
     font-weight:700;
     min-width:60px;
-    margin-left: -18px;
+    margin-left: -22px;
 }
 
 .alg-input{

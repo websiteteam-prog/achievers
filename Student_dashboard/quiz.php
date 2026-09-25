@@ -30,11 +30,11 @@ if ($topic_id) {
 
     // Instructions + Questions
     $sql4 = "SELECT i.instruction, qq.instruction_id, qq.id, qq.question_type, 
-             qq.question_text, qq.question_payload, qq.correct_answer, qq.question_image
-             FROM instructions i 
-             JOIN quiz_questions qq ON i.id = qq.instruction_id 
-             WHERE i.topic_id = ? 
-             ORDER BY i.id ASC, qq.id ASC";
+         qq.question_text, qq.question_payload, qq.correct_answer, qq.question_image, qq.unit
+         FROM instructions i 
+         JOIN quiz_questions qq ON i.id = qq.instruction_id 
+         WHERE i.topic_id = ? 
+         ORDER BY i.id ASC, qq.id ASC";
 
     $stmt4 = $conn->prepare($sql4);
     $stmt4->bind_param("i", $topic_id);
@@ -51,7 +51,7 @@ if ($topic_id) {
  /* ======================
     PAGINATION LOGIC 
   ====================== */
-  $QUESTIONS_PER_PAGE = 2; 
+  $QUESTIONS_PER_PAGE = 400; 
 
   $all_questions = [];
   $inst_counter = 0;           
@@ -107,6 +107,7 @@ if ($topic_id) {
       min-height: 100vh;
       font-family: 'Segoe UI', sans-serif;
       background-color: #f5f5f5;
+      overflow-x: hidden;
     }
     .main {
       margin-left: 0px;
@@ -660,6 +661,62 @@ if (
             case 'integer_number_line':
             include 'templates/Integer/integer_number_line.php';
             break;
+            case 'mcq':
+            include 'templates/Numbers/mcq.php';
+            break;
+            case 'place_value_table':
+            include 'templates/Numbers/place_value_table.php';
+            break;
+            case 'place_value_identify':
+            include 'templates/Numbers/place_value_identify.php';
+            break;
+            case 'multi_column_table':
+            include 'templates/Numbers/multi_column_table.php';
+            break;
+            case 'number_scramble':
+            include 'templates/Numbers/number_scramble.php';
+            break;
+            case 'number_order_dual':
+            include 'templates/Numbers/number_order_dual.php';
+            break;
+            case 'image_question_panel':
+            include 'templates/Numbers/image_question_panel.php';
+            break;
+            case 'train_number_panel':
+            include 'templates/Numbers/train_number_panel.php';
+            break;
+            case 'greatest_smallest_number':
+            include 'templates/Numbers/greatest_smallest_number.php';
+            break;
+            case 'place_value_digit':
+            include 'templates/Numbers/place_value_digit.php';
+            break;
+            case 'spelling_number_names':
+            include 'templates/Numbers/spelling_number_names.php';
+            break;
+            case 'expanded_form_5box':
+            include 'templates/Numbers/expanded_form_5box.php';
+            break;
+            case 'rounding_judgement':
+            include 'templates/Numbers/rounding_judgement.php';
+            break;
+            case 'odd_even_worksheet':
+            include 'templates/Numbers/odd_even_worksheet.php';
+            break;
+            case 'prime_composite_worksheet':
+            include 'templates/Factor/prime_composite_worksheet.php';
+            break;
+            case 'perimeter_word_problem':
+            include 'templates/equation/perimeter_word_problem.php';
+            break;
+            case 'ratio_three_ways':
+            include 'templates/AreaPerimeter/ratio_three_ways_template.php';
+            break;
+            case 'proportion_chain':
+            include 'templates/Numbers/proportion_chain.php';
+            break;
+            case 'visual_math_worksheet':
+            include 'templates/diagram/visual_math_worksheet.php';
      }
     ?>
     <?php endforeach; ?>
@@ -735,14 +792,47 @@ if (
 
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-    document.addEventListener("DOMContentLoaded", () => MathJax.typesetPromise());
+  <script>
+document.addEventListener("DOMContentLoaded", () => MathJax.typesetPromise());
 
-    var videoModal = document.getElementById('videoModal');
-    videoModal.addEventListener('hidden.bs.modal', function () {
-        var iframe = videoModal.querySelector('iframe');
-        if (iframe) { iframe.src = iframe.src; }
+var videoModal = document.getElementById('videoModal');
+videoModal.addEventListener('hidden.bs.modal', function () {
+    var iframe = videoModal.querySelector('iframe');
+    if (iframe) { iframe.src = iframe.src; }
+});
+
+/* ===== Double submit protection ===== */
+(function () {
+    var quizForm = document.querySelector('form[action="submit_quiz.php"]');
+    if (!quizForm) return;
+
+    var isSubmitting = false;
+
+    quizForm.addEventListener('submit', function (e) {
+        // Agar pehle se ek submit chal raha hai -> dusra block
+        if (isSubmitting) {
+            e.preventDefault();
+            return;
+        }
+        isSubmitting = true;
+
+        // setTimeout(0): taaki jis button pe click hua uska name/value
+        // form ke saath chala jaaye, aur uske TURANT baad button disable ho.
+        // (Agar submit event me hi disable karoge to Next/Previous ki value POST me nahi jayegi)
+        setTimeout(function () {
+            quizForm.querySelectorAll('button[type="submit"]').forEach(function (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+            });
+
+            var submitBtn = quizForm.querySelector('.next-btn');
+            if (submitBtn) {
+                submitBtn.innerHTML = 'Processing...';
+            }
+        }, 0);
     });
-    </script>
+})();
+</script>
 </body>
 </html>

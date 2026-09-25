@@ -14,195 +14,281 @@ if (!$data) {
     die("Teacher not found");
 }
 
+$updateError = '';
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $subject = mysqli_real_escape_string($conn, $_POST['subject']);
+    $name       = mysqli_real_escape_string($conn, $_POST['name']);
+    $email      = mysqli_real_escape_string($conn, $_POST['email']);
+    $subject    = mysqli_real_escape_string($conn, $_POST['subject']);
+    $branch     = mysqli_real_escape_string($conn, $_POST['branch']);
+    $contact_no = mysqli_real_escape_string($conn, $_POST['contact_no']);
 
-    $update = "UPDATE teachers 
-               SET name='$name', email='$email', subject='$subject' 
-               WHERE id=$id";
+    $photoSql = '';
+    if (isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] === 0) {
 
-    if (mysqli_query($conn, $update)) {
-        echo "<script>alert('Teacher updated successfully'); window.location='manage_teachers.php';</script>";
-        exit;
-    } else {
-        echo "Error: " . mysqli_error($conn);
+        $maxSize = 5 * 1024 * 1024;
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+        if ($_FILES['profile_photo']['size'] > $maxSize) {
+            $updateError = "Photo must be under 5MB.";
+        } elseif (!in_array($_FILES['profile_photo']['type'], $allowedTypes)) {
+            $updateError = "Only JPG, PNG, or WEBP images are allowed.";
+        } else {
+            $uploadDir = '../uploads/teachers/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $ext = pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION);
+            $fileName = 'teacher_' . time() . '_' . uniqid() . '.' . $ext;
+            $targetPath = $uploadDir . $fileName;
+
+            if (move_uploaded_file($_FILES['profile_photo']['tmp_name'], $targetPath)) {
+                $profile_photo = 'uploads/teachers/' . $fileName;
+                $photoSql = ", profile_photo='$profile_photo'";
+            }
+        }
     }
+
+    if (empty($updateError)) {
+
+        $update = "UPDATE teachers 
+                   SET name='$name', email='$email', subject='$subject', 
+                       branch='$branch', contact_no='$contact_no' 
+                       $photoSql
+                   WHERE id=$id";
+
+        if (mysqli_query($conn, $update)) {
+            echo "<script>
+            if (typeof $ !== 'undefined') {
+              $('.menu-link[data-page=\"manage_teachers.php\"]').trigger('click');
+            } else {
+              window.location.href = 'dashboard.php?page=manage_teachers.php';
+            }
+            </script>";
+            exit;
+        } else {
+            $updateError = "Error: " . mysqli_error($conn);
+        }
+
+    }
+
+    $result = mysqli_query($conn, "SELECT * FROM teachers WHERE id = $id");
+    $data = mysqli_fetch_assoc($result);
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
+<style>
 
-<head>
+.form-container{
+padding:5px;
+}
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+.form-header{
+display:flex;
+align-items:center;
+gap:15px;
+margin-bottom:25px;
+}
 
-    <title>Edit Teacher</title>
+.header-icon{
+width:55px;
+height:55px;
+border-radius:16px;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+display:flex;
+align-items:center;
+justify-content:center;
+color:#fff;
+font-size:24px;
+box-shadow:0 8px 20px rgba(30,60,114,.25);
+}
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+.header-title{
+margin:0;
+font-size:24px;
+font-weight:700;
+color:#1e3c72;
+}
 
-    <style>
-        body {
-            background: #f4f7fb;
-            font-family: 'Poppins', 'Segoe UI', sans-serif;
-        }
+.header-subtitle{
+margin:0;
+font-size:14px;
+color:#6b7280;
+}
 
-        /* Card */
+.card{
+border:none;
+border-radius:0px;
+overflow:hidden;
+box-shadow:0 10px 30px rgba(17,24,39,.08);
+animation:fadeInUp .4s ease;
+max-width:700px;
+}
 
-        .page-card {
-            max-width: 700px;
-            margin: auto;
-            margin-top: 40px;
-            background: white;
-            border-radius: 18px;
-            padding: 30px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, .05);
-        }
+@keyframes fadeInUp{
+from{opacity:0;transform:translateY(10px);}
+to{opacity:1;transform:translateY(0);}
+}
 
-        /* Title */
+.form-control {
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid #e0e6ed;
+}
 
-        .page-title {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 20px;
+.form-control:focus {
+    box-shadow: 0 0 0 2px rgba(30, 136, 229, .15);
+    border-color: #42a5f5;
+}
 
-            background: linear-gradient(45deg, #1e88e5, #42a5f5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+.current-photo{
+width:70px;
+height:70px;
+border-radius:50%;
+object-fit:cover;
+margin-bottom:10px;
+border:2px solid #e0e6ed;
+}
 
-        /* Inputs */
+.btn-submit{
+display:inline-flex;
+align-items:center;
+gap:6px;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+color:#fff;
+border:none;
+padding:10px 22px;
+border-radius:30px;
+font-weight:600;
+font-size:13.5px;
+box-shadow:0 5px 15px rgba(30,60,114,.25);
+transition:.2s;
+}
 
-        .form-control {
-            border-radius: 10px;
-            padding: 10px 12px;
-            border: 1px solid #e0e6ed;
-        }
+.btn-submit:hover{
+transform:translateY(-2px);
+color:#fff;
+box-shadow:0 8px 18px rgba(30,60,114,.35);
+}
 
-        .form-control:focus {
-            box-shadow: 0 0 0 2px rgba(30, 136, 229, .15);
-            border-color: #42a5f5;
-        }
+.btn-back{
+display:inline-flex;
+align-items:center;
+gap:6px;
+background:#fff;
+color:#374151;
+border:none;
+padding:10px 22px;
+border-radius:30px;
+font-weight:600;
+font-size:13.5px;
+box-shadow:0 4px 12px rgba(0,0,0,.06);
+transition:.2s;
+text-decoration:none;
+}
 
-        /* Buttons */
+.btn-back:hover{
+transform:translateY(-2px);
+color:#374151;
+}
 
-        .btn-update {
-            background: linear-gradient(45deg, #1e88e5, #42a5f5);
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            color: white;
-            font-weight: 500;
-        }
+.form-note{
+font-size:12px;
+color:#9ca3af;
+margin-top:4px;
+}
 
-        .btn-update:hover {
-            opacity: .9;
-            color: white;
-        }
+@media(max-width:768px){
+.header-title{ font-size:20px; }
+}
 
-        .btn-back {
-            border-radius: 8px;
-            padding: 10px 20px;
-        }
+</style>
 
-        /* Responsive */
+<div class="form-container">
 
-        @media(max-width:768px) {
+<div class="form-header">
 
-            .page-card {
-                padding: 20px;
-                margin-top: 20px;
-            }
+<div class="header-icon">
+<i class="bi bi-pencil-square"></i>
+</div>
 
-            .page-title {
-                font-size: 20px;
-            }
+<div>
+<h2 class="header-title">Edit Teacher</h2>
+<p class="header-subtitle">Update teacher information</p>
+</div>
 
-        }
-    </style>
+</div>
 
-</head>
+<?php if (!empty($updateError)): ?>
+<div class="alert alert-danger"><?= $updateError ?></div>
+<?php endif; ?>
 
-<body>
+<div class="card">
 
-    <div class="container-fluid">
+<div class="card-body p-4">
 
-        <div class="page-card">
+<form method="POST" action="edit_teacher.php?id=<?= $id ?>" enctype="multipart/form-data">
 
-            <h3 class="page-title">
-                <i class="bi bi-pencil-square"></i> Edit Teacher
-            </h3>
+<?php if (!empty($data['profile_photo'])): ?>
+<div class="mb-3">
+<img src="../<?= htmlspecialchars($data['profile_photo']) ?>" class="current-photo" alt="Current photo">
+</div>
+<?php endif; ?>
 
-            <form method="POST">
+<div class="mb-3">
+<label class="form-label"><i class="bi bi-person"></i> Name</label>
+<input type="text" name="name" class="form-control"
+    value="<?= htmlspecialchars($data['name']) ?>" required>
+</div>
 
-                <div class="mb-3">
-                    <label class="form-label">
-                        <i class="bi bi-person"></i> Name
-                    </label>
+<div class="mb-3">
+<label class="form-label"><i class="bi bi-envelope"></i> Email</label>
+<input type="email" name="email" class="form-control"
+    value="<?= htmlspecialchars($data['email']) ?>" required>
+</div>
 
-                    <input
-                        type="text"
-                        name="name"
-                        class="form-control"
-                        value="<?= htmlspecialchars($data['name']) ?>"
-                        required>
+<div class="mb-3">
+<label class="form-label"><i class="bi bi-book"></i> Subject</label>
+<input type="text" name="subject" class="form-control"
+    value="<?= htmlspecialchars($data['subject']) ?>" required>
+</div>
 
-                </div>
+<div class="mb-3">
+<label class="form-label"><i class="bi bi-diagram-3"></i> Branch</label>
+<input type="text" name="branch" class="form-control"
+    value="<?= htmlspecialchars($data['branch'] ?? '') ?>">
+</div>
 
+<div class="mb-3">
+<label class="form-label"><i class="bi bi-telephone"></i> Contact No.</label>
+<input type="text" name="contact_no" class="form-control" maxlength="10" pattern="[0-9]{10}"
+    value="<?= htmlspecialchars($data['contact_no'] ?? '') ?>">
+</div>
 
-                <div class="mb-3">
-                    <label class="form-label">
-                        <i class="bi bi-envelope"></i> Email
-                    </label>
+<div class="mb-4">
+<label class="form-label"><i class="bi bi-image"></i> Update Profile Photo</label>
+<input type="file" name="profile_photo" class="form-control" accept="image/jpeg,image/png,image/webp">
+<p class="form-note">Leave empty to keep the current photo. Max size 5MB.</p>
+</div>
 
-                    <input
-                        type="email"
-                        name="email"
-                        class="form-control"
-                        value="<?= htmlspecialchars($data['email']) ?>"
-                        required>
+<div class="d-flex gap-2 flex-wrap">
 
-                </div>
+<button type="submit" class="btn-submit">
+<i class="bi bi-check-circle"></i> Update Teacher
+</button>
 
+<a href="javascript:void(0)" class="btn-back menu-link" data-page="manage_teachers.php">
+<i class="bi bi-arrow-left"></i> Back
+</a>
 
-                <div class="mb-4">
-                    <label class="form-label">
-                        <i class="bi bi-book"></i> Subject
-                    </label>
+</div>
 
-                    <input
-                        type="text"
-                        name="subject"
-                        class="form-control"
-                        value="<?= htmlspecialchars($data['subject']) ?>"
-                        required>
+</form>
 
-                </div>
+</div>
 
+</div>
 
-                <div class="d-flex gap-2 flex-wrap">
-
-                    <button type="submit" class="btn btn-update">
-                        <i class="bi bi-check-circle"></i> Update Teacher
-                    </button>
-
-                    <a href="dashboard.php?page=manage_teachers.php" class="btn btn-secondary btn-back">
-                        <i class="bi bi-arrow-left"></i> Back
-                    </a>
-
-                </div>
-
-            </form>
-
-        </div>
-
-    </div>
-
-</body>
-
-</html>
+</div>

@@ -160,7 +160,7 @@ window.location='dashboard.php?page=manage_students.php';
         Edit Student
       </h4>
 
-      <form method="POST">
+      <form method="POST" action="edit_student.php?id=<?=$id?>" enctype="multipart/form-data">
 
         <div class="mb-3">
 

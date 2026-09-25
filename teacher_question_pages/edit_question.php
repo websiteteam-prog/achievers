@@ -104,43 +104,178 @@ $msg='<div class="alert alert-danger">Update failed</div>';
 
 ?>
 
+<link
+href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+rel="stylesheet"
+>
 
 <style>
 
-/* ========================= */
-/* BASE */
-/* ========================= */
+*{
+box-sizing:border-box;
+}
 
 .page-container{
-padding:15px;
+padding:5px;
 width:100%;
 max-width:100%;
 }
 
-/* REMOVE INNER CARD EFFECT */
-.dashboard-card{
-background:white;
-padding:20px;
-border-radius:12px;
-box-shadow:none; /* remove double card shadow */
-width:100%;
-max-width:100%;
+/* ========================= */
+/* HEADER - matches manage_questions.php */
+/* ========================= */
+
+.questions-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+flex-wrap:wrap;
+gap:15px;
+}
+
+.header-left{
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.header-icon{
+width:55px;
+height:55px;
+border-radius:16px;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+display:flex;
+align-items:center;
+justify-content:center;
+color:#fff;
+font-size:24px;
+box-shadow:0 8px 20px rgba(30,60,114,.25);
+flex-shrink:0;
+}
+
+.header-title{
 margin:0;
+font-size:24px;
+font-weight:700;
+color:#1e3c72;
+letter-spacing:.2px;
+word-break:break-word;
 }
 
-/* Title */
-.card-title{
-font-size:20px;
+.header-subtitle{
+margin:0;
+font-size:14px;
+color:#6b7280;
+}
+
+.header-right{
+display:flex;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.btn-back{
+display:inline-flex;
+align-items:center;
+gap:8px;
+background:#f1f3f7;
+color:#374151;
+border:none;
+padding:10px 22px;
+border-radius:40px;
 font-weight:600;
+font-size:14px;
+text-decoration:none;
+transition:.25s ease;
+cursor:pointer;
+}
+
+.btn-back:hover{
+background:#e5e7eb;
+color:#374151;
+transform:translateY(-2px);
+}
+
+/* ========================= */
+/* CARD - matches manage_questions.php card style */
+/* ========================= */
+
+.card{
+border:none;
+border-radius:18px;
+overflow:hidden;
+box-shadow:0 10px 30px rgba(17,24,39,.08);
+animation:fadeInUp .4s ease;
+background:#fff;
+}
+
+@keyframes fadeInUp{
+from{opacity:0;transform:translateY(10px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+.card-body-custom{
+padding:25px;
+width:100%;
+max-width:100%;
+}
+
+/* Alerts */
+.alert{
+border:none;
+border-radius:12px;
+padding:14px 18px;
+font-size:14px;
+font-weight:500;
 margin-bottom:20px;
-word-break:break-word;
+}
+
+.alert-success{
+background:#dcfce7;
+color:#15803d;
+}
+
+.alert-danger{
+background:#fee2e2;
+color:#b91c1c;
+}
+
+/* Labels */
+.form-label{
+font-size:12px;
+color:#6b7280;
+text-transform:uppercase;
+letter-spacing:.5px;
+font-weight:600;
+margin-bottom:6px;
 }
 
 /* Inputs */
 .form-control{
 width:100%;
 max-width:100%;
-box-sizing:border-box;
+border-radius:10px;
+border:1px solid #e5e7eb;
+font-size:14px;
+padding:11px 14px;
+color:#374151;
+background:#f8fbff;
+transition:.2s ease;
+}
+
+.form-control:focus{
+border-color:#2a5298;
+box-shadow:0 0 0 .2rem rgba(42,82,152,.15);
+background:#fff;
+outline:none;
+}
+
+.form-control[readonly]{
+background:#eef1f7;
+color:#6b7280;
+cursor:not-allowed;
 }
 
 /* Textarea */
@@ -149,34 +284,70 @@ min-height:100px;
 resize:vertical;
 }
 
+.json-box{
+background:#0b1220 !important;
+color:#00ff9c !important;
+border:none !important;
+font-family:monospace;
+font-size:13px;
+border-radius:12px !important;
+}
+
 /* Image */
 .question-img{
 max-width:100%;
 height:auto;
-margin-top:10px;
-border-radius:8px;
+margin-top:12px;
+border-radius:12px;
+box-shadow:0 8px 20px rgba(17,24,39,.1);
 }
 
 /* Buttons */
-.btn{
+.btn-update{
+display:inline-flex;
+align-items:center;
+gap:8px;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+color:#fff;
+border:none;
+padding:11px 26px;
+border-radius:40px;
+font-weight:600;
+font-size:14px;
+transition:.25s ease;
+}
+
+.btn-update:hover{
+transform:translateY(-2px);
+box-shadow:0 12px 26px rgba(30,60,114,.3);
+color:#fff;
+}
+
+.btn-cancel{
+display:inline-flex;
+align-items:center;
+gap:8px;
+background:#f1f3f7;
+color:#374151;
+border:none;
+padding:11px 26px;
+border-radius:40px;
+font-weight:600;
+font-size:14px;
+transition:.25s ease;
+}
+
+.btn-cancel:hover{
+background:#e5e7eb;
+color:#374151;
+transform:translateY(-2px);
+}
+
+.form-actions{
+display:flex;
+gap:12px;
+flex-wrap:wrap;
 margin-top:5px;
-}
-
-
-/* ========================= */
-/* TABLET */
-/* ========================= */
-
-@media(max-width:768px){
-
-.dashboard-card{
-padding:18px;
-}
-
-.card-title{
-font-size:18px;
-}
-
 }
 
 
@@ -184,52 +355,71 @@ font-size:18px;
 /* MOBILE */
 /* ========================= */
 
-@media(max-width:575px){
+@media(max-width:768px){
 
-.page-container{
-padding:12px 8px;
+.questions-header{
+flex-direction:column;
+align-items:flex-start;
 }
 
-/* stack columns */
+.header-right{
+width:100%;
+}
+
+.btn-back{
+width:100%;
+justify-content:center;
+}
+
+.header-title{
+font-size:22px;
+}
+
+}
+
+@media(max-width:575px){
+
 .row.g-4 > div{
 width:100%;
 max-width:100%;
 flex:0 0 100%;
 }
 
-/* inputs */
 .form-control{
 font-size:15px;
 padding:10px;
 }
 
-/* buttons full width */
-.btn{
-width:100%;
+.form-actions{
+flex-direction:column;
 }
 
-.dashboard-card{
+.btn-update,
+.btn-cancel{
+width:100%;
+justify-content:center;
+}
+
+.page-container{
+padding:5px;
+}
+
+.card-body-custom{
 padding:16px;
 }
 
 }
 
-
-/* ========================= */
-/* SMALL MOBILE */
-/* ========================= */
-
 @media(max-width:360px){
 
-.page-container{
-padding:10px 6px;
+.header-icon{
+width:45px;
+height:45px;
+font-size:20px;
+border-radius:12px;
 }
 
-.dashboard-card{
-padding:14px;
-}
-
-.card-title{
+.header-title{
 font-size:17px;
 }
 
@@ -240,46 +430,27 @@ padding:9px;
 
 }
 
-
-/* ========================= */
-/* ULTRA SMALL */
-/* ========================= */
-
 @media(max-width:300px){
 
-.page-container{
-padding:8px 5px;
-}
-
-.dashboard-card{
+.card-body-custom{
 padding:12px;
-border-radius:8px;
 }
 
-.card-title{
-font-size:15px;
-line-height:1.3;
-}
-
-/* inputs */
 .form-control{
 font-size:13px;
 padding:8px;
 }
 
-/* textarea */
 textarea.form-control{
 min-height:80px;
 }
 
-/* buttons */
-.btn{
+.btn-update,
+.btn-cancel{
 font-size:13px;
-padding:8px;
-width:100%;
+padding:9px;
 }
 
-/* image */
 .question-img{
 max-height:150px;
 }
@@ -292,20 +463,41 @@ max-height:150px;
 
 <div class="page-container">
 
-<div class="dashboard-card">
+<!-- HEADER -->
+<div class="questions-header">
 
-<div class="card-title">
+<div class="header-left">
 
-<i class="bi bi-pencil-square text-primary"></i>
-Edit Question #<?= $id ?>
+<div class="header-icon">
+<i class="bi bi-pencil-square"></i>
+</div>
+
+<div>
+<!-- <h2 class="header-title">Edit Question #<?= $id ?></h2> -->
+<h2 class="header-title">Edit Question</h2>
+<p class="header-subtitle">Update question details below</p>
+</div>
+
+</div>
+
+<div class="header-right">
+<button onclick="goBackPage()" class="btn-back">
+<i class="bi bi-arrow-left"></i>
+Back
+</button>
+</div>
 
 </div>
 
 
+<!-- CARD -->
+<div class="card">
+<div class="card-body-custom">
+
 <?= $msg ?>
 
-
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data"
+      action="teacher_question_pages/edit_question.php?id=<?= $id ?>">
 
 <div class="row g-4">
 
@@ -386,7 +578,7 @@ class="question-img">
 
 <label class="form-label">Payload JSON</label>
 
-<textarea class="form-control"
+<textarea class="form-control json-box"
 rows="6"
 readonly><?= json_encode($payload,JSON_PRETTY_PRINT) ?></textarea>
 
@@ -396,17 +588,17 @@ readonly><?= json_encode($payload,JSON_PRETTY_PRINT) ?></textarea>
 
 <div class="col-12">
 
-<button type="submit" class="btn btn-primary">
+<div class="form-actions">
 
+<button type="submit" class="btn-update">
 <i class="bi bi-check-circle"></i>
 Update Question
-
 </button>
 
 
 <button type="button"
 onclick="goBackPage()"
-class="btn btn-secondary">
+class="btn-cancel">
 
 <i class="bi bi-arrow-left"></i>
 Back
@@ -415,11 +607,14 @@ Back
 
 </div>
 
+</div>
+
 
 </div>
 
 </form>
 
+</div>
 </div>
 
 </div>
@@ -441,5 +636,28 @@ loadPage('teacher_question_pages/manage_questions.php');
 }
 
 }
+
+$(document).on("submit", "form", function(e){
+    if ($(this).attr("enctype") === "multipart/form-data" && $(this).closest("#content-area").length) {
+        e.preventDefault();
+
+        let formData = new FormData(this);
+        let url = $(this).attr("action") || window.location.href;
+
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(data){
+                $("#content-area").html(data);
+            },
+            error: function(){
+                alert("Update failed to load response");
+            }
+        });
+    }
+});
 
 </script>

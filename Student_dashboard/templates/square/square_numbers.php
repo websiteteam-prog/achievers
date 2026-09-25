@@ -9,8 +9,8 @@ $type    = $q['question_type'] ?? '';
 $id      = (int)($q['id'] ?? 0);
 
 $payload = json_decode($q['question_payload'] ?? '{}', true) ?: [];
-$GLOBALS['partCounters'] =
-$GLOBALS['partCounters'] ?? [];
+$GLOBALS['partCounters'] = $GLOBALS['partCounters'] ?? [];
+$is_first_missing_digit = $is_first_missing_digit ?? false;
 ?>
 
 <style>
@@ -21,6 +21,19 @@ $GLOBALS['partCounters'] ?? [];
     border-radius:12px;
     padding:25px;
     margin-bottom:25px;
+    position:relative;
+    overflow:visible;
+}
+
+.first-missing-card{
+    position:relative;
+}
+
+.square-hint{
+    position:absolute;
+    right:-360px;
+    top:-20px;
+    width:320px;
 }
 
 .square-title{
@@ -284,17 +297,10 @@ if($type === 'square_complete'):
 ========================================================= */
 
 elseif($type === 'square_missing_digit'):
-
-
-if ($is_first_missing_digit):
 ?>
 
-<div style="display:flex;align-items:flex-start;gap:60px;">
-    <div style="flex:1;">
-
-<?php endif; ?>
-
-<div class="square-card">
+<div class="square-card <?= $is_first_missing_digit ? 'first-missing-card' : '' ?>"
+     style="<?= $is_first_missing_digit ? 'position:relative;' : '' ?>">
 
     <div class="square-row">
 
@@ -312,25 +318,25 @@ if ($is_first_missing_digit):
         >
 
     </div>
-
+    <?php if ($is_first_missing_digit): ?>
+    
+    <div style="
+    position:absolute;
+    right:20px;
+    top:-45px;
+    width:250px;
+    z-index:9999;
+    ">
+    <img
+        src="templates/images/square_hint.png"
+        style="width:100%;display:block;"
+    >
 </div>
 
-<?php if ($is_first_missing_digit): ?>
-
-    </div>
-
-    <div style="width:320px;flex-shrink:0;">
-        <img
-            src="templates/images/square_hint.png"
-            alt="Hint"
-            style="width:100%;display:block;margin-top:-33px;"
-        >
-    </div>
-
+<?php endif; ?>
 </div>
 
-<?php endif;
-?>
+
 <?php
 elseif($type === 'perfect_square_root'):
 

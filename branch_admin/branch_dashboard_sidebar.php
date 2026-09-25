@@ -21,6 +21,7 @@ $currentpage = basename($_SERVER['PHP_SELF']);
     <a class="nav-link <?= ($currentpage == 'financial_report.php') ? 'active' : '' ?>" href="financial_report.php"><i class="bi bi-bar-chart me-2"></i>Financial Report</a>
     <a class="nav-link <?= (in_array($currentpage, ['click_attendance.php', 'view_attendance.php', 'month_attendance.php'])) ? 'active' : '' ?>" href="click_attendance.php"><i class="bi bi-clipboard-data me-2"></i>Attendance</a>
     <a class="nav-link <?= ($currentpage == 'parent_meetings.php') ? 'active' : '' ?>" href="parent_meetings.php"><i class="bi bi-person-lines-fill me-2"></i>Parent Meetings</a>
+    <a class="nav-link <?= ($currentpage == 'branch_slots.php') ? 'active' : '' ?>" href="branch_slots.php"><i class="bi bi-clock-history me-2"></i>Appointment Slots</a>
     <a class="nav-link" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
   </nav>
 </div>

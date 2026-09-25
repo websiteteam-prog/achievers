@@ -31,12 +31,31 @@ $assessment_title = $row['title'] ?? 'Unknown Assessment';
 $stmt->close();
 
 // Student name
-$stmt = $conn->prepare("SELECT CONCAT(COALESCE(first_name,''), ' ', COALESCE(last_name,'')) AS name FROM students WHERE id = ?");
+$stmt = $conn->prepare("
+SELECT
+    CONCAT(COALESCE(s.first_name,''), ' ', COALESCE(s.last_name,'')) AS name,
+    si.image_path
+FROM students s
+LEFT JOIN student_images si
+    ON si.student_id = s.id
+WHERE s.id = ?
+");
 $stmt->bind_param("i", $student_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
 $student_name = $row['name'] ?? 'Unknown Student';
+
+$image_path = $row['image_path'] ?? '';
+
+$student_avatar = "images/default-avatar.png";
+$student_avatar_file = "";
+
+if (!empty($image_path)) {
+    $student_avatar = "Student_dashboard/" . $image_path;
+    $student_avatar_file = dirname(__DIR__) . "/Student_dashboard/" . $image_path;
+}
+
 $stmt->close();
 
 // YE HAI ASLI FIX — Sirf student_id + assessment_id + question_id se answers fetch karo
@@ -94,7 +113,134 @@ $score = $correct * 10;
 $percent = $total > 0 ? round(($correct / $total) * 100) : 0;
 ?>
 
-<!DOCTYPE html>
+  <style>
+body { background:transparent; padding:0; }
+
+/* scoped so it won't touch other .card elements in the dashboard */
+.answers-page .card{
+    max-width:1100px;
+    margin:auto;
+    border-radius:22px;
+    overflow:hidden;
+    border:none;
+    box-shadow:0 15px 40px rgba(17,24,39,.12);
+}
+
+/* ---------- HEADER (navy theme) ---------- */
+.header-card{
+    background:linear-gradient(135deg,#1e3c72,#2a5298);
+    color:#fff;
+    padding:32px 40px;
+}
+.header-card small{ letter-spacing:.4px; opacity:.85; }
+.header-card h2{ font-size:1.5rem;  margin:0; }
+.header-card h4{ font-size:1.15rem; margin:0; }
+.header-card h6{ font-size:1rem;    margin:0; }
+
+.student-avatar{
+    width:74px;
+    height:74px;
+    border-radius:50%;
+    object-fit:cover;
+    border:4px solid rgba(255,255,255,.35);
+    background:rgba(255,255,255,.15);
+    color:#fff;
+    flex-shrink:0;
+}
+
+/* ---------- SCORE CIRCLE ---------- */
+.score-circle{
+    width:170px;
+    height:170px;
+    background:linear-gradient(45deg,#1e3c72,#2a5298);
+    color:#fff;
+    border-radius:50%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:3.6rem;
+    font-weight:800;
+    margin:16px auto;
+    box-shadow:0 12px 30px rgba(30,60,114,.35);
+}
+.score-circle small{ font-size:1.5rem; font-weight:600; opacity:.9; }
+
+/* ---------- SUMMARY TILES ---------- */
+.summary-tile{
+    border-radius:14px;
+    padding:20px 12px;
+    color:#fff;
+    font-weight:700;
+    font-size:1.05rem;
+    box-shadow:0 8px 20px rgba(0,0,0,.10);
+}
+
+/* ---------- QUESTION BOX ---------- */
+.question-box{
+    background:#fff;
+    border-radius:18px;
+    padding:28px;
+    margin:22px 0;
+    box-shadow:0 8px 25px rgba(17,24,39,.08);
+    border:2px solid #e3e9f5;
+    border-left:5px solid #1e3c72;
+    position:relative;
+}
+.badge-status{
+    width:54px;
+    height:54px;
+    font-size:1.6rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+/* ---------- BACK BUTTON ---------- */
+.back-btn{
+    display:inline-flex;
+    align-items:center;
+    background:linear-gradient(135deg,#1e3c72,#2a5298);
+    color:#fff;
+    border:none;
+    border-radius:40px;
+    padding:12px 30px;
+    font-weight:600;
+    text-decoration:none;
+    box-shadow:0 8px 20px rgba(30,60,114,.25);
+    transition:.25s ease;
+}
+.back-btn:hover{ transform:translateY(-2px); color:#fff; box-shadow:0 12px 26px rgba(30,60,114,.32); }
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media (max-width:768px){
+    .header-card{ padding:24px 18px; text-align:center; }
+    .header-card h2{ font-size:1.35rem; }
+    .header-card h4{ font-size:1.05rem; }
+
+    .card-body{ padding:1.25rem !important; }
+
+    .score-circle{ width:140px; height:140px; font-size:2.8rem; }
+    .score-circle small{ font-size:1.2rem; }
+
+    .question-box{ padding:20px 18px; }
+    .question-box .ps-5{ padding-left:1rem !important; }
+    .badge-status{ width:46px; height:46px; font-size:1.3rem; }
+}
+
+@media (max-width:575.98px){
+    .score-circle{ width:120px; height:120px; font-size:2.3rem; }
+    .display-4{ font-size:2.2rem; }
+    .summary-tile{ font-size:.95rem; padding:16px 10px; }
+
+    /* answer alert: badge on its own line instead of float overlap */
+    .question-box .float-end{ float:none !important; display:block; margin-top:8px; }
+}
+</style>
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -112,24 +258,72 @@ $percent = $total > 0 ? round(($correct / $total) * 100) : 0;
         .badge-status { width:60px; height:60px; font-size:1.8rem; display:flex; align-items:center; justify-content:center; }
     </style>
 </head>
-<body>
-<div class="container">
+<body> -->
+<div class="container answers-page py-3">
     <div class="card">
-        <div class="header">
-            <h2><?= htmlspecialchars($student_name) ?></h2>
-            <h4><?= htmlspecialchars($assessment_title) ?></h4>
-            <p>Submitted: <?= date('d M Y, h:i A', strtotime($submitted_at)) ?></p>
+<div class="header-card">
+
+    <div class="row align-items-center text-center text-md-start">
+
+        <div class="col-md-5 mb-3 mb-md-0">
+            <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+              <div class="me-3">
+
+               <?php if(!empty($student_avatar_file) && file_exists($student_avatar_file)): ?>
+
+                <img src="<?= htmlspecialchars($student_avatar) ?>"
+                    class="student-avatar"
+                    alt="Student">
+
+                <?php else: ?>
+
+                <div class="student-avatar d-flex align-items-center justify-content-center">
+                    <i class="bi bi-person-fill fs-1"></i>
+                </div>
+
+                <?php endif; ?>
+
+                </div>
+
+                <div>
+                    <small class="text-white-50 d-block">Student</small>
+                    <h2 class="mb-0 fw-bold">
+                        <?= htmlspecialchars($student_name) ?>
+                    </h2>
+                </div>
+            </div>
         </div>
-        <div class="card-body bg-light p-5">
+
+        <div class="col-md-4 mb-3 mb-md-0">
+            <small class="text-white-50 d-block">Assessment</small>
+            <h4 class="mb-0 fw-semibold">
+                <?= htmlspecialchars($assessment_title) ?>
+            </h4>
+        </div>
+        <div class="col-md-3">
+
+            <small class="text-white-50 d-block">
+                Submitted On
+            </small>
+
+            <h6 class="mb-0 fw-semibold">
+                <?= date('d M Y, h:i A', strtotime($submitted_at)) ?>
+            </h6>
+
+        </div>
+    </div>
+
+</div>
+        <div class="card-body bg-light p-3 p-md-5">
             <div class="text-center mb-5">
                 <div class="score-circle"><?= $score ?><small style="font-size:2rem">pts</small></div>
                 <h1 class="display-4 <?= $percent >= 60 ? 'text-success' : 'text-danger' ?>"><?= $percent ?>%</h1>
             </div>
-            <div class="row text-center mb-5 g-4">
-                <div class="col"><div class="p-4 bg-success text-white rounded shadow"><?= $correct ?> Correct</div></div>
-                <div class="col"><div class="p-4 bg-danger text-white rounded shadow"><?= $wrong ?> Wrong</div></div>
-                <div class="col"><div class="p-4 bg-secondary text-white rounded shadow"><?= $skipped ?> Skipped</div></div>
-            </div>
+            <div class="row text-center mb-5 g-3 row-cols-1 row-cols-sm-3">
+            <div class="col"><div class="summary-tile bg-success"><?= $correct ?> Correct</div></div>
+            <div class="col"><div class="summary-tile bg-danger"><?= $wrong ?> Wrong</div></div>
+            <div class="col"><div class="summary-tile bg-secondary"><?= $skipped ?> Skipped</div></div>
+        </div>
 
             <h3 class="text-center mb-5 text-dark fw-bold">Detailed Answers</h3>
 
@@ -189,6 +383,7 @@ $percent = $total > 0 ? round(($correct / $total) * 100) : 0;
                             case 'fill_outcomes': include '../Student_dashboard/templates/Probability/probability_question.php'; break;
                             case 'factor': include '../Student_dashboard/templates/Factor/factor.php'; break;
                             case 'fill_outcomes_with_images': include '../Student_dashboard/templates/Probability/probability_fill_with_images.php'; break;
+                            case 'statistics_universal': include '../Student_dashboard/templates/statistics/statistics_universal.php';break;
                             default:
                                 echo "<p><em>Question type: " . htmlspecialchars($q['question_type']) . "</em></p>";
                         }
@@ -215,7 +410,9 @@ $percent = $total > 0 ? round(($correct / $total) * 100) : 0;
             <?php endforeach; ?>
 
             <div class="text-center mt-5">
-                <a href="javascript:window.history.back()" class="btn btn-secondary btn-lg px-5">Back to Results</a>
+                <a href="javascript:window.history.back()" class="back-btn">
+    <i class="bi bi-arrow-left-circle me-2"></i> Back to Results
+</a>
             </div>
         </div>
     </div>
@@ -226,5 +423,5 @@ $percent = $total > 0 ? round(($correct / $total) * 100) : 0;
         MathJax.typesetPromise();
     }
 </script>
-</body>
-</html>
+<!-- </body>
+</html> -->

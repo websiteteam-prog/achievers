@@ -238,7 +238,7 @@ display:block;
   </div>
 
   <a href="#" class="menu-link active" data-page="dashboard_home.php">
-  <i class="bi bi-speedometer2"></i>
+  <i class="bi bi-house"></i>
   Dashboard
   </a>
 
@@ -310,6 +310,16 @@ display:block;
   <a href="#" class="menu-link" data-page="teacher_question_pages/manage_questions.php">
   <i class="bi bi-patch-question"></i>
   Manage Questions
+  </a>
+
+  <a href="#" class="menu-link" data-page="review_drawings.php">
+  <i class="bi bi-easel2"></i>
+  Review Drawings
+  </a>
+
+  <a href="#" class="menu-link" data-page="teacher_settings.php">
+  <i class="bi bi-gear"></i>
+  Settings
   </a>
 
   <a href="teacher_logout.php">
@@ -402,7 +412,7 @@ display:block;
 history.pushState(
     {page:page},
     "",
-    "?page="+page
+    "?page="+encodeURIComponent(page)
 );  }
 
   if(typeof initCalendar==="function"){
@@ -428,12 +438,13 @@ history.pushState(
   }
 
 
-  // click menu
-  $(".menu-link").click(function(e){
-  e.preventDefault();
-  let page=$(this).data("page");
-  loadPage(page,true);
-  });
+ // click menu (delegated so links injected later via AJAX, e.g. inside
+// my_students.php or manage_students.php, respond to clicks too)
+$(document).on("click", ".menu-link", function(e){
+e.preventDefault();
+let page=$(this).data("page");
+loadPage(page,true);
+});
 
 
   // browser back
@@ -451,12 +462,21 @@ history.pushState(
 
   if(!page){
   page="dashboard_home.php";
-  history.replaceState({page:page},"","?page="+page);
+  history.replaceState(
+    {page:page},
+    "",
+    "?page="+encodeURIComponent(page)
+);
   }
 
   loadPage(page,false);
 
   });
+
+    // Keep this teacher marked "online" while the dashboard tab is open
+  setInterval(function () {
+    fetch('api/teacher_heartbeat.php').catch(function () {});
+  }, 60000); // every 60 seconds
 
   </script>
 

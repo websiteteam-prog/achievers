@@ -18,43 +18,120 @@ $data = mysqli_fetch_assoc($q);
 $payload = json_decode($data['question_payload'], true);
 ?>
 
-<style>
+<link
+href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+rel="stylesheet"
+>
 
-/* ========================= */
-/* GLOBAL FIX */
-/* ========================= */
+<style>
 
 *{
 box-sizing:border-box;
 }
 
 .page-container{
-padding:20px;
+padding:5px;
 width:100%;
 max-width:100%;
-overflow:hidden;
 }
 
-.page-header{
+/* ========================= */
+/* HEADER - matches manage_questions.php */
+/* ========================= */
+
+.questions-header{
 display:flex;
 justify-content:space-between;
 align-items:center;
-margin-bottom:20px;
-gap:10px;
+margin-bottom:25px;
 flex-wrap:wrap;
+gap:15px;
 }
 
-.page-title{
-font-size:20px;
-font-weight:600;
+.header-left{
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.header-icon{
+width:55px;
+height:55px;
+border-radius:16px;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+display:flex;
+align-items:center;
+justify-content:center;
+color:#fff;
+font-size:24px;
+box-shadow:0 8px 20px rgba(30,60,114,.25);
+flex-shrink:0;
+}
+
+.header-title{
+margin:0;
+font-size:24px;
+font-weight:700;
+color:#1e3c72;
+letter-spacing:.2px;
 word-break:break-word;
 }
 
-.card-box{
+.header-subtitle{
+margin:0;
+font-size:14px;
+color:#6b7280;
+}
+
+.header-right{
+display:flex;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.btn-back{
+display:inline-flex;
+align-items:center;
+gap:8px;
+background:#f1f3f7;
+color:#374151;
+border:none;
+padding:10px 22px;
+border-radius:40px;
+font-weight:600;
+font-size:14px;
+text-decoration:none;
+transition:.25s ease;
+cursor:pointer;
+}
+
+.btn-back:hover{
+background:#e5e7eb;
+color:#374151;
+transform:translateY(-2px);
+}
+
+/* ========================= */
+/* CARD - matches manage_questions.php card style */
+/* ========================= */
+
+.card{
+border:none;
+border-radius:18px;
+overflow:hidden;
+box-shadow:0 10px 30px rgba(17,24,39,.08);
+animation:fadeInUp .4s ease;
 background:#fff;
-padding:20px;
-border-radius:10px;
-border:1px solid #ddd;
+}
+
+@keyframes fadeInUp{
+from{opacity:0;transform:translateY(10px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+.card-body-custom{
+padding:25px;
 width:100%;
 max-width:100%;
 overflow:hidden;
@@ -62,38 +139,93 @@ overflow:hidden;
 
 /* Question */
 .question-box{
-background:#f5f5f5;
-padding:12px;
-border-radius:6px;
+background:#f8fbff;
+border:1px solid #edf1f7;
+padding:16px;
+border-radius:12px;
 word-break:break-word;
 font-size:15px;
+color:#374151;
+line-height:1.6;
 }
 
 /* Info */
 .info-box{
-border:1px solid #eee;
-padding:12px;
-border-radius:6px;
-background:#fafafa;
+border:1px solid #edf1f7;
+padding:14px 16px;
+border-radius:12px;
+background:#f8fbff;
 width:100%;
+transition:background .2s ease;
+}
+
+.info-box:hover{
+background:#f1f6fd;
 }
 
 .label{
 font-size:12px;
-color:#777;
+color:#6b7280;
+text-transform:uppercase;
+letter-spacing:.5px;
+font-weight:600;
+margin-bottom:4px;
 }
 
 .value{
-font-weight:500;
+font-weight:600;
 word-break:break-word;
+color:#1e3c72;
+font-size:14.5px;
+}
+
+.type-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:#d9f3ff;
+    color:#0c7abf;
+    padding:8px 14px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+    max-width:100%;
+    min-height:34px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.answer-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:#dcfce7;
+    color:#15803d;
+    padding:8px 14px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.unit-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:#eef1f7;
+    color:#374151;
+    padding:8px 14px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:600;
 }
 
 /* JSON */
 .json-box{
-background:#000;
+background:#0b1220;
 color:#00ff9c;
-padding:12px;
-border-radius:6px;
+padding:16px;
+border-radius:12px;
 font-size:13px;
 overflow:auto;
 max-height:300px;
@@ -105,15 +237,14 @@ word-break:break-word;
 .question-img{
 max-width:100%;
 height:auto;
-border-radius:6px;
+border-radius:12px;
 margin-top:10px;
+box-shadow:0 8px 20px rgba(17,24,39,.1);
 }
 
-/* Button */
-.btn{
-white-space:nowrap;
+.section-block{
+margin-bottom:22px;
 }
-
 
 /* ========================= */
 /* MOBILE FIX */
@@ -121,21 +252,25 @@ white-space:nowrap;
 
 @media(max-width:768px){
 
-.page-header{
+.questions-header{
 flex-direction:column;
-align-items:stretch;
+align-items:flex-start;
 }
 
-.btn{
+.header-right{
 width:100%;
 }
 
+.btn-back{
+width:100%;
+justify-content:center;
 }
 
+.header-title{
+font-size:22px;
+}
 
-/* ========================= */
-/* FORCE STACK INFO BOXES */
-/* ========================= */
+}
 
 @media(max-width:575px){
 
@@ -147,35 +282,30 @@ display:block !important;
 width:100% !important;
 max-width:100% !important;
 flex:none !important;
-margin-bottom:10px;
+margin-bottom:12px;
 }
 
 .page-container{
-padding:15px 10px;
+padding:5px;
 }
 
-.card-box{
-padding:15px;
+.card-body-custom{
+padding:16px;
 }
 
 }
-
-
-/* ========================= */
-/* 360px FIX */
-/* ========================= */
 
 @media(max-width:360px){
 
-.page-container{
-padding:12px 8px;
+.header-icon{
+width:45px;
+height:45px;
+font-size:20px;
+border-radius:12px;
 }
 
-.card-box{
-padding:12px;
-}
-
-.page-title{
+.page-title,
+.header-title{
 font-size:17px;
 }
 
@@ -189,24 +319,10 @@ font-size:11px;
 
 }
 
-
-/* ========================= */
-/* 300px FINAL FIX */
-/* ========================= */
-
 @media(max-width:300px){
 
-.page-container{
-padding:10px 6px;
-}
-
-.card-box{
-padding:10px;
-border-radius:8px;
-}
-
-.page-title{
-font-size:15px;
+.card-body-custom{
+padding:12px;
 }
 
 .question-box{
@@ -223,7 +339,7 @@ font-size:13px;
 }
 
 .label{
-font-size:11px;
+font-size:10.5px;
 }
 
 .json-box{
@@ -232,10 +348,9 @@ padding:8px;
 max-height:200px;
 }
 
-.btn{
+.btn-back{
 font-size:13px;
 padding:8px;
-width:100%;
 }
 
 }
@@ -244,74 +359,93 @@ width:100%;
 
 <div class="page-container">
 
-  <!-- Header -->
-  <div class="page-header">
-    <div class="page-title">
-      View Question #<?= $data['id'] ?>
+  <!-- HEADER -->
+  <div class="questions-header">
+
+    <div class="header-left">
+
+      <div class="header-icon">
+        <i class="bi bi-eye-fill"></i>
+      </div>
+
+      <div>
+        <h2 class="header-title">View Question #<?= $data['id'] ?></h2>
+        <p class="header-subtitle">Full details of the selected question</p>
+      </div>
+
     </div>
 
-    <!-- UPDATED BACK BUTTON -->
-    <button onclick="goBack()" class="btn btn-secondary">
-      Back
-    </button>
+    <div class="header-right">
+      <button onclick="goBack()" class="btn-back">
+        <i class="bi bi-arrow-left"></i>
+        Back
+      </button>
+    </div>
+
   </div>
 
-  <!-- Card -->
-  <div class="card-box">
+  <!-- CARD -->
+  <div class="card">
+    <div class="card-body-custom">
 
-    <!-- Question -->
-    <div class="mb-3">
-      <div class="label">Question</div>
-      <div class="question-box mt-1">
-        <?= nl2br(htmlspecialchars($data['question_text'])) ?>
-      </div>
-    </div>
-
-    <!-- Info -->
-    <div class="row g-2 info-row">
-
-      <div class="col-md-4">
-        <div class="info-box">
-          <div class="label">Type</div>
-          <div class="value"><?= htmlspecialchars($data['question_type']) ?></div>
+      <!-- Question -->
+      <div class="section-block">
+        <div class="label mb-1">Question</div>
+        <div class="question-box mt-1">
+          <?= nl2br(htmlspecialchars($data['question_text'])) ?>
         </div>
       </div>
 
-      <div class="col-md-4">
-        <div class="info-box">
-          <div class="label">Correct Answer</div>
-          <div class="value text-success">
-            <?= htmlspecialchars($data['correct_answer']) ?>
+      <!-- Info -->
+      <div class="row g-3 info-row section-block">
+
+        <div class="col-md-4">
+          <div class="info-box">
+            <div class="label">Type</div>
+            <div class="value">
+              <span class="type-badge"><?= htmlspecialchars($data['question_type']) ?></span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="col-md-4">
-        <div class="info-box">
-          <div class="label">Unit</div>
-          <div class="value"><?= htmlspecialchars($data['unit'] ?: '-') ?></div>
+        <div class="col-md-4">
+          <div class="info-box">
+            <div class="label">Correct Answer</div>
+            <div class="value">
+              <span class="answer-badge"><?= htmlspecialchars($data['correct_answer']) ?></span>
+            </div>
+          </div>
         </div>
+
+        <div class="col-md-4">
+          <div class="info-box">
+            <div class="label">Unit</div>
+            <div class="value">
+              <span class="unit-badge"><?= $data['unit'] ? htmlspecialchars($data['unit']) : '-' ?></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Image -->
+      <?php if (!empty($data['question_image'])): ?>
+      <div class="section-block">
+        <div class="label mb-1">Image</div>
+        <img src="https://creativetheka.in/Student_dashboard/<?= htmlspecialchars($data['question_image']) ?>"
+             class="img-fluid question-img">
+      </div>
+      <?php endif; ?>
+
+      <!-- Payload -->
+      <div class="section-block mb-0">
+        <div class="label mb-1">Payload</div>
+        <pre class="json-box mt-1">
+<?= json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?>
+        </pre>
       </div>
 
     </div>
-
-    <!-- Image -->
-    <?php if (!empty($data['question_image'])): ?>
-    <div class="mt-3">
-      <div class="label">Image</div>
-      <img src="https://creativetheka.in/Student_dashboard/<?= htmlspecialchars($data['question_image']) ?>" 
-           class="img-fluid question-img">
-    </div>
-    <?php endif; ?>
-
-    <!-- Payload -->
-    <div class="mt-3">
-      <div class="label">Payload</div>
-      <pre class="json-box mt-1">
-<?= json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?>
-      </pre>
-    </div>
-
   </div>
 
 </div>

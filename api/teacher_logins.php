@@ -1,29 +1,35 @@
 <?php
+date_default_timezone_set('Asia/Kolkata');
 include '../db_config.php';
+header('Content-Type: application/json');
 
-$on_time = 0;
-$late = 0;
+$threshold = date("Y-m-d H:i:s", strtotime("-5 minutes"));
 
-// Set login cutoff time
-$cutoff = strtotime("10:00:00");
+$sql = "
+    SELECT 
+        name, 
+        subject, 
+        last_activity,
+        CASE WHEN last_activity >= '$threshold' THEN 1 ELSE 0 END AS is_online
+    FROM teachers
+    ORDER BY is_online DESC, (last_activity IS NULL), last_activity DESC
+    LIMIT 6
+";
 
-$sql = "SELECT login_time FROM teacher_activity_logs WHERE DATE(login_time) = CURDATE()";
 $result = mysqli_query($conn, $sql);
+$teachers = [];
 
-while ($row = mysqli_fetch_assoc($result)) {
-    $login_time = strtotime($row['login_time']);
-    if ($login_time <= $cutoff) {
-        $on_time++;
-    } else {
-        $late++;
+if ($result) {
+    while ($row = mysqli_fetch_assoc($result)) {
+        $teachers[] = [
+            "name"      => $row['name']    ?: 'Unknown',
+            "subject"   => $row['subject']  ?: '',
+            "online"    => (int)$row['is_online'] === 1,
+            "last_seen" => $row['last_activity']
+        ];
     }
+    echo json_encode(["success" => true, "data" => $teachers]);
+} else {
+    echo json_encode(["success" => false, "message" => "Database error"]);
 }
-
-echo json_encode([
-  "success" => true,
-  "data" => [
-    "on_time" => $on_time,
-    "late" => $late
-  ]
-]);
 ?>

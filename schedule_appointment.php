@@ -104,8 +104,14 @@ if (isset($_POST['confirm_appointment'])) {
     }
 
     $appt_id  = mysqli_insert_id($conn);
-    $year     = date("y");
-    $appt_no  = "AC-APT-$year-" . str_pad($appt_id, 4, "0", STR_PAD_LEFT);
+    $year = date("y", strtotime($appointment_date));
+
+    $appt_no = "AC-APT-$year-" . str_pad(
+        $appt_id,
+        4,
+        "0",
+        STR_PAD_LEFT
+    );
     mysqli_query($conn, "UPDATE appointments SET appointment_no='$appt_no' WHERE id='$appt_id'");
 
     $nice_date = date("l, F j, Y", strtotime($appointment_date));
@@ -181,12 +187,8 @@ if (isset($_POST['confirm_appointment'])) {
         // ignore
     }
 
-    if ($sent_ok) {
-        echo "<script>alert('Appointment confirmed! Confirmation emails sent.');window.location='schedule_appointment.php?done=1';</script>";
-    } else {
-        echo "<script>alert('Appointment saved but email sending failed.');window.location='schedule_appointment.php?done=1';</script>";
-    }
-    exit;
+   header("Location: schedule_appointment.php?done=1");
+   exit;
 }
 
 /* Load branches for the dropdown */
@@ -348,7 +350,7 @@ textarea{height:110px;resize:none;}
           <label>Subject <span class="required">*</span></label>
           <select name="child_subject" required>
             <option value="">Select</option>
-            <option>Math</option><option>English</option><option>Science</option><option>All Subjects</option>
+            <option>All Subjects</option><option>Mathematics</option><option>Science</option><option>Reading and Writing</option>
           </select>
         </div>
       </div>

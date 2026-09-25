@@ -34,7 +34,10 @@ $status = $_GET['status'] ?? '';
 $enroll_status = $_GET['enroll_status'] ?? '';
 $billing = $_GET['billing'] ?? '';
 // ✅ PAGINATION
-$limit = 5; 
+$allowed_limits = [5, 10, 20, 50, 100];
+$limit = (isset($_GET['per_page']) && in_array((int)$_GET['per_page'], $allowed_limits))
+    ? (int)$_GET['per_page']
+    : 5;
 $page_no = isset($_GET['p']) ? (int)$_GET['p'] : 1;
 
 if($page_no < 1) $page_no = 1;
@@ -89,9 +92,9 @@ SELECT invoices.*,
        enrollment_inquiries.billing_paused, 
 
        CASE 
+    WHEN enrollment_inquiries.status = 'Cancelled' THEN 'Cancelled'
     WHEN sph.status = 'Expired' THEN 'Expired'
     WHEN sph.status = 'Active' THEN 'Active'
-    WHEN enrollment_inquiries.status = 'Cancelled' THEN 'Cancelled'
     ELSE 'Active'
     END AS enroll_status
 
@@ -99,17 +102,15 @@ FROM invoices
 LEFT JOIN enrollment_inquiries
 ON invoices.student_id = enrollment_inquiries.student_id
 
-LEFT JOIN (
-    SELECT sph1.*
-    FROM student_plan_history sph1
-    INNER JOIN (
-        SELECT invoice_id, MAX(id) as max_id
-        FROM student_plan_history
-        GROUP BY invoice_id
-    ) sph2 
-    ON sph1.id = sph2.max_id
-) sph 
-ON invoices.id = sph.invoice_id
+LEFT JOIN student_plan_history sph
+ON sph.id = (
+    SELECT s2.id
+    FROM student_plan_history s2
+    WHERE s2.student_id = invoices.student_id
+      AND s2.start_date <= invoices.invoice_date
+    ORDER BY s2.start_date DESC, s2.id DESC
+    LIMIT 1
+)
 
 $where
 ORDER BY invoices.id DESC
@@ -123,17 +124,15 @@ FROM invoices
 LEFT JOIN enrollment_inquiries
 ON invoices.student_id = enrollment_inquiries.student_id
 
-LEFT JOIN (
-    SELECT sph1.*
-    FROM student_plan_history sph1
-    INNER JOIN (
-        SELECT invoice_id, MAX(id) as max_id
-        FROM student_plan_history
-        GROUP BY invoice_id
-    ) sph2 
-    ON sph1.id = sph2.max_id
-) sph 
-ON invoices.id = sph.invoice_id
+LEFT JOIN student_plan_history sph
+ON sph.id = (
+    SELECT s2.id
+    FROM student_plan_history s2
+    WHERE s2.student_id = invoices.student_id
+      AND s2.start_date <= invoices.invoice_date
+    ORDER BY s2.start_date DESC, s2.id DESC
+    LIMIT 1
+)
 
 $where
 ");
@@ -258,6 +257,7 @@ Download
 <th>Invoice</th>
 <th>Student</th>
 <th>Total</th>
+<th>Invoice Date</th>
 <th>Enroll Date</th>
 <th>Status</th>
 <th>Enrollment</th>
@@ -270,7 +270,7 @@ Download
 
 <?php if(mysqli_num_rows($recent) == 0){ ?>
 <tr>
-<td colspan="8" style="text-align:center;">No invoices found</td>
+<td colspan="9" style="text-align:center;">No invoices found</td>
 </tr>
 <?php }  else { ?>
 
@@ -282,8 +282,25 @@ $is_overdue = ($row['due_date'] < $today && strtolower($row['status']) != "paid"
 <tr class="<?php echo (strtolower($row['enroll_status'])=='cancelled') ? 'cancel-row' : ''; ?> <?php echo (($row['billing_paused'] ?? 0)==1) ? 'paused-row' : ''; ?>">
 <td><?php echo $row['invoice_number']?></td>
 <td><?php echo $row['first_name']?></td>
-<td>$<?php echo number_format($row['total'],2)?></td>
-<td><?php echo !empty($row['enroll_date']) ? date("d M Y", strtotime($row['enroll_date'])) : '-'; ?></td>
+<td>
+    $<?php echo number_format($row['total'], 2); ?>
+</td>
+
+<td>
+    <?php 
+    echo !empty($row['invoice_date']) 
+        ? date("d M Y", strtotime($row['invoice_date'])) 
+        : '-'; 
+    ?>
+</td>
+
+<td>
+    <?php 
+    echo !empty($row['enroll_date']) 
+        ? date("d M Y", strtotime($row['enroll_date'])) 
+        : '-'; 
+    ?>
+</td>
 <td>
 <?php if($row['status']=="Paid"){ ?>
 
@@ -411,36 +428,35 @@ if($payment == "paid"){
 </tbody>
 
 </table>
-
+</div>
 <!-- PAGINATION -->
 <div class="pagination-box">
 
-<?php if($total_pages > 1){ ?>
+    <span class="pg-info">Page <?php echo $page_no; ?> of <?php echo max($total_pages,1); ?></span>
 
-    <!-- Prev -->
-    <?php if($page_no > 1){ ?>
-        <a href="#" class="page-btn" data-page="<?php echo $page_no - 1; ?>">Prev</a>
-    <?php } ?>
+    <button type="button" class="page-nav prev-btn"
+        <?php echo ($page_no <= 1) ? 'disabled' : ''; ?>
+        data-page="<?php echo $page_no - 1; ?>">
+        <i class="bi bi-chevron-left"></i> Previous
+    </button>
 
-    <!-- Numbers -->
-    <?php for($i = 1; $i <= $total_pages; $i++){ ?>
-        <a href="#"
-           class="page-btn <?php echo ($i == $page_no) ? 'active' : ''; ?>"
-           data-page="<?php echo $i; ?>">
-           <?php echo $i; ?>
-        </a>
-    <?php } ?>
+    <select class="per-page-select" id="perPageSelect">
+        <?php foreach($allowed_limits as $opt){ ?>
+            <option value="<?php echo $opt; ?>" <?php echo ($opt == $limit) ? 'selected' : ''; ?>>
+                <?php echo $opt; ?>
+            </option>
+        <?php } ?>
+    </select>
 
-    <!-- Next -->
-    <?php if($page_no < $total_pages){ ?>
-        <a href="#" class="page-btn" data-page="<?php echo $page_no + 1; ?>">Next</a>
-    <?php } ?>
-
-<?php } ?>
-
-</div>
+    <button type="button" class="page-nav next-btn"
+        <?php echo ($page_no >= $total_pages) ? 'disabled' : ''; ?>
+        data-page="<?php echo $page_no + 1; ?>">
+        Next <i class="bi bi-chevron-right"></i>
+    </button>
 
 </div>
+
+
 
 
 </div>
@@ -459,31 +475,59 @@ if($payment == "paid"){
 }
 .pagination-box{
   display:flex;
-  gap:8px;
+  align-items:center;
   justify-content:flex-end;
+  gap:14px;
   margin-top:20px;
   flex-wrap:wrap;
 }
 
-.page-btn{
-  padding:6px 12px;
-  background:#eee;
-  border-radius:8px;
-  text-decoration:none;
-  color:#333;
+.pg-info{
   font-size:13px;
+  color:#8a94a6;
+  margin-right:auto;
+}
+
+.page-nav{
+  padding:10px 20px;
+  border:none;
+  border-radius:30px;
+  background:linear-gradient(180deg,#1e3c72,#2a5298);
+  color:#fff;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  transition:.2s ease;
+}
+.page-nav:hover:not(:disabled){
+  background:#0a4c6c;
+  transform:translateY(-1px);
+}
+.page-nav:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.per-page-select{
+  padding:9px 16px;
+  border:2px solid #05364d;
+  border-radius:30px;
+  color:#05364d;
+  font-weight:600;
+  font-size:14px;
+  background:#fff;
   cursor:pointer;
 }
 
-.page-btn.active{
-  background:#05364d;
-  color:#fff;
+@media(max-width:768px){
+  .pagination-box{ justify-content:center; }
+  .pg-info{ margin-right:0; width:100%; text-align:center; order:-1; }
 }
 
-.page-btn:hover{
-  background:#05364d;
-  color:#fff;
-}
 /* ===== GLOBAL ===== */
 *{box-sizing:border-box;}
 
@@ -530,7 +574,7 @@ font-family: "Love Ya Like A Sister", cursive;
 }
 
 .filter-bar button{
-  background:#05364d;
+  background:linear-gradient(180deg,#1e3c72,#2a5298);
   color:#fff;
   border:none;
   padding:10px 16px;
@@ -579,6 +623,28 @@ font-family: "Love Ya Like A Sister", cursive;
   display:grid;
   grid-template-columns:1fr;
   gap:15px;
+}
+
+/* Disabled action buttons (Paid/Cancelled/Expired) — click hi na ho */
+.action-btns .disabled-btn{
+    pointer-events: none;
+    cursor: not-allowed;
+    opacity: .9;
+}
+
+/* Action cell ko table-cell rakho taaki row ki line seedhi rahe */
+.invoice-table .table td.action-btns{
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    white-space: nowrap;
+}
+.invoice-table .table td.action-btns .btn{
+    display: inline-flex;
+    vertical-align: middle;
+}
+.invoice-table .table td.action-btns .btn + .btn{
+    margin-left: 10px;
 }
 
 @media(min-width:768px){
@@ -864,8 +930,9 @@ font-family: "Love Ya Like A Sister", cursive;
 
 /* enroll date: keep on one line */
 .invoice-table .table td:nth-child(4),
-.invoice-table .table th:nth-child(4){
-  width:auto;
+.invoice-table .table th:nth-child(4),
+.invoice-table .table td:nth-child(5),
+.invoice-table .table th:nth-child(5){
   white-space:nowrap;
 }
 
@@ -981,49 +1048,61 @@ font-family: "Love Ya Like A Sister", cursive;
 
 <script>
 // Submit (AJAX)
-$('#filterForm').on('submit', function(e){
+$('#filterForm').off('submit').on('submit', function(e){
     e.preventDefault();
 
-    let query = $(this).serialize() + '&p=1';
+    let urlParams = new URLSearchParams(window.location.search);
+    let per_page = urlParams.get('per_page') || 5;
 
-    history.pushState(null, '', '?' + query);
+    let query = $(this).serialize() + '&p=1&per_page=' + per_page;
 
-    $('#page-content').html('<div class="text-center py-5"><div class="loading-spinner"></div></div>');
+    history.pushState(null, '', '?page=invoice_system/dashboard/invoice_dashboard.php&' + query);
+
+    $('#page-body').html('<div class="text-center py-5"><div class="loading-spinner"></div></div>');
 
     $.get('invoice_system/dashboard/invoice_dashboard.php?' + query, function(data){
-        $('#page-content').html(data);
+        $('#page-body').html(data);
     });
 });
 
-// Instant filter 
-$('#filterForm input, #filterForm select').on('change', function(){
+// Instant filter
+$('#filterForm input, #filterForm select').off('change').on('change', function(){
     $('#filterForm').submit();
 });
 
-// PAGINATION CLICK
-$(document).on('click', '.page-btn', function(e){
-    e.preventDefault();
+// PREV / NEXT
+$(document).off('click.pageNav').on('click.pageNav', '.page-nav', function(){
+    if ($(this).prop('disabled')) return;
 
     let page = $(this).data('page');
-
-    // 👉 Get current URL params (IMPORTANT FIX)
     let urlParams = new URLSearchParams(window.location.search);
-
-    // update page
     urlParams.set('p', page);
+    urlParams.set('per_page', $('#perPageSelect').val() || 5);
 
-    let query = urlParams.toString();
+    history.pushState(null, '', '?' + urlParams.toString());
 
-    history.pushState(null, '', '?' + query);
-
-    $('#page-content').html('<div class="text-center py-5"><div class="loading-spinner"></div></div>');
-
-    $.get('invoice_system/dashboard/invoice_dashboard.php?' + query, function(data){
-        $('#page-content').html(data);
+    $('#page-body').html('<div class="text-center py-5"><div class="loading-spinner"></div></div>');
+    $.get('invoice_system/dashboard/invoice_dashboard.php?' + urlParams.toString(), function(data){
+        $('#page-body').html(data);
     });
 });
+
+// PER PAGE CHANGE
+$(document).off('change.perPage').on('change.perPage', '#perPageSelect', function(){
+    let urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('per_page', $(this).val());
+    urlParams.set('p', 1);
+
+    history.pushState(null, '', '?' + urlParams.toString());
+
+    $('#page-body').html('<div class="text-center py-5"><div class="loading-spinner"></div></div>');
+    $.get('invoice_system/dashboard/invoice_dashboard.php?' + urlParams.toString(), function(data){
+        $('#page-body').html(data);
+    });
+});
+
 // PAUSE / RESUME billing
-$(document).on('click', '.toggle-billing', function(e){
+$(document).off('click.toggleBilling').on('click.toggleBilling', '.toggle-billing', function(e){
     e.preventDefault();
 
     let btn   = $(this);
@@ -1034,17 +1113,15 @@ $(document).on('click', '.toggle-billing', function(e){
 
     $.post('invoice_system/dashboard/toggle_billing.php', { student_id: sid, pause: pause }, function(){
 
-        // tiny toast
         let msg = (pause == 1) ? 'Billing paused' : 'Billing resumed';
         let $toast = $('<div class="billing-toast">'+ msg +'</div>').appendTo('body');
         setTimeout(function(){ $toast.addClass('show'); }, 30);
         setTimeout(function(){ $toast.removeClass('show'); }, 1800);
         setTimeout(function(){ $toast.remove(); }, 2200);
 
-        // reload dashboard keeping filters/page
-        let query = new URLSearchParams(window.location.search).toString();
-        $.get('invoice_system/dashboard/invoice_dashboard.php?' + query, function(data){
-            $('#page-content').html(data);
+        let urlParams = new URLSearchParams(window.location.search);
+        $.get('invoice_system/dashboard/invoice_dashboard.php?' + urlParams.toString(), function(data){
+            $('#page-body').html(data);
         });
     });
 });

@@ -1,16 +1,21 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 include '../db_config.php';
 
-$teacher_id = $_POST['id'];
+$teacher_id = (int)($_POST['id'] ?? 0);
 
-$sql = "DELETE FROM teachers WHERE id = '$teacher_id'";
+if ($teacher_id <= 0) {
+    echo json_encode(['status' => false, 'message' => 'Invalid teacher id.']);
+    exit;
+}
 
-if (mysqli_query($conn, $sql)) {
+/* SOFT DELETE — teacher ko list se hatao bina uski class/attendance
+   history todhe. FK constraint (class_sessions) block nahi karega. */
+try {
+    $stmt = $conn->prepare("UPDATE teachers SET status='deleted' WHERE id = ?");
+    $stmt->bind_param("i", $teacher_id);
+    $stmt->execute();
     echo json_encode(['status' => true, 'message' => 'Teacher removed successfully']);
-} else {
-    echo json_encode(['status' => false, 'message' => 'Error: ' . mysqli_error($conn)]);
+} catch (mysqli_sql_exception $e) {
+    echo json_encode(['status' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 ?>

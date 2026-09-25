@@ -11,6 +11,8 @@ if (!isset($_SESSION['student_id'])) {
 
 $student_id = $_SESSION['student_id'];
 $topic_id   = (int)($_GET['topic_id'] ?? 0);
+$earned_points = 0;
+$max_points    = 0;
 if ($topic_id <= 0) die("Invalid topic ID");
 
 // === Get Topic Title ===
@@ -34,7 +36,7 @@ if (!$latest_time) die("No quiz attempt found.");
 
 // === Fetch Questions ===
 $sql = "SELECT qq.id, qq.question_text, qq.correct_answer, qq.question_payload, 
-               qq.question_type, qq.question_image, sa.student_answer, sa.is_correct
+               qq.question_type, qq.question_image, sa.student_answer, sa.is_correct, sa.correct_count, sa.total_count
         FROM quiz_questions qq
         LEFT JOIN student_answers sa 
           ON qq.id = sa.question_id 
@@ -50,35 +52,54 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 $questions = [];
-$correct = $wrong = $skipped = 0;
+$correct = $wrong = $skipped = $pending_review = 0;
 
 while ($row = $result->fetch_assoc()) {
 
     $payload = json_decode($row['question_payload'] ?? '{}', true);
     $isInstruction = !empty($payload['instruction']);
 
-    // ❌ instruction completely excluded
     if ($isInstruction) {
         continue;
     }
 
-    // ✅ only real questions
     $questions[] = $row;
-
     $ans = trim($row['student_answer'] ?? '');
-    if ($ans === '') {
-        $skipped++;
-    } elseif ($row['is_correct'] == 1) {
-        $correct++;
-    } else {
-        $wrong++;
-    }
-}
 
+    // ---- MARKS (partial scoring) ----
+    $tc = $row['total_count'];
+    $cc = $row['correct_count'];
+    if ($tc === null) {
+        $tc = 1;
+        if ($row['question_type'] === 'coordinate_points_input') {
+            $exp = json_decode($row['correct_answer'] ?? '', true);
+            if (is_array($exp) && $exp && array_keys($exp) !== range(0, count($exp) - 1)) {
+                $tc = count($exp);
+            }
+        }
+        $cc = ($row['is_correct'] == 1) ? $tc : 0;
+    }
+    $tc = (int)$tc;
+    $cc = (int)$cc;
+
+    $max_points    += $tc;
+    $earned_points += $cc;
+
+    if ($ans === '') {
+        $skipped += $tc;                  
+    } elseif ($row['question_type'] === 'perimeter_word_problem') {
+        $pending_review += $tc;
+    } else {
+        $correct += $cc;                  
+        $wrong   += ($tc - $cc);            
+    }
+
+  
+} 
 
 $total   = count($questions);
-$score   = $correct * 10;
-$percent = $total > 0 ? round(($correct / $total) * 100) : 0;
+$score   = $earned_points * 10;
+$percent = $max_points > 0 ? round(($earned_points / $max_points) * 100) : 0;
 $retake_url = "quiz.php?id=1&topic_id=$topic_id"; // Change subject id if needed
 $is_result_page = true;
 function displayAnswer($value)
@@ -422,11 +443,32 @@ svg, table, canvas {
                 <h2 class="mt-4 text-success display-4"><?= $percent ?>% Correct</h2>
             </div>
 
-            <div class="row text-center g-4 mb-5">
-                <div class="col-md-4"><div class="p-5 bg-success text-white rounded-4 shadow-lg"><h3><?= $correct ?></h3><p>Correct</p></div></div>
-                <div class="col-md-4"><div class="p-5 bg-danger text-white rounded-4 shadow-lg"><h3><?= $wrong ?></h3><p>Wrong</p></div></div>
-                <div class="col-md-4"><div class="p-5 bg-secondary text-white rounded-4 shadow-lg"><h3><?= $skipped ?></h3><p>Not Attempted</p></div></div>
+        <div class="row text-center g-4 mb-5">
+            <div class="col-md-3 col-6 d-flex">
+                <div class="p-4 p-md-5 bg-success text-white rounded-4 shadow-lg w-100 d-flex flex-column justify-content-center align-items-center">
+                    <h3 class="mb-1"><?= $correct ?></h3>
+                    <p class="mb-0">Correct</p>
+                </div>
             </div>
+            <div class="col-md-3 col-6 d-flex">
+                <div class="p-4 p-md-5 bg-danger text-white rounded-4 shadow-lg w-100 d-flex flex-column justify-content-center align-items-center">
+                    <h3 class="mb-1"><?= $wrong ?></h3>
+                    <p class="mb-0">Wrong</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 d-flex">
+                <div class="p-4 p-md-5 bg-warning text-dark rounded-4 shadow-lg w-100 d-flex flex-column justify-content-center align-items-center">
+                    <h3 class="mb-1"><?= $pending_review ?></h3>
+                    <p class="mb-0 text-center">Pending Review</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 d-flex">
+                <div class="p-4 p-md-5 bg-secondary text-white rounded-4 shadow-lg w-100 d-flex flex-column justify-content-center align-items-center">
+                    <h3 class="mb-1"><?= $skipped ?></h3>
+                    <p class="mb-0 text-center">Not Attempted</p>
+                </div>
+            </div>
+        </div>
 
             <hr class="my-5">
 
@@ -434,9 +476,11 @@ svg, table, canvas {
                 <strong class="fs-4">Quick Navigation:</strong><br>
                 <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
                     <?php foreach ($questions as $i => $q):
-                        $ans = trim($q['student_answer'] ?? '');
-                        $btn = $ans === '' ? "btn-outline-secondary" : ($q['is_correct'] == 1 ? "btn-outline-success" : "btn-outline-danger");
-                    ?>
+                    $ans = trim($q['student_answer'] ?? '');
+                    $btn = $ans === '' ? "btn-outline-secondary"
+                         : ($q['question_type'] === 'perimeter_word_problem' ? "btn-outline-warning"
+                         : ($q['is_correct'] == 1 ? "btn-outline-success" : "btn-outline-danger"));
+                ?>
                         <a href="#q<?= $i+1 ?>" class="btn <?= $btn ?> btn-sm rounded-pill px-3"><?= $i+1 ?></a>
                     <?php endforeach; ?>
                 </div>
@@ -452,9 +496,17 @@ svg, table, canvas {
                 $index = $i;
                 $char  = chr(97 + ($i % 26)); // a, b, c, ...
 
-                $badge_class = $ans === '' ? "bg-secondary" : ($q['is_correct'] == 1 ? "bg-success" : "bg-danger");
-                $icon = $ans === '' ? "fa-circle" : ($q['is_correct'] == 1 ? "fa-check-circle" : "fa-times-circle");
-
+                $tcq = (int)($q['total_count'] ?? 1);
+                $ccq = (int)($q['correct_count'] ?? ($q['is_correct'] == 1 ? 1 : 0));
+                if ($ans === '') {
+                    $badge_class = "bg-secondary"; $icon = "fa-circle";
+                } elseif ($tcq > 1 && $ccq > 0 && $ccq < $tcq) {
+                    $badge_class = "bg-warning";   $icon = "fa-adjust";        // partial
+                } elseif (($tcq > 1 && $ccq === $tcq) || $q['is_correct'] == 1) {
+                    $badge_class = "bg-success";   $icon = "fa-check-circle";
+                } else {
+                    $badge_class = "bg-danger";    $icon = "fa-times-circle";
+                }
                 $q_payload = ($q['question_payload'] !== null && $q['question_payload'] !== '') 
              ? json_decode($q['question_payload'], true) ?: [] 
              : [];
@@ -583,25 +635,25 @@ svg, table, canvas {
                             break;
                             case 'square_side_length':
                             include 'templates/square/square_side_length.php';
-                            break;  
+                            break;
                             case 'identify_lines':
                             include 'templates/lineAngles/identifylines.php';
                             break;
                             case 'angle_bisector_check':
-                            include 'templates/lineAngles/angle_bisector_check.php';
-                            break;
+                            include 'templates/lineAngles/angle_bisector_check.php';  
+                            break; 
                             case 'draw_perpendicular_bisector_midpoint':
                             include 'templates/lineAngles/draw_perpendicular_bisector_midpoint.php';
-                            break; 
-                            case 'draw_angle_bisector_canvas':
+                             break;
+                             case 'draw_angle_bisector_canvas':
                             include 'templates/lineAngles/draw_angle_bisector_canvas.php';
-                            break;    
-                            case 'geometry_multi_blank':
+                             break;
+                             case 'geometry_multi_blank':
                             include 'templates/lineAngles/geometry_multi_blank.php';
-                            break;
-                            case 'geometry_congruence_rule':
+                             break;
+                             case 'geometry_congruence_rule':
                             include 'templates/TrianglesCongruence/geometry_congruence_rule.php';
-                            break; 
+                            break;
                             case 'geometry_congruence_prove':
                             include 'templates/TrianglesCongruence/geometry_congruence_prove.php';
                             break;
@@ -610,7 +662,7 @@ svg, table, canvas {
                             break;
                             case 'algebra_expression':
                             include 'templates/Algebra/algebra_expression.php';
-                            break;     
+                            break;    
                             case 'expression_equation_table':
                             include 'templates/Algebra/expression_equation_table.php';
                             break;
@@ -631,7 +683,64 @@ svg, table, canvas {
                             break; 
                             case 'integer_number_line':
                             include 'templates/Integer/integer_number_line.php';
+                            break;
+                            case 'mcq':
+                            include 'templates/Numbers/mcq.php';
+                            break;
+                            case 'place_value_table':
+                            include 'templates/Numbers/place_value_table.php';
+                            break; 
+                            case 'place_value_identify':
+                            include 'templates/Numbers/place_value_identify.php';
+                            break;    
+                            case 'multi_column_table':
+                            include 'templates/Numbers/multi_column_table.php';
+                            break;  
+                            case 'number_scramble':
+                            include 'templates/Numbers/number_scramble.php';
                             break;            
+                            case 'number_order_dual':
+                            include 'templates/Numbers/number_order_dual.php';
+                            break;            
+                            case 'image_question_panel':
+                            include 'templates/Numbers/image_question_panel.php';
+                            break;                                          
+                            case 'train_number_panel':
+                            include 'templates/Numbers/train_number_panel.php';
+                            break;                                          
+                            case 'greatest_smallest_number':
+                            include 'templates/Numbers/greatest_smallest_number.php';
+                            break;                                          
+                            case 'place_value_digit':
+                            include 'templates/Numbers/place_value_digit.php';
+                            break;                                          
+                            case 'spelling_number_names':
+                            include 'templates/Numbers/spelling_number_names.php';
+                            break;                                          
+                            case 'expanded_form_5box':
+                            include 'templates/Numbers/expanded_form_5box.php';
+                            break;                                          
+                            case 'rounding_judgement':
+                            include 'templates/Numbers/rounding_judgement.php';
+                            break;                                          
+                            case 'odd_even_worksheet':
+                            include 'templates/Numbers/odd_even_worksheet.php';
+                            break;                                          
+                            case 'prime_composite_worksheet':
+                            include 'templates/Factor/prime_composite_worksheet.php';
+                            break; 
+                            case 'perimeter_word_problem':
+                            include 'templates/equation/perimeter_word_problem.php';
+                            break; 
+                            case 'ratio_three_ways':
+                            include 'templates/AreaPerimeter/ratio_three_ways_template.php';
+                            break;                                               
+                            case 'proportion_chain':
+                            include 'templates/Numbers/proportion_chain.php';
+                            break;
+                            case 'visual_math_worksheet':
+                            include 'templates/diagram/visual_math_worksheet.php';
+                            break;                                               
                             default:
                                 echo '<div class="p-4 text-muted fst-italic">Question type: ' . htmlspecialchars($q['question_type']) . '</div>';
                         }
@@ -640,15 +749,36 @@ svg, table, canvas {
 
                     <?php if ($ans === ''): ?>
                         <div class="alert alert-secondary text-center mt-3 py-3">Not Attempted</div>
-                    <?php else: ?>
+                    
+                    <?php elseif ($q['question_type'] === 'perimeter_word_problem'): ?>
                         <div class="alert alert-info mt-4 p-4 fs-5">
                             <strong>Your Answer:</strong> 
                             <span class="fw-bold text-primary"><?= displayAnswer($ans) ?></span>
-                            <span class="badge bg-<?= $q['is_correct'] == 1 ? 'success' : 'danger' ?> float-end fs-5 px-4 py-2">
-                                <?= $q['is_correct'] == 1 ? 'Correct' : 'Wrong' ?>
+                            <span class="badge bg-warning text-dark float-end fs-6 px-4 py-2">
+                                <i class="fas fa-hourglass-half me-1"></i> Diagram Pending Review
                             </span>
                         </div>
-                        <?php if ($q['is_correct'] != 1): ?>
+                        <div class="alert alert-light border mt-3 p-3 fs-6 text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Your teacher will review your drawing and confirm the final result.
+                        </div>
+                    
+                                     <?php else: ?>
+                        <?php $isMulti = ($tcq > 1); ?>
+                        <div class="alert alert-info mt-4 p-4 fs-5">
+                            <strong>Your Answer:</strong> 
+                            <span class="fw-bold text-primary"><?= displayAnswer($ans) ?></span>
+                            <?php if ($isMulti): ?>
+                                <span class="badge bg-<?= $ccq === $tcq ? 'success' : ($ccq > 0 ? 'warning text-dark' : 'danger') ?> float-end fs-5 px-4 py-2">
+                                    <?= $ccq ?>/<?= $tcq ?> Correct
+                                </span>
+                            <?php else: ?>
+                                <span class="badge bg-<?= $q['is_correct'] == 1 ? 'success' : 'danger' ?> float-end fs-5 px-4 py-2">
+                                    <?= $q['is_correct'] == 1 ? 'Correct' : 'Wrong' ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                        <?php if ($ccq !== $tcq): ?>
                             <div class="alert alert-success mt-3 p-4 fs-5">
                                 <strong>Correct Answer:</strong> <?= displayAnswer($q['correct_answer']) ?>
                             </div>

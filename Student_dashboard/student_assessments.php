@@ -84,6 +84,11 @@ $currentpage = basename($_SERVER['PHP_SELF']);
 <style>
 
 /* ===== MAIN LAYOUT ===== */
+body {
+    background: #f5f7fb;
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
 
 .main-layout{
 display:flex;
@@ -107,8 +112,13 @@ padding:30px;
 
 .card{
 
-border-radius:12px;
+    background:#fff !important;
+    border:1px solid #e9ecef;
+    border-radius:12px;
+}
 
+.card-body{
+    background:#fff !important;
 }
 
 /* ===== TABLE SCROLL ===== */
@@ -121,9 +131,26 @@ overflow-x:auto;
 }
 
 .table{
+    background:#fff !important;
+    white-space:nowrap;
+    margin-bottom:0;
+}
 
-white-space:nowrap;
+.table thead th{
+    background:#fff !important;
+    color:var(--primary);
+    border-bottom:1px solid #dee2e6;
+    font-weight:700;
+}
 
+.table tbody tr,
+.table tbody td{
+    background:#fff !important;
+}
+
+/* Hover */
+.table-hover tbody tr:hover td{
+    background:#f8f9fc !important;
 }
 
 /* ===== BADGES ===== */
@@ -135,7 +162,44 @@ padding:6px 10px;
 
 }
 
-.container-fluid h3{
+.page-title{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin-bottom:30px;
+}
+
+.icon-style{
+    font-size:50px;
+    line-height:1;
+    margin:0 !important;
+    background:linear-gradient(to right,#e02121,#2f55a4);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    color:transparent;
+    flex-shrink:0;
+}
+
+.page-title h3{
+    margin:0 !important;
+    font-size:42px;
+    font-weight:400;
+    background:linear-gradient(to right,#e02121,#2f55a4);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    color:transparent;
+    font-family:"Love Ya Like A Sister", cursive;
+}
+
+.page-subtitle{
+    color:#6b7280;
+    margin-top:-6px;
+    font-size:16px;
+}
+
+/* .container-fluid h3{
    font-size: 42px;
    font-weight: 400;
    margin-bottom: 6px !important;
@@ -144,7 +208,7 @@ padding:6px 10px;
    -webkit-text-fill-color: transparent;
    font-family: "Love Ya Like A Sister", cursive;
    margin-left: 8px;
-}
+} */
 
 /* ===== MOBILE ===== */
 
@@ -158,6 +222,10 @@ max-width:100%;
 
 padding:80px 15px 20px;
 
+}
+
+.page-subtitle{
+    font-size:13px;
 }
 
 /* sidebar mobile */
@@ -186,11 +254,18 @@ left:0;
 
 @media(max-width:576px){
 
-h3{
+    .page-title{
+        gap:12px;
+        margin-bottom:20px;
+    }
 
-font-size:18px;
+    .icon-style{
+        font-size:38px;
+    }
 
-}
+    .page-title h3{
+        font-size:30px;
+    }
 
 }
 
@@ -215,13 +290,23 @@ style="top:15px;left:15px;z-index:1300;border-radius:50%;width:48px;height:48px;
 
 <!-- CONTENT -->
 <div class="content-area container-fluid">
+<div class="page-title">
 
-<h3 class="mb-4">
+    <i class="bi bi-file-earmark-check icon-style"></i>
 
-My Assessments
+    <div>
 
-</h3>
+        <h3 class="mb-0">
+            My Assessments
+        </h3>
 
+        <div class="page-subtitle">
+            View your assigned assessments, submission status and scores.
+        </div>
+
+    </div>
+
+</div>
 
 <div class="card shadow-sm">
 
@@ -231,7 +316,7 @@ My Assessments
 
 <table class="table table-hover align-middle">
 
-<thead class="table-light">
+<thead>
 
 <tr>
 

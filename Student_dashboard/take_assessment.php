@@ -1,7 +1,6 @@
 <?php
 session_start();
-include "../db_config.php";
-include "student_sidebar.php";    
+include "../db_config.php"; 
 
 if (!isset($_SESSION['student_id'])) {
     header("Location: student_login.php");
@@ -29,6 +28,7 @@ if (!$ass) {
     die("Assessment not found or not assigned to you.");
 }
 
+
 // ============= DUE DATE EXPIRED =============
 if (!empty($ass['due_date'])) {
     $due = new DateTime($ass['due_date']);
@@ -40,6 +40,7 @@ if (!empty($ass['due_date'])) {
             $upd->execute();
         }
         ?>
+        
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -47,35 +48,45 @@ if (!empty($ass['due_date'])) {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Assessment Expired</title>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-            <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
             <style>
-                body { background: linear-gradient(160deg, #1e3a8a, #2563eb); min-height: 100vh; font-family: 'Segoe UI', sans-serif; margin:0; padding:0; display:flex; align-items:center; justify-content:center; margin-left: 21%;}
-                .card-expired { max-width: 600px; border-radius: 30px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.4); }
-                .header { background: linear-gradient(45deg, #ff6b6b, #ee5a52); color: white; padding: 33px 0px; text-align: center; }
-                .header i { font-size: 4.5rem; animation: beat 1.5s infinite; }
-                @keyframes beat { 0%,100% {transform:scale(1)} 50% {transform:scale(1.1)} }
-                .body { background: white; padding: 24px 30px; text-align: center; }
-                .due { font-size: 1.5rem; color: #e74c3c; font-weight: 600; margin: 20px 0; }
-                .btn-back { background: linear-gradient(45deg, #667eea, #764ba2); color: white; border: none; padding: 15px 40px; font-size: 1.2rem; border-radius: 50px; text-decoration: none; display: inline-block; margin-top: 20px; transition: 0.3s; }
-                .btn-back:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(102,126,234,0.4); color:white; }
+                :root{
+                    --primary:#1e40af;
+                    --primary-light:#3b82f6;
+                    --primary-dark:#1e3a8a;
+                    --accent:#ef4444;
+                    --light-bg:#f5f7fb;
+                    --gray:#6b7280;
+                    --shadow:0 6px 20px rgba(0,0,0,.06);
+                }
+                * { box-sizing:border-box; }
+                body { background: var(--light-bg); min-height:100vh; font-family: system-ui,-apple-system,sans-serif; margin:0; padding:0 24px; display:flex; align-items:center; justify-content:center; }
+                .card-expired { max-width: 600px; width:100%; border-radius: 22px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.08); background:#fff; }
+                .header { background: linear-gradient(135deg,#1e3c72,#2a5298); color: white; padding: 40px 20px; text-align: center; }
+                .header i { font-size: 4rem; }
+                .body { background: white; padding: 30px; text-align: center; }
+                .due { font-size: 1.3rem; color: var(--accent); font-weight: 700; margin: 20px 0; }
+                .btn-back { background: linear-gradient(135deg,#1e3c72,#2a5298); color: white; border: none; padding: 13px 34px; font-size: 1rem; font-weight:600; border-radius: 50px; text-decoration: none; display: inline-block; margin-top: 18px; transition: .25s; }
+                .btn-back:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(30,60,114,.32); color:white; }
             </style>
         </head>
         <body>
             <div class="card-expired">
                 <div class="header">
-                    <i class="fas fa-clock"></i>
+                    <i class="bi bi-clock-history"></i>
                     <h1 class="mb-0 mt-3">Assessment Expired!</h1>
                 </div>
                 <div class="body">
-                    <h3>Sorry, the deadline has passed</h3>
+                    <h4>Sorry, the deadline has passed</h4>
                     <p class="text-muted">You can no longer attempt this assessment.</p>
                     <div class="due">
-                        <i class="fas fa-calendar-alt"></i> Due: <?= date('d M Y', strtotime($ass['due_date'])) ?><br>
-                        <i class="fas fa-clock"></i> <?= date('h:i A', strtotime($ass['due_date'])) ?>
+                        <i class="bi bi-calendar3"></i> Due: <?= date('d M Y', strtotime($ass['due_date'])) ?><br>
+                        <i class="bi bi-clock"></i> <?= date('h:i A', strtotime($ass['due_date'])) ?>
                     </div>
                     <p class="text-muted mt-3">Please contact your teacher for any queries.</p>
                     <a href="student_dashboard.php" class="btn-back">
-                        <i class="fas fa-home"></i> Back to Dashboard
+                        <i class="bi bi-house-door-fill me-1"></i> Back to Dashboard
                     </a>
                 </div>
             </div>
@@ -93,18 +104,23 @@ if (!empty($ass['submitted_at'])) {
         <!DOCTYPE html>
         <html><head><meta charset="UTF-8"><title>Already Submitted</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
         <style>
-            body { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); min-height: 100vh; display:flex; align-items:center; justify-content:center; }
-            .card { max-width: 500px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
-            .header { background: linear-gradient(45deg, #56ab2f, #a8e6cf); padding: 50px; text-align:center; color:white; border-radius: 30px 30px 0 0; }
-            .header i { font-size: 4rem; }
+            :root{ --light-bg:#f5f7fb; }
+            * { box-sizing:border-box; }
+            body { background: var(--light-bg); min-height:100vh; font-family: system-ui,-apple-system,sans-serif; margin:0; padding:0 24px; display:flex; align-items:center; justify-content:center; }
+            .card { max-width: 500px; width:100%; border-radius: 22px; box-shadow: 0 8px 30px rgba(0,0,0,.08); overflow:hidden; }
+            .header { background: linear-gradient(135deg,#1e3c72,#2a5298); padding: 45px 20px; text-align:center; color:white; }
+            .header i { font-size: 3.6rem; }
+            .btn-success { background: linear-gradient(135deg,#1e3c72,#2a5298); border:none; border-radius:50px; font-weight:600; }
         </style>
         </head>
         <body>
+            <?php include "student_sidebar.php"; ?>
         <div class="card">
             <div class="header">
-                <i class="fas fa-check-circle"></i>
+                <i class="bi bi-check-circle-fill"></i>
                 <h1>Already Submitted!</h1>
             </div>
             <div class="card-body text-center p-5 bg-white">
@@ -119,7 +135,7 @@ if (!empty($ass['submitted_at'])) {
         $reset = $conn->prepare("UPDATE assessment_assignments SET started_at = NULL, submitted_at = NULL WHERE assessment_id = ? AND student_id = ?");
         $reset->bind_param("ii", $ass_id, $student_id);
         $reset->execute();
-        header("Location: take_assessment.php?id=$ass_id");
+        header("Location: ./take_assessment.php?id=$ass_id");
         exit();
     }
 }
@@ -151,17 +167,22 @@ if ($time_limit_minutes > 0) {
             <!DOCTYPE html>
             <html><head><meta charset="UTF-8"><title>Time Up!</title>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
             <style>
-                body { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); min-height: 100vh; display:flex; align-items:center; justify-content:center; }
-                .card { max-width: 500px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-                .header { background: linear-gradient(45deg, #ff4757, #ff3742); padding: 50px; text-align:center; color:white; border-radius: 30px 30px 0 0; }
-                .header i { font-size: 4rem; }
+                :root{ --light-bg:#f5f7fb; --accent:#ef4444; }
+                * { box-sizing:border-box; }
+                body { background: var(--light-bg); min-height:100vh; font-family: system-ui,-apple-system,sans-serif; margin:0; padding:0 24px; display:flex; align-items:center; justify-content:center; }
+                .card { max-width: 500px; width:100%; border-radius: 22px; box-shadow: 0 8px 30px rgba(0,0,0,.08); overflow:hidden; }
+                .header { background: linear-gradient(135deg,var(--accent),#c0392b); padding: 45px 20px; text-align:center; color:white; }
+                .header i { font-size: 3.6rem; }
+                .btn-primary { background: linear-gradient(135deg,#1e3c72,#2a5298); border:none; border-radius:50px; font-weight:600; }
             </style>
             </head>
             <body>
             <div class="card">
                 <div class="header">
-                    <i class="fas fa-stopwatch"></i>
+                    <i class="bi bi-stopwatch-fill"></i>
                     <h1>Time's Up!</h1>
                 </div>
                 <div class="card-body text-center p-5 bg-white">
@@ -214,52 +235,206 @@ if (empty($all_questions)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($ass['title']) ?> - Take Assessment</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
-    <!-- Google Font -->
-<link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
-  
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
+
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
-        html, body{
-            overflow-x:hidden;
-            margin:0;
-            }
-        body { background:#f8f9fa; font-family:'Segoe UI',sans-serif; }
-        .card { max-width:1200px; margin:auto; border-radius:30px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
-        .header-gradient { background: linear-gradient(45deg,#4e54c8,#8f94fb); }
-        .timer { font-size:1.5rem; font-weight:bold; background:rgba(255,255,255,0.25); padding:12px 28px; border-radius:50px; }
-        .question-badge { width:65px; height:65px; font-size:1.8rem; display:flex; align-items:center; justify-content:center; background:#667eea; color:white; }
-        .template-output { background:white; padding:30px; border-radius:20px; box-shadow:0 8px 25px rgba(0,0,0,0.1); margin:20px 0; border: 3px solid #667eea; }
-        .main-content{
-        margin-left:260px; /* sidebar width */
-        padding:40px;
-        max-width:calc(100% - 260px);
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e3a8a;
+            --accent: #ef4444;
+            --light-bg: #f5f7fb;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --gray: #6b7280;
+            --shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.1);
         }
 
-        .main-content h1 {
-        font-size: 42px;
-        font-weight: 400;
-        margin-bottom: 6px !important;
-        background: linear-gradient(to right, #e02121, #2f55a4);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-family: "Love Ya Like A Sister", cursive;
-        margin-left: 8px;
+        * { box-sizing: border-box; }
+
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
         }
-       
-        @media (max-width:768px){
-        .main-content{
-        margin-left:0;
+
+        body {
+            background: var(--light-bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
         }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 28px 40px 40px;
+            width: auto;
+            min-height: 100vh;
+        }
+
+        .card {
+            max-width: 1200px;
+            margin: auto;
+            border-radius: 22px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .08);
+            background: var(--card-bg);
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+        }
+
+        .header-gradient h1 {
+            font-family: "Love Ya Like A Sister", cursive;
+            font-size: 42px;
+            font-weight: 400;
+            margin-bottom: 6px;
+        }
+
+        .timer {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, .2);
+            padding: 10px 26px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        .question-badge {
+            width: 60px;
+            height: 60px;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            border-radius: 50%;
+            box-shadow: var(--shadow);
+        }
+
+        .template-output {
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin: 20px 0;
+            border: 1px solid #e5e7eb;
+        }
+
+        .question-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            border: none;
+            position: relative;
+            transition: .25s;
+        }
+
+        .question-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-left: 0.6rem;
+            border-left: 4px solid var(--accent);
+        }
+
+        .jump-nav {
+            background: #fff;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .jump-nav .btn-outline-primary {
+            border-color: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .jump-nav .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .btn-submit-assessment {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            border: none;
+            padding: 16px 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            box-shadow: 0 8px 20px rgba(30, 60, 114, .25);
+            transition: .25s;
+        }
+
+        .btn-submit-assessment:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 26px rgba(30, 60, 114, .35);
+            color: #fff;
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                margin-left: 0;
+                padding: 80px 24px 28px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-gradient h1 {
+                font-size: 30px;
+            }
+
+            .question-card {
+                padding: 24px;
+            }
+
+            .template-output {
+                padding: 18px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 78px 16px 24px;
+            }
+
+            .question-badge {
+                width: 48px;
+                height: 48px;
+                font-size: 1.2rem;
+            }
+
+            .btn-submit-assessment {
+                width: 100%;
+                padding: 14px 20px;
+            }
         }
     </style>
-</head>
+</head> 
 <body>
-<div class="container main-content">
+<div class="container-fluid p-0">
+<div class="d-flex">
+<?php include "student_sidebar.php"; ?>
+<div class="main-content flex-grow-1">
     <div class="card mt-4">
         <div class="card-header text-center text-white py-5 header-gradient">
             <h1><?= htmlspecialchars($ass['title']) ?></h1>
-            <h4>Take Assessment</h4>
+            <h5 class="mb-0 opacity-75">Take Assessment</h5>
             <small class="d-block mt-2 text-light opacity-75">
                 Time Limit: <strong><?= $time_limit_minutes ?> minutes</strong>
                 <?= $ass['due_date'] ? ' | Due: ' . date('d M Y, h:i A', strtotime($ass['due_date'])) : '' ?>
@@ -269,19 +444,18 @@ if (empty($all_questions)) {
             <?php endif; ?>
         </div>
 
-        <div class="card-body bg-light p-5">
+        <div class="card-body p-4 p-md-5">
             <form method="POST" action="submit_assessment.php" id="assessmentForm">
                 <input type="hidden" name="assessment_id" value="<?= $ass_id ?>">
 
-                <div class="text-center mb-5">
-                    <strong class="fs-4">Jump to Question:</strong><br>
-                    <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                <div class="jump-nav text-center">
+                    <h6 class="section-title d-inline-block mb-3">Jump to Question</h6>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
                         <?php foreach ($all_questions as $i => $q): ?>
                             <a href="#q<?= $i+1 ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3"><?= $i+1 ?></a>
                         <?php endforeach; ?>
                     </div>
                 </div>
-                <hr class="my-5">
 
                 <?php foreach ($all_questions as $i => $q):
                     $num = $i + 1;
@@ -289,12 +463,12 @@ if (empty($all_questions)) {
                     $payload = json_decode($q['question_payload'], true) ?: [];
                     $type = $q['question_type'];
                 ?>
-                <div id="q<?= $num ?>" class="bg-white rounded-4 shadow-lg p-5 mb-5 border position-relative">
-                    <div class="position-absolute top-0 start-0 translate-middle-y ms-3">
-                        <span class="badge question-badge shadow"><?= $num ?></span>
+                <div id="q<?= $num ?>" class="question-card">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <span class="question-badge"><?= $num ?></span>
+                        <h5 class="mb-0 text-primary fw-bold">Question <?= $num ?></h5>
                     </div>
-                    <div class="ps-5">
-                        <h5 class="mb-4 text-primary fw-bold">Question <?= $num ?>:</h5>
+                    <div>
                         <div class="template-output">
                             <?php
                          switch ($type) {
@@ -334,6 +508,9 @@ if (empty($all_questions)) {
                             case 'equation_volume':      include 'templates/equation/equation_volume.php'; break;
                             case 'equation_star':      include 'templates/equation/equation_star.php'; break;
                             case 'display_angles':       include 'templates/Angles/display_angles.php'; break;
+                            case 'verify_triangle_angles':
+                                include 'templates/Angles/verify_triangle_angles.php';
+                                break; 
                             case 'angles_classification':include 'templates/Angles/angles_classification.php'; break;
                             case 'types_angles':         include 'templates/Angles/types_angles.php'; break;
                             case 'polygons_intro':       include 'templates/Angles/polygons_intro.php'; break;
@@ -354,8 +531,116 @@ if (empty($all_questions)) {
                             case 'pattern_extend_rule' :
                             case 'pattern_match_rule' :   include 'templates/Probability/number_pattern_complete.php'; break;
                             case 'problem_solving':
-                        include 'templates/problem_solving.php';
-                      break;
+                            include 'templates/problem_solving.php';
+                            break;   
+                            case 'primary_secondary':
+                            include 'templates/DataHandling/primary_secondary.php'; 
+                            break;
+                            case 'histogram_table':
+                            include 'templates/DataHandling/histogram_table.php';
+                            break;
+                            case 'pie_chart_table':
+                            include 'templates/DataHandling/pie_chart_table.php';
+                            break;
+                            case 'statistics_question_mcq':
+                            include 'templates/statistics/statical-que.php';
+                            break;
+                            case 'statistics_data_single':
+                            include 'templates/statistics/statistics_data_single.php';
+                            break;
+                            case 'statistics_universal':
+                            include 'templates/statistics/statistics_universal.php';
+                            break;
+                            case 'statistics_central_tendency':
+                            include 'templates/statistics/statistics_central_tendency.php';
+                            break;
+                            case 'surface_area_rectangular_solid':
+                            include 'templates/volumn&surface/surface_area_rectangular_solid.php';
+                            break;
+                            case 'square_complete':
+                            case 'square_missing_digit':
+                            case 'square_match':
+                            case 'perfect_square_root':
+                            include 'templates/square/square_numbers.php';
+                            break;
+                            case 'math_expression':
+                            include 'templates/square/math_expression.php';
+                            break;
+                            case 'number_line_square_root':
+                            include 'templates/square/number_line_square_root.php';
+                            break;
+                            case 'square_side_length':
+                            include 'templates/square/square_side_length.php';
+                            break;
+                            case 'identify_lines':
+                            include 'templates/lineAngles/identifylines.php';
+                            break;
+                            case 'angle_bisector_check':
+                            include 'templates/lineAngles/angle_bisector_check.php';  
+                            break; 
+                            case 'draw_perpendicular_bisector_midpoint':
+                            include 'templates/lineAngles/draw_perpendicular_bisector_midpoint.php';
+                            break;
+                            case 'draw_angle_bisector_canvas':
+                            include 'templates/lineAngles/draw_angle_bisector_canvas.php';
+                            break;
+                            case 'geometry_multi_blank':
+                            include 'templates/lineAngles/geometry_multi_blank.php';
+                            break;
+                            case 'geometry_congruence_rule':
+                            include 'templates/TrianglesCongruence/geometry_congruence_rule.php';
+                            break;
+                            case 'geometry_congruence_prove':
+                            include 'templates/TrianglesCongruence/geometry_congruence_prove.php';  
+                            break;
+                            case 'rectangle_perimeter':
+                            include 'templates/AreaPerimeter/rectangle_perimeter.php';
+                            break;
+                            case 'algebra_expression':
+                            include 'templates/Algebra/algebra_expression.php';
+                            break;
+                            case 'expression_equation_table':
+                            include 'templates/Algebra/expression_equation_table.php';  
+                            break;
+                            case 'exponent_universal':
+                            include 'templates/Algebra/exponent_universal.php'; 
+                            break;
+                            case 'algebra_universal':
+                            include 'templates/Algebra/algebra_universal.php';  
+                            break;
+                            case 'compare_powers':
+                            include 'templates/Algebra/compare_powers.php';
+                            break;
+                            case 'integer_order_list':
+                            include 'templates/Integer/integer_order_list.php';
+                            break;
+                            case 'coordinate_points_input_negative':
+                            include 'templates/Integer/coordinate_points_input_negative.php';
+                            break;
+                            case 'integer_number_line':
+                            include 'templates/Integer/integer_number_line.php';
+                            break;
+                            case 'dynamic_fill_table':
+                            include 'templates/exponent/dynamic_fill_table.php';
+                            break;   
+                        case 'decimal_percent_steps':
+                        include 'templates/percents/decimal_percent_steps.php';
+                        break;                         
+                        case 'fraction_to_percent':
+                        include 'templates/percents/fraction_to_percent.php';
+                        break;
+                        case 'find_whole_percent':
+                        include 'templates/percents/find_whole_percent.php';
+                        break;     
+                        case 'percent_diagram':
+                        include 'templates/percents/percent_diagram.php';
+                        break;     
+                        case 'percent_of_number':
+                        include 'templates/percents/percent_of_number.php';
+                        break;  
+                        case 'percent_to_decimal_table':
+                        include 'templates/percents/percent_to_decimal_table.php';
+                        break; 
                             case 'factor':               include 'templates/Factor/factor.php'; break;
                             case 'fill_outcomes_with_images': include 'templates/Probability/probability_fill_with_images.php'; break;
 
@@ -376,13 +661,15 @@ if (empty($all_questions)) {
                 <?php endforeach; ?>
 
                 <div class="text-center mt-5">
-                    <button type="submit" class="btn btn-success btn-lg px-5 py-4 shadow">
-                        Submit Assessment
+                    <button type="submit" class="btn-submit-assessment">
+                        <i class="bi bi-send-check-fill me-2"></i>Submit Assessment
                     </button>
                 </div>
             </form>
         </div>
     </div>
+</div>
+</div>
 </div>
 
 <?php if ($time_limit_minutes > 0): ?>
@@ -394,7 +681,7 @@ const form = document.getElementById('assessmentForm');
 
 function tick() {
     if (timeLeft <= 0) {
-        timerEl.innerHTML = "<span class='text-danger fw-bold'>TIME OVER!</span>";
+        timerEl.innerHTML = "<span class='text-warning fw-bold'>TIME OVER!</span>";
         alert("Time is up! Submitting your assessment...");
         form.submit();
         return;
@@ -415,6 +702,7 @@ window.addEventListener('pageshow', e => {
 </script>
 <?php endif; ?>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof MathJax !== 'undefined') MathJax.typesetPromise();

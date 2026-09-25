@@ -19,8 +19,8 @@ $sql_img = "SELECT image_path FROM student_images WHERE student_id = " . (int)$s
 $res_img = mysqli_query($conn, $sql_img);
 $student_img = $res_img ? mysqli_fetch_assoc($res_img) : null;
 
-// Fetch student info
-$sql_student = "SELECT first_name, last_name, email, grade FROM students WHERE id = " . (int)$student_id;
+// Fetch student info (phone, dob, address added for the profile card)
+$sql_student = "SELECT first_name, last_name, email, grade, phone, dob, address FROM students WHERE id = " . (int)$student_id;
 $res_student = mysqli_query($conn, $sql_student);
 $student = $res_student ? mysqli_fetch_assoc($res_student) : null;
 
@@ -86,36 +86,21 @@ if ($res_ann) {
 
 $notif_count = count($announcements);
 
-// =======================
-// Fetch Purchase History
-// =======================
+$student_full_name = trim(($student['first_name'] ?? 'Student') . ' ' . ($student['last_name'] ?? ''));
+$student_avatar = htmlspecialchars($student_img['image_path'] ?? '../images/default-avatar.png');
+$dob_formatted = (!empty($student['dob']) && $student['dob'] !== '0000-00-00')
+    ? date('d F Y', strtotime($student['dob']))
+    : '—';
+$dob_input_value = (!empty($student['dob']) && $student['dob'] !== '0000-00-00')
+    ? date('Y-m-d', strtotime($student['dob']))
+    : '';
 
-$purchases = [];
-
-$sql_pay = "
-    SELECT 
-        course_title,
-        price,
-        gst,
-        total,
-        payment_id,
-        payment_status,
-        mode_of_education,
-        payment_type,
-        created_at
-    FROM students
-    WHERE id = $student_id
-      AND payment_status = 'success'
-    ORDER BY created_at DESC
-";
-
-$res_pay = mysqli_query($conn, $sql_pay);
-
-if ($res_pay) {
-    while ($row = mysqli_fetch_assoc($res_pay)) {
-        $purchases[] = $row;
-    }
-}
+// Fetch extra profile details from enrollment_inquiries (linked via student_id)
+$sql_enroll = "SELECT * FROM enrollment_inquiries 
+               WHERE student_id = " . (int)$student_id . " 
+               ORDER BY id DESC LIMIT 1";
+$res_enroll = mysqli_query($conn, $sql_enroll);
+$enroll_info = $res_enroll ? mysqli_fetch_assoc($res_enroll) : null;    
 ?>
 
 <!DOCTYPE html>
@@ -128,20 +113,29 @@ if ($res_pay) {
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --primary: #1e40af;
             --primary-light: #3b82f6;
+            --primary-dark: #1e3a8a;
             --accent: #ef4444;
-            --light-bg: #f9fbff;
+            --light-bg: #f5f7fb;
             --card-bg: #ffffff;
             --text: #1f2937;
             --gray: #6b7280;
-            --shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
-            --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.12);
+            --shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
         body {
@@ -152,152 +146,398 @@ if ($res_pay) {
 
         .main-content {
             margin-left: 270px;
-            padding: 32px 40px;
-            width: 100%;
+            padding: 28px 40px 40px;
+            width: auto;
             min-height: 100vh;
         }
 
-        @media (max-width: 992px) {
-            .main-content {
-                margin-left: 0;
-                padding: 28px 28px;
-            }
+        /* ============ TOP BAR ============ */
+        .topbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 22px;
+            margin-bottom: 22px;
         }
 
-        .welcome-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 36px 40px;
-            margin-bottom: 40px;
+        .bell-btn {
+            position: relative;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-shadow: var(--shadow);
-            border: 1px solid rgba(30, 64, 175, 0.06);
+            color: var(--text);
+            font-size: 20px;
+            border: none;
+            flex-shrink: 0;
         }
 
-        .welcome-title {
+        .bell-btn .bell-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45);
+        }
+
+        .topbar-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            padding: 6px 16px 6px 6px;
+            border-radius: 50px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            border: none;
+            max-width: 100%;
+        }
+
+        .topbar-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .topbar-profile .profile-content {
+            min-width: 0;
+        }
+
+        .topbar-profile .name {
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 1.1;
+            color: var(--text);
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        .topbar-profile .role {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        /* ============ DASHBOARD HEADER ============ */
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 25px;
+            margin-bottom: 35px;
+            margin-top: -10px;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-illustration {
+            width: 180px;
+            flex-shrink: 0;
+        }
+
+        .dashboard-illustration img {
+            width: 180px;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .welcome-text {
+            flex: 1 1 240px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .welcome-gradient{
+        font-size: 42px;
+        font-weight: 400;
+        margin-bottom: 6px !important;
+        background: linear-gradient(to right, #e02121, #2f55a4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent;
+        font-family: "Love Ya Like A Sister", cursive;
+        margin-left: 8px;
+        }
+
+        .student-name{
             font-size: 42px;
             font-weight: 400;
             margin-bottom: 6px !important;
-            background: linear-gradient(to right, #e02121, #2f55a4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary-light); /* Same blue as before */
             font-family: "Love Ya Like A Sister", cursive;
         }
 
-        .avatar-glow {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid white;
-            box-shadow: 0 0 0 8px rgba(30, 64, 175, 0.15);
-            transition: all 0.3s ease;
-        }
-
-        .avatar-glow:hover {
-            transform: scale(1.06);
-            box-shadow: 0 0 0 12px rgba(30, 64, 175, 0.22);
-        }
-
-        .stat-pill {
-            background: rgba(30, 64, 175, 0.05);
-            border-radius: 12px;
-            padding: 16px 20px;
+        .welcome-title {
+            font-family: 'Love Ya Like A Sister', cursive;
+            font-size: clamp(26px, 3vw, 52px);
+            font-weight: 800;
+            margin: 0;
+            line-height: 1.15;
             text-align: center;
-            transition: all 0.25s;
-            height: 110px;
+            word-break: break-word;
+        }
+
+        .welcome-title span {
+            color: var(--primary-light);
+        }
+
+        .dashboard-actions {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .profile-arrow {
+            margin-left: 6px;
+            font-size: 15px;
+            transition: .3s;
+        }
+
+        .topbar-profile.show .profile-arrow {
+            transform: rotate(180deg);
+        }
+
+        .profile-dropdown {
+            width: 230px;
+            border: none;
+            border-radius: 15px;
+            padding: 10px;
+        }
+
+        .profile-dropdown .dropdown-item {
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-weight: 500;
+            transition: .25s;
+        }
+
+        .profile-dropdown .dropdown-item:hover {
+            background: #eef4ff;
+            color: #2563eb;
+        }
+
+        .profile-dropdown .dropdown-item.text-danger:hover {
+            background: #fff1f2;
+            color: #dc2626 !important;
+        }
+
+        /* ============ QUICK ACTIONS ============ */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 18px;
+            margin-bottom: 40px;
+        }
+
+        .quick-action {
+            background: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 1.3rem 1rem;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+            transition: 0.25s;
+            cursor: pointer;
         }
 
-        .stat-pill:hover {
-            background: rgba(239, 68, 68, 0.08);
-            transform: translateY(-3px);
+        .quick-action i {
+            font-size: 26px;
+            color: var(--accent);
+            transition: 0.25s;
         }
 
-        .stat-pill h5 {
-            font-size: 1.6rem;
+        .quick-action span {
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text);
+            transition: 0.25s;
         }
 
-        .stat-pill small {
-            line-height: 1.2;
+        .quick-action:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
         }
 
-        /* .notif-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--accent);
-            color: white;
-            font-size: 0.75rem;
+        .quick-action:hover i,
+        .quick-action:hover span {
+            color: #fff;
+        }
+
+        /* ============ PROFILE SECTION ============ */
+        .section-title {
+            font-size: 1.2rem;
             font-weight: 700;
-            width: 22px;
-            height: 22px;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-left: 0.6rem;
+            border-left: 4px solid var(--accent);
+        }
+
+        .profile-card {
+            background: #fff;
+            border-radius: 22px;
+            padding: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 35px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .08);
+            flex-wrap: wrap;
+        }
+
+        .avatar-upload-wrap {
+            position: relative;
+            flex-shrink: 0;
+            width: 140px;
+            height: 140px;
+        }
+
+        .profile-img {
+            width: 140px;
+            height: 140px;
             border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .avatar-edit-btn {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 6px rgba(239,68,68,0.4);
-        } */
-        .section-title {
-            font-weight: 700;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+            border: 3px solid #fff;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .avatar-edit-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .profile-info {
+            flex: 1 1 240px;
+            min-width: 0;
+        }
+
+        .profile-info h4 {
+            font-weight: 800;
+            margin-bottom: 12px;
+            word-break: break-word;
+        }
+
+        .profile-info p {
+            margin-bottom: 10px;
+            color: #334155;
+            word-break: break-word;
+        }
+
+        .profile-info i {
+            color: var(--primary-light);
+            width: 20px;
+        }
+
+        /* .edit-profile-btn {
+            background: #e8f0fe;
             color: var(--primary);
-            position: relative;
-            margin-bottom: 1.25rem;
+            border: none;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 12px;
+            white-space: nowrap;
         }
 
-        /* .section-title::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -6px;
-            width: 50px;
-            height: 3px;
-            background: var(--accent);
-            border-radius: 3px;
+        .edit-profile-btn:hover {
+            background: #d7e6fd;
+            color: var(--primary-dark);
         } */
-        .profile-img {
-            width: 130px;
-            height: 130px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid #3b82f6;
-            box-shadow: var(--shadow);
+
+        .edit-profile-btn {
+        background: var(--primary-light);
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 12px 26px;
+        border-radius: 50px;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 14px rgba(30, 60, 114, 0.3);
+        transition: 0.25s;
         }
 
+        .edit-profile-btn i {
+            font-size: 16px;
+        }
+
+        .edit-profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.4);
+            color: var(--primary-light);
+        }    
+
+        /* ============ MISC (materials / footer / chart) ============ */
         .card-material {
-            height:100%;
+            height: 100%;
             border-radius: 16px;
             overflow: hidden;
             box-shadow: var(--shadow);
             transition: all 0.3s;
         }
-        
-            .card-material .p-3{
-            height:100%;
-            min-height:300px;
-            display:flex;
-            flex-direction:column;
-             }
-         
-         .material-body{
-            flex:1;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            flex-direction:column;
+
+        .card-material .p-3 {
+            height: 100%;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .material-body {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
 
         .card-material:hover {
             transform: translateY(-6px);
             box-shadow: var(--shadow-hover);
-        }
-
-        .pdf-iframe {
-            width: 100%;
-            height: 240px;
-            border: none;
         }
 
         footer {
@@ -306,80 +546,6 @@ if ($res_pay) {
             text-align: center;
             color: var(--gray);
             border-top: 1px solid #e5e7eb;
-        }
-
-        .stat-card {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 22px 20px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, #fff, #f9fbff);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-            transition: 0.3s ease;
-            height: 100%;
-            min-height: 150px;
-            width: 100%;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-card h3 {
-            font-size: 28px;
-            margin: 0;
-            font-weight: 700;
-        }
-
-        .stat-card p {
-            margin: 0;
-            font-size: 14px;
-            color: #6b7280;
-        }
-
-        .stat-icon {
-            font-size: 28px;
-            width: 55px;
-            height: 55px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            color: white;
-        }
-
-        .welcome-card .col-lg-4 {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .welcome-avatar {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #3b82f6;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Different Colors */
-        .blue .stat-icon {
-            background: #3b82f6;
-        }
-
-        .purple .stat-icon {
-            background: #8b5cf6;
-        }
-
-        .green .stat-icon {
-            background: #10b981;
-        }
-
-        .red .stat-icon {
-            background: #ef4444;
         }
 
         .chart-container {
@@ -393,299 +559,429 @@ if ($res_pay) {
             height: 100% !important;
         }
 
-        /* Tablet */
-        @media(max-width:1200px) {
-            .main-content {
-                padding: 28px 28px;
+        /* ============================================================
+           RESPONSIVE BREAKPOINTS
+           ============================================================ */
+
+        /* Large desktops → 4 columns */
+        @media (max-width: 1400px) {
+            .quick-actions-grid {
+                grid-template-columns: repeat(4, 1fr);
             }
         }
 
-        /* Mobile */
-        @media(max-width:576px) {
+        /* Small desktops / large tablets landscape → 3 columns */
+        @media (max-width: 1200px) {
+            .quick-actions-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .dashboard-illustration {
+                width: 150px;
+            }
+
+            .dashboard-illustration img {
+                width: 150px;
+            }
+        }
+
+        /* Tablets — sidebar collapses to off-canvas */
+        @media (max-width: 992px) {
             .main-content {
-                padding: 70px 16px 20px;
+                margin-left: 0;
+                padding: 80px 24px 28px;
             }
 
-            .welcome-avatar {
-                width: 42px;
+            .dashboard-header {
+                flex-wrap: wrap;
+                gap: 16px;
+                margin-top: 0;
+            }
+           /* Actions pinned to the top-right */
+            .dashboard-actions {
+                order: 1;
+                margin-left: auto;
             }
 
-            .stat-card {
+            .dashboard-illustration {
+                order: 2;
+            }
+
+            /* Greeting drops to its own full-width row */
+            .welcome-text {
+                order: 3;
+                flex: 1 1 100%;
+                justify-content: center;
+            }
+
+            .welcome-title {
+                text-align: center;
+            }
+        }
+
+        /* Small tablets / large phones */
+        @media (max-width: 768px) {
+            .dashboard-illustration {
+                display: none;
+            }
+
+            /* Row 1: bell + profile, full width, aligned right */
+            .dashboard-actions {
+                order: 1;
+                flex: 1 1 100%;
+                justify-content: flex-end;
+            }
+
+            /* Row 2: greeting, full width, left-aligned */
+            .welcome-text {
+                order: 2;
+                flex: 1 1 100%;
+                justify-content: flex-start;
+            }
+
+            .welcome-title {
+                text-align: left;
+                font-size: clamp(24px, 6vw, 34px);
+            }
+
+            .profile-card {
                 flex-direction: column;
                 text-align: center;
-                gap: 10px;
-                min-height: 120px;
+                gap: 20px;
+                padding: 30px 24px;
             }
 
-            .stat-icon {
-                width: 48px;
-                height: 48px;
-                font-size: 22px;
+            .profile-info {
+                flex-basis: 100%;
+                text-align: center;
             }
 
-            .stat-card h3 {
-                font-size: 22px;
+            .profile-info p {
+                text-align: left;
+                display: inline-block;
             }
 
-            .stat-card p {
-                font-size: 13px;
-            }
-        }
-
-        @media(max-width:992px) {
-            .stat-card {
-                min-height: 130px;
-                padding: 18px;
-            }
-
-            #studentSidebar {
-                position: fixed;
-                top: 0;
-                left: -260px;
-                width: 260px;
-                height: 100vh;
-                background: #1e40af;
-                z-index: 1150;
-                transition: 0.3s ease;
-                overflow-y: auto;
-            }
-
-            #studentSidebar.show {
-                left: 0;
-            }
-        }
-
-        @media(max-width:768px) {
-            .welcome-card {
-                padding: 24px 22px;
-            }
-
-            .welcome-title {
-                font-size: 30px;
-            }
-
-            .profile-img {
-                width: 100px;
-                height: 100px;
-            }
-
-            .pdf-iframe {
-                height: 200px;
-            }
-        }
-
-        @media(max-width:480px) {
-            .res-card {
+            .edit-profile-btn {
                 width: 100%;
+                max-width: 320px;
+            }
+        }
+
+        /* Phones */
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 78px 16px 24px;
+            }
+
+            .quick-actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .quick-action {
+                padding: 1rem 0.6rem;
+            }
+
+            .quick-action i {
+                font-size: 22px;
+            }
+
+            .quick-action span {
+                font-size: 12.5px;
+            }
+
+            .dashboard-actions {
+                gap: 12px;
+                margin-top: -77px;
+            }
+
+            /* Hide the name/role text on tiny screens — avatar + arrow only */
+            .topbar-profile .profile-content {
+                display: none;
+            }
+
+            .topbar-profile {
+                padding: 5px;
             }
 
             .welcome-title {
-                font-size: 24px;
+                font-size: 26px;
             }
 
-            .profile-img {
-                width: 80px;
-                height: 80px;
+            .profile-card {
+                padding: 24px 18px;
+                border-radius: 18px;
             }
 
-            .pdf-iframe {
-                height: 170px;
+            .profile-img,
+            .avatar-upload-wrap {
+                width: 110px;
+                height: 110px;
+            }
+
+            .section-title {
+                font-size: 1.15rem;
+            }
+
+            footer {
+                margin-top: 60px;
+                padding: 28px 0;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Very small phones */
+        @media (max-width: 360px) {
+            .quick-action span {
+                font-size: 11.5px;
+            }
+
+            .bell-btn {
+                width: 42px;
+                height: 42px;
+                font-size: 18px;
             }
         }
     </style>
 </head>
 
 <body>
-    <!-- Mobile Sidebar Toggle -->
-    <button class="btn btn-primary d-lg-none position-fixed"
-        id="sidebarToggle"
-        style="top:15px;left:15px;z-index:1200;border-radius:50%;width:48px;height:48px;">
-        <i class="bi bi-list fs-4"></i>
-    </button>
-    <div class="container-fluid p-0">
-        <div class="d-flex">
-            <!-- Sidebar included -->
+<!-- Mobile Sidebar Toggle -->
+<button
+    class="btn btn-primary d-lg-none position-fixed"
+    id="sidebarToggle"
+    style="top:15px;left:15px;z-index:1200;border-radius:50%;width:48px;height:48px;">
+    <i class="bi bi-list fs-4"></i>
+</button>
 
-            <main class="main-content flex-grow-1">
+<div class="container-fluid p-0">
+    <div class="d-flex">
 
-                <!-- Professional Welcome Card -->
-                <div class="welcome-card">
-                    <div class="row align-items-center mb-4">
+        <main class="main-content flex-grow-1">
 
-                        <!-- Left: Title + Text -->
-                        <div class="col-12">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
 
-                            <div class="d-flex align-items-center gap-3 mb-2">
+                <!-- Left Illustration -->
+                <div class="dashboard-illustration">
+                    <img src="../images/welcome-illustration.png" alt="Welcome">
+                </div>
 
-                                <!-- Small Profile -->
-                                <img src="<?= htmlspecialchars($student_img['image_path'] ?? '../images/default-avatar.png') ?>"
-                                    class="welcome-avatar" alt="Profile">
+                <!-- Welcome Text -->
+                <div class="welcome-text">
+                   <h1 class="welcome-title">
+                    <span class="welcome-gradient">Welcome,</span>
+                    <span class="student-name">
+                        <?= htmlspecialchars($student['first_name'] ?? 'Student') ?>
+                    </span>
+                </h1>
+                </div>
 
-                                <h1 class="welcome-title mb-0">
-                                    Welcome back, <?= htmlspecialchars($student['first_name'] ?? 'Student') ?>
-                                </h1>
+                <!-- Right Actions -->
+                <div class="dashboard-actions">
 
+                    <button
+                        class="bell-btn"
+                        onclick="document.getElementById('announcements').scrollIntoView({behavior:'smooth'})">
+
+                        <i class="bi bi-bell"></i>
+
+                        <?php if($notif_count>0): ?>
+                            <span class="bell-count"><?= $notif_count ?></span>
+                        <?php endif; ?>
+
+                    </button>
+
+                    <div class="dropdown">
+
+                        <button class="topbar-profile"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+
+                            <img src="<?= $student_avatar ?>" alt="Profile">
+
+                            <div class="profile-content">
+                                <div class="name">
+                                    <?= htmlspecialchars($student['first_name']) ?>
+                                </div>
+
+                                <div class="role">Student</div>
                             </div>
 
-                            <p class="fs-5 text-muted mb-3">
-                                Your learning journey continues • <?= date('l, d F Y') ?>
-                            </p>
+                            <i class="bi bi-chevron-down profile-arrow"></i>
 
-                            <!-- Stats -->
-                            <div class="row g-4 align-items-stretch">
+                        </button>
 
-                                <div class="col-lg-3 col-md-6 col-6 res-card">
-                                    <div class="stat-card blue">
-                                        <div class="stat-icon">
-                                            <i class="bi bi-journal-bookmark"></i>
-                                        </div>
-                                        <div>
-                                            <h3><?= $subjects_count ?></h3>
-                                            <p>Enrolled Subjects</p>
-                                        </div>
-                                    </div>
-                                </div>
+                        <ul class="dropdown-menu dropdown-menu-end profile-dropdown shadow">
 
-                                <div class="col-lg-3 col-md-6 col-6 res-card">
-                                    <div class="stat-card purple">
-                                        <div class="stat-icon">
-                                            <i class="bi bi-folder2-open"></i>
-                                        </div>
-                                        <div>
-                                            <h3><?= $materials_count ?></h3>
-                                            <p>Study Materials</p>
-                                        </div>
-                                    </div>
-                                </div>
+                            <li>
+                                <a class="dropdown-item" href="settings.php#security">
+                                    <i class="bi bi-shield-lock me-2"></i>
+                                    Change Password
+                                </a>
+                            </li>
 
-                                <div class="col-lg-3 col-md-6 col-6 res-card">
-                                    <div class="stat-card green">
-                                        <div class="stat-icon">
-                                            <i class="bi bi-graph-up"></i>
-                                        </div>
-                                        <div>
-                                            <h3><?= $attendance_percentage ?>%</h3>
-                                            <p>This Month Attendance</p>
-                                        </div>
-                                    </div>
-                                </div>
+                            <li>
+                                <a class="dropdown-item" href="student_documents.php">
+                                    <i class="bi bi-file-earmark-arrow-up-fill me-2"></i>
+                                    My Documents
+                                </a>
+                            </li>
 
-                                <div class="col-lg-3 col-md-6 col-6 res-card">
-                                    <div class="stat-card red">
-                                        <div class="stat-icon">
-                                            <i class="bi bi-bell"></i>
-                                        </div>
-                                        <div>
-                                            <h3><?= $notif_count ?></h3>
-                                            <p>Announcements</p>
-                                        </div>
-                                    </div>
-                                </div>
+                            <li>
+                                <a class="dropdown-item" href="settings.php">
+                                    <i class="bi bi-gear me-2"></i>
+                                    Settings
+                                </a>
+                            </li>
 
-                            </div>
+                            <li><hr class="dropdown-divider"></li>
 
-                        </div>
+                            <li>
+                                <a class="dropdown-item text-danger" href="student_logout.php">
+                                    <i class="bi bi-box-arrow-right me-2"></i>
+                                    Logout
+                                </a>
+                            </li>
+
+                        </ul>
 
                     </div>
                 </div>
 
-                <!-- My Profile -->
-                <section class="mb-5">
-                    <h4 class="section-title"><i class="bi bi-person-circle me-2"></i> My Profile</h4>
-                    <div class="card border-0 shadow-sm p-4">
-                        <div class="d-flex flex-wrap align-items-center gap-4">
-                            <img src="<?= htmlspecialchars($student_img['image_path'] ?? 'default-profile.png') ?>"
-                                alt="Profile" class="profile-img">
-                            <div>
-                                <h4 class="fw-bold mb-2"><?= htmlspecialchars($student['first_name'] . ' ' . ($student['last_name'] ?? '')) ?></h4>
-                                <p class="mb-2"><i class="bi bi-envelope me-2 text-primary"></i><?= htmlspecialchars($student['email'] ?? '—') ?></p>
-                                <p class="mb-0"><i class="bi bi-mortarboard me-2 text-primary"></i>Grade: <?= htmlspecialchars($student['grade'] ?? 'N/A') ?></p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+            </div>
 
-                <!-- Enrolled Subjects -->
-                <section class="mb-5">
-                    <h4 class="section-title"><i class="bi bi-journal-bookmark-fill me-2"></i> Enrolled Subjects</h4>
-                    <?php if ($subjects_count > 0): ?>
-                        <div class="row g-3 mt-3 align-items-stretch">
-                            <?php
-                            $sql_subs = "SELECT s.subject_name 
-                                     FROM student_subjects ss 
-                                     JOIN subjects s ON ss.subject_id = s.id 
-                                     WHERE ss.student_id = " . (int)$student_id;
-                            $res_subs = mysqli_query($conn, $sql_subs);
-                            while ($sub = mysqli_fetch_assoc($res_subs)):
-                            ?>
-                                <div class="col-xl-3 col-lg-4 col-md-6 col-12">
-                                    <div class="card border-0 shadow-sm text-center py-4">
-                                        <i class="bi bi-book fs-2 text-primary mb-3 d-block"></i>
-                                        <h6 class="fw-bold"><?= htmlspecialchars($sub['subject_name']) ?></h6>
-                                    </div>
+            <!-- My Profile -->
+            <section class="mb-5">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h4 class="section-title mb-0"> My Profile</h4>
+                    <!-- <h4 class="section-title mb-0"><i class="bi bi-person-circle me-2"></i> My Profile</h4> -->
+                </div>
+
+                <div class="profile-card">
+                    <div class="avatar-upload-wrap">
+                        <img src="<?= $student_avatar ?>" alt="Profile" class="profile-img">
+
+                        <form action="update_profile_photo.php" method="POST" enctype="multipart/form-data" id="photoForm">
+                            <label for="profilePhotoInput" class="avatar-edit-btn" title="Change photo">
+                                <i class="bi bi-camera-fill"></i>
+                            </label>
+                            <input type="file" name="profile_photo" id="profilePhotoInput" accept="image/png, image/jpeg, image/webp" hidden>
+                        </form>
+                    </div>
+
+                    <div class="profile-info">
+                        <h4><?= htmlspecialchars($student_full_name) ?></h4>
+                        <p><i class="bi bi-envelope me-2"></i><?= htmlspecialchars($student['email'] ?? '—') ?></p>
+                        <p><i class="bi bi-telephone me-2"></i><?= htmlspecialchars($student['phone'] ?? '—') ?></p>
+                        <p><i class="bi bi-calendar3 me-2"></i><?= $dob_formatted ?></p>
+                        <p class="mb-0"><i class="bi bi-geo-alt me-2"></i><?= htmlspecialchars($student['address'] ?? '—') ?></p>
+                    </div>
+
+                    <!-- <button type="button" class="edit-profile-btn btn" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="bi bi-pencil me-1"></i> Edit Profile
+                    </button> -->
+
+                   <button type="button" class="edit-profile-btn btn" data-bs-toggle="modal" data-bs-target="#viewProfileModal">
+                    <i class="bi bi-person-lines-fill"></i> View Profile
+                </button>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <h4 class="section-title"></i>Quick Access</h4>
+            <!-- <h4 class="section-title"><i class="bi bi-lightning-charge-fill me-2"></i>Quick Access</h4> -->
+            <div class="quick-actions-grid">
+                <a href="enrolled_subjects.php" class="quick-action">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                    <span>Enrolled Subjects</span>
+                </a>
+                <a href="student_documents.php" class="quick-action">
+                    <i class="bi bi-file-earmark-arrow-up-fill"></i>
+                    <span>My Documents</span>
+                </a>
+                <a href="student_assessments.php" class="quick-action">
+                    <i class="bi bi-file-earmark-check-fill"></i>
+                    <span>My Assessments</span>
+                </a>
+                <!-- <a href="#materials" class="quick-action">
+                    <i class="bi bi-folder2-open"></i>
+                    <span>Study Materials</span>
+                </a> -->
+                <a href="purchase_history.php" class="quick-action">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    <span>Purchase History</span>
+                </a>
+                <!-- <a href="#announcements" class="quick-action">
+                    <i class="bi bi-bell-fill"></i>
+                    <span>Announcements</span>
+                </a> -->
+            </div>
+
+            <!-- Enrolled Subjects -->
+            <section class="mb-5">
+                <h4 class="section-title"><i class="bi bi-journal-bookmark-fill me-2"></i> Enrolled Subjects</h4>
+                <?php if ($subjects_count > 0): ?>
+                    <div class="row g-3 mt-3 align-items-stretch">
+                        <?php
+                        $sql_subs = "SELECT s.subject_name 
+                                 FROM student_subjects ss 
+                                 JOIN subjects s ON ss.subject_id = s.id 
+                                 WHERE ss.student_id = " . (int)$student_id;
+                        $res_subs = mysqli_query($conn, $sql_subs);
+                        while ($sub = mysqli_fetch_assoc($res_subs)):
+                        ?>
+                            <div class="col-xl-3 col-lg-4 col-sm-6 col-12">
+                                <div class="card border-0 shadow-sm text-center py-4 h-100">
+                                    <i class="bi bi-book fs-2 text-primary mb-3 d-block"></i>
+                                    <h6 class="fw-bold px-2"><?= htmlspecialchars($sub['subject_name']) ?></h6>
                                 </div>
-                            <?php endwhile; ?>
-                        </div>
+                            </div>
+                        <?php endwhile; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-light text-center py-5 border-0 shadow-sm">
+                        <i class="bi bi-journal-x display-4 text-muted opacity-50"></i>
+                        <p class="mt-3 fw-medium">No subjects enrolled yet</p>
+                        <small class="text-muted">Explore courses to begin your learning journey</small>
+                    </div>
+                <?php endif; ?>
+            </section>
+
+            <!-- Announcements -->
+            <section class="mb-5" id="announcements">
+                <h4 class="section-title">
+                    <!-- <i class="bi bi-bell-fill me-2"></i> -->
+                     Announcements
+                </h4>
+
+                <div class="card border-0 shadow-sm p-3 p-md-4">
+                    <?php if (!empty($announcements)): ?>
+                        <?php foreach ($announcements as $ann): ?>
+                            <div class="border-bottom pb-3 mb-3">
+                                <h6 class="fw-bold mb-1 text-primary"><?= htmlspecialchars($ann['title']) ?></h6>
+                                <p class="mb-1 text-muted small"><?= nl2br(htmlspecialchars($ann['message'])) ?></p>
+                                <small class="text-secondary">
+                                    <i class="bi bi-clock me-1"></i>
+                                    <?= date("d M Y, h:i A", strtotime($ann['created_at'])) ?>
+                                </small>
+                            </div>
+                        <?php endforeach; ?>
                     <?php else: ?>
-                        <div class="alert alert-light text-center py-5 border-0 shadow-sm">
-                            <i class="bi bi-journal-x display-4 text-muted opacity-50"></i>
-                            <p class="mt-3 fw-medium">No subjects enrolled yet</p>
-                            <small class="text-muted">Explore courses to begin your learning journey</small>
+                        <div class="text-center py-4">
+                            <i class="bi bi-info-circle display-5 text-muted mb-3"></i>
+                            <p class="text-muted fw-medium mb-0">No new announcements at this time.</p>
                         </div>
                     <?php endif; ?>
-                </section>
+                </div>
+            </section>
 
-                <!-- Announcements -->
-                <section class="mb-5">
+                <!-- Study Materials -->
+                <!-- <section class="mb-5">
                     <h4 class="section-title">
-                        <i class="bi bi-bell-fill me-2"></i> Announcements
-                        <?php if ($notif_count > 0): ?>
-                            <span class="notif-badge"><?= $notif_count ?></span>
-                        <?php endif; ?>
-                    </h4>
+                        <i class="bi bi-folder2-open me-2"></i>
+                     Recent Study Materials</h4>
 
-                    <div class="card border-0 shadow-sm p-4">
-
-                        <?php if (!empty($announcements)): ?>
-
-                            <?php foreach ($announcements as $ann): ?>
-
-                                <div class="border-bottom pb-3 mb-3">
-
-                                    <h6 class="fw-bold mb-1 text-primary">
-                                        <?= htmlspecialchars($ann['title']) ?>
-                                    </h6>
-
-                                    <p class="mb-1 text-muted small">
-                                        <?= nl2br(htmlspecialchars($ann['message'])) ?>
-                                    </p>
-
-                                    <small class="text-secondary">
-                                        <i class="bi bi-clock me-1"></i>
-                                        <?= date("d M Y, h:i A", strtotime($ann['created_at'])) ?>
-                                    </small>
-
-                                </div>
-
-                            <?php endforeach; ?>
-
-                        <?php else: ?>
-
-                            <div class="text-center py-4">
-                                <i class="bi bi-info-circle display-5 text-muted mb-3"></i>
-                                <p class="text-muted fw-medium mb-0">
-                                    No new announcements at this time.
-                                </p>
-                            </div>
-
-                        <?php endif; ?>
-
-                    </div>
-                </section>
-
-                            <!-- Study Materials -->
-                <section class="mb-5">
-                    <h4 class="section-title"><i class="bi bi-folder2-open me-2"></i> Recent Study Materials</h4>
                     <?php
                   
                     $pdf_folder = "../courses_meterial/";
@@ -715,15 +1011,14 @@ if ($res_pay) {
                                 $url = '';
                                 if ($path) {
                                     $url = preg_match('#^https?://#i', $path)
-                                         ? $path                                              // already a full URL
-                                         : rtrim($pdf_folder, '/') . '/' . ltrim($path, '/'); // folder + stored path
+                                         ? $path                                              
+                                         : rtrim($pdf_folder, '/') . '/' . ltrim($path, '/'); 
                                 }
 
-                                // Does the PDF actually exist on the server?
                                 $pdf_available = false;
                                 if ($url) {
                                     if (preg_match('#^https?://#i', $url)) {
-                                        $pdf_available = true;                                  // remote URL – assume ok
+                                        $pdf_available = true;                                 
                                     } else {
                                         $pdf_available = file_exists(__DIR__ . '/' . ltrim($url, '/'));
                                     }
@@ -771,239 +1066,208 @@ if ($res_pay) {
                             <small class="text-muted">Materials will appear after course enrollment</small>
                         </div>
                     <?php endif; ?>
-                </section>
-                <!-- Progress & History -->
-                <section class="mb-5">
-                    <h4 class="section-title"><i class="bi bi-graph-up-arrow me-2"></i> Learning Progress</h4>
-                    <div class="card border-0 shadow-sm text-center py-5">
-                        <i class="bi bi-graph-up-arrow display-1 text-muted opacity-50"></i>
-                        <p class="mt-3 text-muted fw-medium">Your progress will appear after completing assessments</p>
+                </section> -->
+
+            <footer>
+                © <?= date('Y') ?> Achiever's Castle • All Rights Reserved
+            </footer>
+
+        </main>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<!-- <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <form action="update_profile.php" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Edit Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">First Name</label>
+                        <input type="text" name="first_name" class="form-control"
+                            value="<?= htmlspecialchars($student['first_name'] ?? '') ?>" readonly>
                     </div>
-                </section>
-
-                <section class="mb-5">
-
-                    <h4 class="section-title mb-3">
-                        <i class="bi bi-receipt me-2"></i> Purchase History
-                    </h4>
-
-
-                    <!-- ================= SUMMARY CARDS ================= -->
-
-                    <?php
-                    $total_spent = 0;
-                    $success_count = 0;
-                    $last_date = null;
-
-                    foreach ($purchases as $p) {
-                        $total_spent += $p['total'];
-                        $success_count++;
-
-                        if (!$last_date || strtotime($p['created_at']) > strtotime($last_date)) {
-                            $last_date = $p['created_at'];
-                        }
-                    }
-                    ?>
-
-                    <div class="row g-3 mb-4">
-
-                        <div class="col-md-4">
-                            <div class="p-4 rounded-4 shadow-sm text-white"
-                                style="background:linear-gradient(135deg,#4f46e5,#3b82f6);">
-                                <small>Total Spent</small>
-                                <h3 class="fw-bold">₹<?= number_format($total_spent, 2) ?></h3>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="p-4 rounded-4 shadow-sm text-white"
-                                style="background:linear-gradient(135deg,#16a34a,#22c55e);">
-                                <small>Successful Payments</small>
-                                <h3 class="fw-bold"><?= $success_count ?></h3>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="p-4 rounded-4 shadow-sm text-white"
-                                style="background:linear-gradient(135deg,#f97316,#fb923c);">
-                                <small>Last Purchase</small>
-                                <h3 class="fw-bold">
-                                    <?= $last_date ? date("d M Y", strtotime($last_date)) : '--' ?>
-                                </h3>
-                            </div>
-                        </div>
-
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Last Name</label>
+                        <input type="text" name="last_name" class="form-control"
+                            value="<?= htmlspecialchars($student['last_name'] ?? '') ?>" readonly>
                     </div>
-
-
-                    <!-- ================= GRAPH ================= -->
-
-                    <div class="card border-0 shadow-sm rounded-4 mb-4">
-                        <div class="card-body">
-
-                            <h6 class="fw-bold text-primary mb-3">
-                                <i class="bi bi-graph-up-arrow me-2"></i> Spending Overview
-                            </h6>
-
-                            <!-- responsive wrapper -->
-                            <div class="chart-container">
-                                <canvas id="purchaseChart"></canvas>
-                            </div>
-
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Phone</label>
+                        <input type="tel" name="phone" class="form-control"
+                            value="<?= htmlspecialchars($student['phone'] ?? '') ?>">
                     </div>
-
-
-                    <!-- ================= TABLE ================= -->
-
-                    <div class="card border-0 shadow-sm rounded-4">
-
-                        <div class="card-body p-0">
-
-                            <!-- Responsive wrapper -->
-                            <div class="table-responsive">
-
-                                <table class="table table-hover align-middle mb-0">
-
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="text-nowrap">Course</th>
-                                            <th class="text-nowrap">Total</th>
-                                            <th class="text-nowrap">Status</th>
-                                            <th class="text-nowrap">Mode</th>
-                                            <th class="text-nowrap">Date</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-
-                                        <?php if (!empty($purchases)): ?>
-
-                                            <?php foreach ($purchases as $row): ?>
-
-                                                <tr>
-
-                                                    <td class="text-nowrap">
-                                                        <?= htmlspecialchars($row['course_title']) ?>
-                                                    </td>
-
-                                                    <td class="fw-bold text-success text-nowrap">
-                                                        ₹<?= number_format($row['total'], 2) ?>
-                                                    </td>
-
-                                                    <td class="text-nowrap">
-                                                        <span class="badge rounded-pill bg-success px-3 py-2">
-                                                            <i class="bi bi-check-circle me-1"></i> Success
-                                                        </span>
-                                                    </td>
-
-                                                    <td class="text-nowrap">
-                                                        <?= ucfirst($row['mode_of_education']) ?>
-                                                    </td>
-
-                                                    <td class="text-nowrap">
-                                                        <?= date("d M Y", strtotime($row['created_at'])) ?>
-                                                    </td>
-
-                                                </tr>
-
-                                            <?php endforeach; ?>
-
-                                        <?php else: ?>
-
-                                            <tr>
-                                                <td colspan="5" class="text-center py-4 text-muted">
-                                                    No purchase history found
-                                                </td>
-                                            </tr>
-
-                                        <?php endif; ?>
-
-                                    </tbody>
-
-                                </table>
-
-                            </div>
-
-                        </div>
-
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Date of Birth</label>
+                        <input type="date" name="dob" class="form-control"
+                            value="<?= $dob_input_value ?>"readonly>
                     </div>
-
-                </section>
-                <footer>
-                    © <?= date('Y') ?> Achiever's Castle • All Rights Reserved
-                </footer>
-
-            </main>
+                    <div class="mb-1">
+                        <label class="form-label fw-semibold">Address</label>
+                        <input type="text" name="address" class="form-control"
+                            placeholder="City, State, Country"
+                            value="<?= htmlspecialchars($student['address'] ?? '') ?>">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</div> -->
 
-    <script>
-        const sidebar = document.getElementById('studentSidebar');
+<!-- View Profile Modal -->
+<div class="modal fade" id="viewProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-vcard me-2 text-primary"></i>My Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <?php if ($enroll_info): ?>
+                <div class="row g-3">
 
-        document.getElementById('sidebarToggle')?.addEventListener('click', () => {
-            sidebar.classList.toggle('show');
-        });
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Grade</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['grade'] ?? '—') ?></p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Program</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['program'] ?? '—') ?></p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Subjects</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['specific_subject'] ?? '—') ?></p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Mode of Education</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['mode_of_education'] ?? '—') ?></p>
+                    </div>
 
-        // For purchase chart
-        const ctx = document.getElementById('purchaseChart');
+                    <div class="col-12"><hr class="my-1"></div>
 
-        let labels = <?= json_encode(array_column($purchases, 'course_title')) ?>;
-        let data = <?= json_encode(array_column($purchases, 'total')) ?>;
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Guardian Name</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['guardian_name'] ?? '—') ?> 
+                            <span class="text-muted small">(<?= htmlspecialchars($enroll_info['authorized_relation'] ?? '—') ?>)</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Guardian Contact</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['guardian_phone'] ?? '—') ?> · <?= htmlspecialchars($enroll_info['guardian_email'] ?? '—') ?></p>
+                    </div>
 
-        // TEST PURPOSE: agar sirf 1 record ho
-        if (labels.length === 1) {
-            labels.unshift("Previous");
-            data.unshift(0);
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Father's Name</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['father_name'] ?? '—') ?></p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Father's Contact</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['father_phone'] ?? '—') ?> · <?= htmlspecialchars($enroll_info['father_email'] ?? '—') ?></p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Mother's Name</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['mother_name'] ?? '—') ?></p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Mother's Contact</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['mother_phone'] ?? '—') ?> · <?= htmlspecialchars($enroll_info['mother_email'] ?? '—') ?></p>
+                    </div>
+
+                    <div class="col-12"><hr class="my-1"></div>
+
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Emergency Contact</small>
+                        <p class="fw-semibold mb-0"><?= htmlspecialchars($enroll_info['emergency_name'] ?? '—') ?> · <?= htmlspecialchars($enroll_info['emergency_phone'] ?? '—') ?></p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Enrollment Date</small>
+                        <p class="fw-semibold mb-0">
+                            <?= !empty($enroll_info['enroll_date']) ? date('d M Y', strtotime($enroll_info['enroll_date'])) : '—' ?>
+                        </p>
+                    </div>
+
+                </div>
+                <?php else: ?>
+                    <div class="text-center py-4">
+                        <i class="bi bi-info-circle display-5 text-muted mb-3"></i>
+                        <p class="text-muted fw-medium mb-0">No enrollment details found.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <form action="change_password.php" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Change Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" class="form-control" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-control" name="new_password" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" name="confirm_password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-light" data-bs-dismiss="modal" type="button">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Sidebar toggle (mobile)
+    document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+        document.getElementById('studentSidebar')?.classList.toggle('show');
+    });
+
+    // Auto-submit the photo form as soon as a file is chosen
+    document.getElementById('profilePhotoInput')?.addEventListener('change', function () {
+        if (this.files.length > 0) {
+            this.form.submit();
         }
+    });
 
-        new Chart(ctx, {
-            type: 'line',
-
-            data: {
-                labels: labels,
-
-                datasets: [{
-                    label: 'Amount (₹)',
-                    data: data,
-
-                    borderColor: '#4f46e5',
-                    backgroundColor: 'rgba(79,70,229,0.15)',
-
-                    borderWidth: 3,
-                    tension: 0.45,
-                    fill: true,
-
-                    pointRadius: 0,
-                    pointHoverRadius: 5
-                }]
-            },
-
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
+    // Activate correct tab based on URL hash (#security)
+    document.addEventListener('DOMContentLoaded', function () {
+        const hash = window.location.hash;
+        if (hash) {
+            const tabTrigger = document.querySelector(`[data-bs-target="${hash}"]`);
+            if (tabTrigger) {
+                new bootstrap.Tab(tabTrigger).show();
             }
-        });
-    </script>
+        }
+    });
+</script>
 </body>
 
 </html>

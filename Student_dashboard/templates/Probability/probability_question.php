@@ -18,9 +18,68 @@ $treeUrl = $makeUrl($treeImage);
 $optBadge = fn($val) => preg_match('/^[A-D]$/', (string)$val) ? '<span class="opt-badge">'.$val.'</span>' : '';
 ?>
 <style>
-.probability-wrap { margin: 20px 0; padding: 0 15px; font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 900px; }
+.probability-wrap { margin: 20px 0; padding: 0 15px; font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 100%; }
 .prob-title { font-weight: 600; font-size: 18px; margin: 0 0 16px; color: #1a1a1a; }
-.prob-img { display: block; max-width: 100%; margin: 0 auto 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.prob-img { display: block; max-width: 100%; margin: 0 auto 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;}
+    /* --- Patterning card layout --- */
+.pat-card {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    width: 100%;          /* full width */
+    margin: 0 0 18px;     /* was: 0 auto 18px  → no more centering cap */
+    padding: 24px 28px;
+    background: #fff;
+    border: 1px solid #e8e8ef;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(20,20,50,.06);
+}
+.pat-media {
+    position: relative;
+    flex: 0 0 auto;
+    padding: 14px 16px;
+    background: #f7f8fc;
+    border: 1px solid #eceef5;
+    border-radius: 12px;
+}
+.pat-num {
+    position: absolute;
+    top: -13px; left: -13px;
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    background: #1565d8; color: #fff;
+    font-weight: 700; font-size: 15px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(21,101,216,.4);
+}
+.pat-img { display: block; max-width: 210px; height: auto; }
+.pat-body { flex: 1 1 auto; min-width: 0; }
+.pat-q { font-weight: 700; font-size: 17px; color: #1a1a2e; margin-bottom: 12px; }
+.pat-opts { display: flex; flex-direction: column; gap: 10px; }
+.pat-opt {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border: 1.5px solid #e3e5ee;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px; color: #2a2a3a;
+    transition: border-color .15s, background .15s;
+}
+.pat-opt:hover { border-color: #b9c6ff; background: #f5f8ff; }
+.pat-opt input { accent-color: #1565d8; transform: scale(1.15); }
+.pat-opt:has(input:checked) {
+    border-color: #1565d8;
+    background: #eef4ff;
+    box-shadow: inset 0 0 0 1px #1565d8;
+}
+@media (max-width: 640px) {
+    .pat-card { flex-direction: column; align-items: stretch; gap: 18px; }
+    .pat-media { align-self: flex-start; }
+    .pat-img { max-width: 100%; }
+}
 .prob-instruction { font-weight: 500; color: #d32f2f; margin-bottom: 8px; }
 .prob-outcome-label { font-weight: 600; margin: 12px 0 6px; color: #1976d2; }
 .prob-fill { display: inline-block; border-bottom: 2px solid #1976d2; width: 120px; margin: 0 6px; font-family: monospace; text-align: center; padding: 4px 0; }
@@ -145,34 +204,42 @@ $optBadge = fn($val) => preg_match('/^[A-D]$/', (string)$val) ? '<span class="op
         });
         </script>
 
-    <?php elseif ($renderType === 'Patterning'): ?>
-        <?php if ($imgUrl): ?>
-            <div style="text-align:center; margin: 20px 0;">
-                <img src="<?= $h($imgUrl) ?>" alt="Pattern" class="prob-img" loading="lazy">
-            </div>
-        <?php endif; ?>
-        <div class="prob-mc-grid">
-            <?php foreach ($items as $idx => $item):
-                $part = $item['part'] ?? ('q'.($idx+1));
-                $label = $item['label'] ?? '';
-                $options = $item['options'] ?? [];
-                if (!$part) continue;
-            ?>
-                <div>
-                    <?php if ($label): ?><strong><?= $h($label) ?></strong><?php endif; ?>
-                    <div class="prob-options" style="flex-direction:column; gap:12px; margin-top:8px;">
+        <?php elseif ($renderType === 'Patterning'): ?>
+        <?php foreach ($items as $idx => $item):
+            $part    = $item['part'] ?? ('q'.($idx+1));
+            $label   = $item['label'] ?? '';
+            $options = $item['options'] ?? [];
+            if (!$part) continue;
+            $num = preg_replace('/\D+/', '', (string)$part);   // q1 -> 1
+            if ($num === '') { $num = (string)($idx + 1); }
+        ?>
+            <div class="pat-card">
+                <div class="pat-media">
+                    <span class="pat-num"><?= $h($num) ?></span>
+                    <?php if ($imgUrl): ?>
+                        <img src="<?= $h($imgUrl) ?>" alt="Pattern <?= $h($num) ?>"
+                             class="pat-img" loading="lazy">
+                    <?php endif; ?>
+                </div>
+                <div class="pat-body">
+                    <?php if ($label): ?><div class="pat-q"><?= $h($label) ?></div><?php endif; ?>
+                    <div class="pat-opts">
                         <?php foreach ($options as $opt):
-                            $val = $opt['value'] ?? '';
+                            $val  = $opt['value'] ?? '';
                             $text = $opt['text'] ?? $val;
                         ?>
-                            <label class="prob-option" style="align-items:flex-start;">
-                                <input type="radio" name="answer[<?= $real_question_id ?>_<?= $h($part) ?>]" value="<?= $h($val) ?>">
-                                <?= $optBadge($val) ?><?= $h($text) ?>
+                            <label class="pat-opt">
+                                <input type="radio"
+                                       name="answer[<?= $real_question_id ?>_<?= $h($part) ?>]"
+                                       value="<?= $h($val) ?>">
+                                <?= $optBadge($val) ?>
+                                <span><?= $h($text) ?></span>
                             </label>
                         <?php endforeach; ?>
                     </div>
                 </div>
-            <?php endforeach; ?>
+            </div>
+        <?php endforeach; ?>
         </div>
 
     <?php elseif ($renderType === 'probability_multiple_ch'): ?>

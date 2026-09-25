@@ -14,14 +14,16 @@ include '../db_config.php';
 $teacher_id = (int)$_SESSION['teacher_id'];
 
 $sql = "
-SELECT COUNT(*) total
+SELECT COUNT(*) AS total
 FROM teacher_subjects
-WHERE teacher_id = $teacher_id
+WHERE teacher_id = ?
 ";
 
-$result = mysqli_query($conn,$sql);
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $teacher_id);
+$stmt->execute();
 
-$row = mysqli_fetch_assoc($result);
+$row = $stmt->get_result()->fetch_assoc();
 
 echo json_encode([
     "success"=>true,

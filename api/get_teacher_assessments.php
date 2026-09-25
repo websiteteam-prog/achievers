@@ -11,14 +11,17 @@ include '../db_config.php';
 
 $teacher_id=(int)$_SESSION['teacher_id'];
 
-$sql="
-SELECT COUNT(*) total
+$sql = "
+SELECT COUNT(*) AS total
 FROM assessments
-WHERE teacher_id=$teacher_id
+WHERE teacher_id = ?
 ";
 
-$result=mysqli_query($conn,$sql);
-$row=mysqli_fetch_assoc($result);
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $teacher_id);
+$stmt->execute();
+
+$row = $stmt->get_result()->fetch_assoc();
 
 echo json_encode([
     "success"=>true,

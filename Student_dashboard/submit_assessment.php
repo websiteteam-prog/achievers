@@ -56,14 +56,20 @@ try {
         ");
         
         foreach ($student_answers as $qid => $ans) {
-            $qid = (int)$qid;
-            $ans = trim($ans);
-            if ($ans !== '') {
-                $ins->bind_param("iiis", $student_id, $ass_id, $qid, $ans);
-                $ins->execute();
-            }
+    $qid = (int)$qid;
+
+    // Handle cases where answer is submitted as an array (multi-part answers)
+    if (is_array($ans)) {
+        $ans = implode(',', array_map('trim', $ans));
+    } else {
+        $ans = trim($ans);
+    }
+
+    if ($ans !== '') {
+        $ins->bind_param("iiis", $student_id, $ass_id, $qid, $ans);
+        $ins->execute();
+    }
         }
-        $ins->close();
     }
 
     // 4. Fetch correct answers — YE PAKKA CHALEGA AB
@@ -95,7 +101,7 @@ try {
     foreach ($student_answers as $qid => $ans) {
         if (!isset($correct[$qid])) continue;
 
-        $stu = trim($ans);
+        $stu = is_array($ans) ? implode(',', array_map('trim', $ans)) : trim($ans);
         $cor = $correct[$qid];
 
         $stu_norm = preg_replace('/\s+/', '', $stu);
@@ -136,7 +142,6 @@ try {
 $conn->autocommit(true);
 ?>
 
-<!-- HTML SUCCESS PAGE (same as before) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -144,100 +149,120 @@ $conn->autocommit(true);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submitted Successfully!</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-      html,body{
-        overflow-x:hidden;
-        margin:0;
-    }
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e3a8a;
+            --accent: #ef4444;
+            --light-bg: #f5f7fb;
+            --gray: #6b7280;
+            --shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
 
-body{
-    background:linear-gradient(160deg, #1e3a8a, #2563eb);
-    font-family:'Segoe UI',sans-serif;
-}
+        * { box-sizing: border-box; }
 
-.main-content{
-    margin-left:260px;
-    padding:40px;
-    max-width:calc(100% - 260px);
-}
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
 
-.card{
-    max-width:500px;
-    margin:auto;
-    border-radius:30px;
-    overflow:hidden;
-    box-shadow:0 20px 60px rgba(0,0,0,0.3);
-}
+        body {
+            background: var(--light-bg);
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+        }
 
-.header{
-    background: linear-gradient(45deg,#11998e,#38ef7d);
-    padding:40px 0;
-    text-align:center;
-    color:white;
-}
+        .main-content {
+            margin-left: 260px;
+            padding: 40px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-.header i{
-    font-size:5.5rem;
-    animation: beat 1.5s infinite;
-}
+        .card {
+            max-width: 480px;
+            width: 100%;
+            margin: auto;
+            border-radius: 22px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .08);
+            background: #fff;
+        }
 
-.score{
-    font-size:2rem;
-    font-weight:bold;
-    color:#fff;
-}
+        .header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            padding: 45px 20px;
+            text-align: center;
+            color: white;
+        }
 
-@keyframes bounce{
-    0%,100%{transform:translateY(0)}
-    50%{transform:translateY(-20px)}
-}
+        .header i {
+            font-size: 4rem;
+        }
 
-.body{
-    background:white;
-    padding:40px;
-    text-align:center;
-}
+        .header h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin: 16px 0 0;
+        }
 
-.btn-home{
-    background:linear-gradient(45deg,#667eea,#764ba2);
-    color:white;
-    padding:15px 40px;
-    font-size:1.2rem;
-    border-radius:50px;
-    text-decoration:none;
-}
+        .score {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 10px;
+        }
 
-.btn-home:hover{
-    transform:translateY(-5px);
-    box-shadow:0 15px 30px rgba(102,126,234,0.4);
-    color:white;
-}
+        .card-body {
+            padding: 36px;
+            text-align: center;
+        }
 
-@media(max-width:768px){
-    .main-content{
-        margin-left:0;
-        max-width:100%;
-    }
-}
+        .btn-home {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            padding: 13px 34px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            display: inline-block;
+            transition: .25s;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(30, 60, 114, .32);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 24px;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="container main-content">
-    <div class="card mt-4">
+<div class="main-content">
+    <div class="card">
 
         <div class="header">
-            <i class="fas fa-check-circle"></i>
-            <h1 class="mt-3">Submitted Successfully!</h1>
+            <i class="bi bi-check-circle-fill"></i>
+            <h1>Submitted Successfully!</h1>
             <div class="score">Your Score: <?= $score ?> / <?= $total_questions ?></div>
         </div>
 
-        <div class="body">
-            <h3>Well Done!</h3>
-            <p>Your assessment has been graded instantly.</p>
-
+        <div class="card-body">
             <a href="student_dashboard.php" class="btn-home">
-                <i class="fas fa-home"></i> Back to Dashboard
+                <i class="bi bi-house-door-fill me-1"></i> Back to Dashboard
             </a>
         </div>
 

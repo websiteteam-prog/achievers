@@ -138,7 +138,15 @@ if($extra_type === "one_time" || $extra_type === "permanent"){
 if($price < 0){
     $price = 0;
 }
-
+/* CANCEL ANY OTHER UNPAID (Pending) INVOICE OF CURRENT MONTH
+   — ye upgrade ne supersede kar di, isliye cancel */
+mysqli_query($conn,"
+UPDATE invoices 
+SET status='Cancelled'
+WHERE student_id='$student_id'
+  AND status='Pending'
+  AND DATE_FORMAT(invoice_date,'%Y-%m') = DATE_FORMAT(CURDATE(),'%Y-%m')
+");
 /* INSERT NEW PLAN */
 mysqli_query($conn,"
 INSERT INTO student_plan_history

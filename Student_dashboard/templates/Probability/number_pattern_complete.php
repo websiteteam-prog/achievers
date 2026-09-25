@@ -95,7 +95,7 @@ $imgUrl = $makeUrl($questionImage);
     <!-- 1. number_pattern_complete -->
     <?php if ($renderType === 'number_pattern_complete'): ?>
         <input type="hidden" name="answer[<?= $real_question_id ?>]" value="{}" id="pattern-hidden-<?= $real_question_id ?>">
-        <div class="pattern-grid">
+        <div class="pattern-grid" id="pattern-grid-<?= $real_question_id ?>">
             <?php foreach ($items as $idx => $item):
                 $part = $item['part'] ?? ('q' . ($idx + 1));
                 $sequence = $item['sequence'] ?? [];
@@ -133,36 +133,46 @@ $imgUrl = $makeUrl($questionImage);
                 </div>
             <?php endforeach; ?>
         </div>
-        <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const hidden = document.getElementById('pattern-hidden-<?= $real_question_id ?>');
-            function updateAnswer() {
-                const answer = {};
-                document.querySelectorAll('.pattern-item').forEach(item => {
-                    const part = item.dataset.part;
-                    const nums = [];
-                    item.querySelectorAll('.pattern-num-input').forEach(input => {
-                        nums.push(input.value.trim());
-                    });
-                    const typeSel = item.querySelector('.pattern-type-select');
-                    answer[part] = {
-                        numbers: nums,
-                        type: typeSel ? typeSel.value : ''
-                    };
-                });
-                hidden.value = JSON.stringify(answer);
-            }
-            document.querySelectorAll('.pattern-num-input, .pattern-type-select').forEach(el => {
-                el.addEventListener('input', updateAnswer);
-                el.addEventListener('change', updateAnswer);
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const grid   = document.getElementById('pattern-grid-<?= $real_question_id ?>');
+    const hidden = document.getElementById('pattern-hidden-<?= $real_question_id ?>');
+    if (!grid || !hidden) return;
+
+    function updateAnswer() {
+        const answer = {};
+        let hasAny = false;
+
+        grid.querySelectorAll('.pattern-item').forEach(item => {
+            const part = item.dataset.part;
+            const nums = [];
+            item.querySelectorAll('.pattern-num-input').forEach(input => {
+                const v = input.value.trim();
+                nums.push(v);
+                if (v !== '') hasAny = true;
             });
-            updateAnswer();
+            const typeSel = item.querySelector('.pattern-type-select');
+            const typeVal = typeSel ? typeSel.value : '';
+            if (typeVal !== '') hasAny = true;
+
+            answer[part] = { numbers: nums, type: typeVal };
         });
-        </script>
+
+        hidden.value = hasAny ? JSON.stringify(answer) : '';   // ✅ blank = not attempted
+    }
+
+    grid.querySelectorAll('.pattern-num-input, .pattern-type-select').forEach(el => {
+        el.addEventListener('input', updateAnswer);
+        el.addEventListener('change', updateAnswer);
+    });
+
+    updateAnswer();
+});
+</script>
 
     <!-- 2. pattern_rule_mcq -->
     <?php elseif ($renderType === 'pattern_rule_mcq'): ?>
-        <input type="hidden" name="answer[<?= $real_question_id ?>]" value="" id="rule-mcq-hidden-<?= $real_question_id ?>">
+       <input type="hidden" name="answer[<?= $real_question_id ?>]" value="" id="pattern-hidden-<?= $real_question_id ?>">
         <?php if ($instruction): ?>
             <div style="font-weight:600; color:#d32f2f; text-align:center; font-size:18px; margin:30px 0;">
                 <?= $h($instruction) ?>
@@ -212,6 +222,7 @@ $imgUrl = $makeUrl($questionImage);
         </script>
 
     <!-- 3. pattern_extend_rule (UPDATED & FIXED) -->
+       <!-- 3. FIXED pattern_extend_rule (Scoped to current question) -->
     <?php elseif ($renderType === 'pattern_extend_rule'): ?>
         <input type="hidden" name="answer[<?= $real_question_id ?>]" value="{}" id="extend-hidden-<?= $real_question_id ?>">
         

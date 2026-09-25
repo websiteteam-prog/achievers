@@ -23,95 +23,295 @@ while ($row = $result->fetch_assoc()) {
     $grades[] = $row['grade'];
 }
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Assign Chapters</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
   <style>
-    body { background: #f4f6fb; font-family: 'Segoe UI', Arial, sans-serif; }
-    .assign-card {
-        max-width: 560px;
-        margin: 40px auto;
-        background: #fff;
-        border-radius: 18px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        overflow: hidden;
+    .students-container{
+        padding:5px;
     }
-    .assign-header {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: #fff;
-        padding: 24px 28px;
+
+    .students-header{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:25px;
+        flex-wrap:wrap;
+        gap:15px;
     }
-    .assign-header h3 { margin: 0; font-weight: 600; }
-    .assign-body { padding: 28px; }
-    .assign-body label { font-weight: 600; font-size: 14px; color: #374151; margin-bottom: 6px; }
-    .form-select, .form-control { border-radius: 10px; padding: 10px 14px; }
-    .btn-assign {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        border: none;
-        border-radius: 10px;
-        padding: 10px 0;
-        width: 100%;
-        font-weight: 600;
-        color: #fff;
+
+    .header-left{
+        display:flex;
+        align-items:center;
+        gap:15px;
     }
-    .btn-assign:hover { opacity: 0.9; color: #fff; }
-    .hint { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+
+    .header-icon{
+        width:55px;
+        height:55px;
+        border-radius:16px;
+        background:linear-gradient(135deg,#1e3c72,#2a5298);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#fff;
+        font-size:24px;
+        box-shadow:0 8px 20px rgba(30,60,114,.25);
+    }
+
+    .header-title{
+        margin:0;
+        font-size:24px;
+        font-weight:700;
+        color:#1e3c72;
+        letter-spacing:.2px;
+    }
+
+    .header-subtitle{
+        margin:0;
+        font-size:14px;
+        color:#6b7280;
+    }
+
+    .header-right{
+        display:flex;
+        align-items:center;
+        gap:12px;
+        flex-wrap:wrap;
+    }
+
+    .subject-badge{
+        background:linear-gradient(135deg,#1e3c72,#2a5298);
+        color:#fff;
+        padding:8px 18px;
+        border-radius:40px;
+        font-weight:600;
+        font-size:13px;
+        box-shadow:0 5px 15px rgba(0,0,0,.12);
+    }
+
+    .card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(17,24,39,.08);
+    animation:fadeInUp .4s ease;
+    }
+
+    @keyframes fadeInUp{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+    }
+
+    .form-card{
+        padding:28px;
+    }
+
+    .form-card label{
+        font-weight:600;
+        font-size:13.5px;
+        color:#374151;
+        margin-bottom:6px;
+    }
+
+    .form-card .form-select,
+    .form-card .form-control{
+        border-radius:10px;
+        border:1px solid #e2e8f0;
+        padding:10px 14px;
+        font-size:14.5px;
+    }
+
+    .form-card .form-select:focus,
+    .form-card .form-control:focus{
+        border-color:#2a5298;
+        box-shadow:0 0 0 .2rem rgba(42,82,152,.15);
+    }
+
+    .btn-submit-suggestion{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      background:linear-gradient(135deg,#1e3c72,#2a5298);
+      color:#fff;
+      border:none;
+      padding:11px 26px;
+      border-radius:40px;
+      font-weight:600;
+      font-size:14px;
+      transition:.25s ease;
+  }
+
+    .btn-submit-suggestion:hover{
+        transform:translateY(-2px);
+        box-shadow:0 12px 26px rgba(30,60,114,.32);
+        color:#fff;
+    }
+
+    .hint{
+        font-size:12px;
+        color:#9ca3af;
+        margin-top:4px;
+    }
+
+    @media(max-width:768px){
+
+    .students-header{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .header-right{
+        width:100%;
+        justify-content:space-between;
+    }
+
+    .header-title{
+        font-size:22px;
+    }
+
+    }
   </style>
-</head>
-<body>
 
-<div class="assign-card">
-  <div class="assign-header">
-    <h3><i class="bi bi-journal-bookmark-fill me-2"></i>Assign Chapter</h3>
-  </div>
 
-  <div class="assign-body">
-    <form action="assign_chapter_submit.php" method="POST" id="assignForm">
+<div class="students-container">
 
-      <div class="mb-3">
-        <label>Grade</label>
-        <select id="grade" class="form-select" required>
-          <option value="">-- Select Grade --</option>
-          <?php foreach ($grades as $g): ?>
-            <option value="<?= htmlspecialchars($g) ?>">Grade <?= htmlspecialchars($g) ?></option>
-          <?php endforeach; ?>
-        </select>
-        <?php if (empty($grades)): ?>
-          <div class="hint text-danger">No subjects/grades are linked to your account yet.</div>
-        <?php endif; ?>
-      </div>
+    <div class="students-header">
 
-      <div class="mb-3">
-        <label>Subject</label>
-        <select id="subject_id" name="subject_id" class="form-select" required disabled>
-          <option value="">-- Select Grade First --</option>
-        </select>
-      </div>
+        <div class="header-left">
 
-      <div class="mb-3">
-        <label>Select Student</label>
-        <select name="student_id" id="studentSelect" class="form-select" required disabled>
-          <option value="">-- Select Subject First --</option>
-        </select>
-      </div>
+            <div class="header-icon">
+                  <i class="bi bi-book"></i>
+            </div>
 
-      <div class="mb-3">
-        <label>Select Chapter</label>
-        <select name="chapter_title" id="chapterSelect" class="form-select" required disabled>
-          <option value="">-- Select Subject First --</option>
-        </select>
-        <div class="hint">Only chapters already created for this subject are listed.</div>
-      </div>
+            <div>
+                <h2 class="header-title">Assign Chapter</h2>
+                <p class="header-subtitle">
+                    Assign chapters to students based on grade and subject
+                </p>
+            </div>
 
-      <button type="submit" class="btn-assign mt-2">
-        <i class="bi bi-check2-circle me-1"></i> Assign Chapter
-      </button>
-    </form>
-  </div>
+        </div>
+
+        <div class="header-right">
+
+            <span class="subject-badge">
+              <i class="bi bi-journal-bookmark-fill me-1"></i>
+            Grades : <?= count($grades) ?>
+          </span>
+
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <div class="form-card">
+
+            <form action="assign_chapter_submit.php" method="POST" id="assignForm">
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label>Grade</label>
+                        <select id="grade" class="form-select" required>
+                            <option value="">-- Select Grade --</option>
+
+                            <?php foreach ($grades as $g): ?>
+
+                                <option value="<?= htmlspecialchars($g) ?>">
+                                    Grade <?= htmlspecialchars($g) ?>
+                                </option>
+
+                            <?php endforeach; ?>
+
+                        </select>
+
+                        <?php if (empty($grades)): ?>
+
+                            <div class="hint text-danger">
+                                No subjects/grades are linked to your account yet.
+                            </div>
+
+                        <?php endif; ?>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>Subject</label>
+
+                        <select
+                            id="subject_id"
+                            name="subject_id"
+                            class="form-select"
+                            required
+                            disabled>
+
+                            <option value="">-- Select Grade First --</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>Select Student</label>
+
+                        <select
+                            name="student_id"
+                            id="studentSelect"
+                            class="form-select"
+                            required
+                            disabled>
+
+                            <option value="">-- Select Subject First --</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label>Select Chapter</label>
+
+                        <select
+                            name="chapter_title"
+                            id="chapterSelect"
+                            class="form-select"
+                            required
+                            disabled>
+
+                            <option value="">-- Select Subject First --</option>
+
+                        </select>
+
+                        <div class="hint">
+                            Only chapters already created for this subject are listed.
+                        </div>
+
+                    </div>
+
+                </div>
+              <div class="row mt-4">
+              <div class="col-12">
+
+                  <button type="submit" class="btn-submit-suggestion">
+                      <i class="bi bi-send-fill"></i>
+                      Assign Chapter
+                  </button>
+
+              </div>
+          </div>
+            </form>
+
+        </div>
+
+    </div>
+
 </div>
 
 <script>
@@ -158,6 +358,3 @@ $(document).ready(function () {
     }
 });
 </script>
-
-</body>
-</html>

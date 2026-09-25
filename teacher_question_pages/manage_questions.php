@@ -123,7 +123,8 @@ SELECT
     i.instruction,
     t.title AS topic,
     c.chapter_name,
-    s.subject_name
+    s.subject_name,
+    s.grade
 
 FROM quiz_questions q
 
@@ -149,6 +150,8 @@ $stmt->execute();
 
 $result = $stmt->get_result();
 
+$total_questions = $result->num_rows;
+
 ?>
 
 
@@ -160,206 +163,361 @@ rel="stylesheet"
 
 <style>
 
-.page-container
-{
-    padding:10px;
+.questions-container{
+padding:5px;
 }
 
-.page-header
-{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-bottom:20px;
+.questions-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+flex-wrap:wrap;
+gap:15px;
 }
 
-.page-title
-{
-    font-size:22px;
-    font-weight:600;
+.header-left{
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.header-icon{
+width:55px;
+height:55px;
+border-radius:16px;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+display:flex;
+align-items:center;
+justify-content:center;
+color:#fff;
+font-size:24px;
+box-shadow:0 8px 20px rgba(30,60,114,.25);
+}
+
+.header-title{
+margin:0;
+font-size:24px;
+font-weight:700;
+color:#1e3c72;
+letter-spacing:.2px;
+}
+
+.header-subtitle{
+margin:0;
+font-size:14px;
+color:#6b7280;
+}
+
+.header-right{
+display:flex;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.subject-badge{
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+color:#fff;
+padding:8px 18px;
+border-radius:40px;
+font-weight:600;
+font-size:13px;
+box-shadow:0 5px 15px rgba(0,0,0,.12);
+}
+
+.btn-add{
+display:inline-flex;
+align-items:center;
+gap:8px;
+background:linear-gradient(135deg,#e8063c,#c40530);
+color:#fff;
+border:none;
+padding:10px 22px;
+border-radius:40px;
+font-weight:600;
+font-size:14px;
+text-decoration:none;
+box-shadow:0 8px 20px rgba(232,6,60,.25);
+transition:.25s ease;
+}
+
+.btn-add:hover{
+transform:translateY(-2px);
+box-shadow:0 12px 26px rgba(232,6,60,.32);
+color:#fff;
+}
+
+/* FILTER CARD */
+
+.filter-card{
+background:transparent;
+padding:22px;
+border-radius:18px;
+margin-bottom:25px;
+}
+
+.filter-card .form-select{
+
+    padding-right:50px;
+
+    background-position:right 16px center;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+}
+
+.filter-card .form-select:focus{
+border-color:#2a5298;
+box-shadow:0 0 0 .2rem rgba(42,82,152,.15);
+}
+
+.btn-filter{
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+border:none;
+color:#fff;
+border-radius:10px;
+font-weight:600;
+font-size:13.5px;
+padding:9px 12px;
+transition:.2s ease;
+}
+
+.btn-filter:hover{
+transform:translateY(-1px);
+box-shadow:0 8px 18px rgba(30,60,114,.25);
+color:#fff;
+}
+
+.btn-clear{
+background:#f1f3f7;
+border:none;
+color:#374151;
+border-radius:10px;
+font-weight:600;
+font-size:13.5px;
+padding:9px 12px;
+text-decoration:none;
+display:inline-block;
+text-align:center;
+transition:.2s ease;
+}
+
+.btn-clear:hover{
+background:#e5e7eb;
+color:#374151;
+}
+
+/* TABLE CARD */
+
+.card{
+border:none;
+border-radius:0px;
+overflow:hidden;
+box-shadow:0 10px 30px rgba(17,24,39,.08);
+animation:fadeInUp .4s ease;
+}
+
+@keyframes fadeInUp{
+from{opacity:0;transform:translateY(10px);}
+to{opacity:1;transform:translateY(0);}
 }
 
 .table-responsive{
-    overflow-x:hidden !important;
+overflow-x:auto;
 }
 
-.custom-table td{
-    word-break: break-word;
+.questions-table{
+width:100%;
+border-collapse:collapse;
 }
 
-.custom-table th:last-child,
-.custom-table td:last-child{
-    width:110px;
-    text-align:center;
+.questions-table th{
+background:#2a5298;
+color:#fff;
+padding:16px 15px;
+font-size:13px;
+text-transform:uppercase;
+letter-spacing:.6px;
+font-weight:600;
+white-space:nowrap;
 }
 
-.btn-add
-{
-    background:#16a34a;
-    color:white;
-    border:none;
-    padding:8px 16px;
-    border-radius:8px;
-    text-decoration:none;
+.questions-table td{
+padding:16px 15px;
+border-bottom:1px solid #edf1f7;
+vertical-align:middle;
+font-size:14.5px;
+color:#374151;
+word-break:break-word;
+}
+
+.questions-table tbody tr{
+transition:background .2s ease;
+}
+
+.questions-table tbody tr:hover{
+background:#f8fbff;
+}
+
+.type-badge{
     display:inline-flex;
     align-items:center;
-    gap:6px;
+    justify-content:center;
+
+    background:#d9f3ff;
+    color:#0c7abf;
+
+    padding:8px 14px;
+    border-radius:20px;
+
+    font-size:12px;
+    font-weight:600;
+
+    min-height:34px;
+    min-width:170px;
+    max-width:280px;
+
+    white-space:nowrap;
 }
 
-.filter-card
-{
-    background:transparent;
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:20px;
+.truncate-text{
+display:-webkit-box;
+-webkit-line-clamp:2;
+-webkit-box-orient:vertical;
+overflow:hidden;
+cursor:pointer;
 }
 
-.custom-table{
-    background:white;
-    border-radius:12px;
-    width:100%;
-}
-
-.custom-table thead
-{
-    background:#111827;
-    color:white;
-}
-
-.custom-table th,
-.custom-table td
-{
-    padding:14px;
-    vertical-align:middle;
-    word-wrap: break-word;
-    white-space: normal;
+.custom-tooltip{
+position:fixed;
+background:#111827;
+color:#fff;
+padding:8px 12px;
+border-radius:8px;
+font-size:13px;
+z-index:9999;
+display:none;
+box-shadow:0 8px 20px rgba(0,0,0,0.2);
+width:fit-content;
+max-width:500px;
+white-space:normal;
 }
 
 .action-group{
-    display:flex;
-    gap:6px;
-    justify-content:center;
+display:flex;
+gap:6px;
+justify-content:center;
 }
 
 .icon-btn{
-    border:none;
-    padding:6px 8px;
-    border-radius:6px;
-    color:white;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
+border:none;
+padding:7px 10px;
+border-radius:8px;
+color:#fff;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+transition:.2s ease;
 }
 
-.btn-view   { background:#06b6d4; }
-.btn-edit   { background:#f59e0b; }
-.btn-delete { background:#ef4444; }
-
-.truncate-text {
-    display: -webkit-box;
-    -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+.icon-btn:hover{
+transform:translateY(-1px);
+color:#fff;
 }
 
-.truncate-text {
-    display: -webkit-box;
-    -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    cursor: pointer;
+.btn-view{ background:#06b6d4; }
+.btn-edit{ background:#f59e0b; }
+.btn-delete{ background:#ef4444; }
+
+.empty-state{
+padding:70px 20px;
+text-align:center;
 }
 
-/* NEW FIXED TOOLTIP */
-.custom-tooltip {
-   position: fixed;
-    background: #111827;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    z-index: 9999;
-    display: none;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-
-    width: fit-content;
-    max-width: 500px; /* optional limit */
-    white-space: normal;
+.empty-state i{
+font-size:75px;
+color:#d8d8d8;
 }
 
-/* SR (increase a bit) */
-.custom-table th:nth-child(1),
-.custom-table td:nth-child(1) {
-    width: 70px;
-    text-align: center;
+.questions-table td:first-child,
+.questions-table th:first-child{
+    width:90px;
+    min-width:90px;
+    white-space:nowrap;
+    text-align:center;
+    font-weight:700;
 }
 
-/* SUBJECT (more space) */
-.custom-table th:nth-child(2),
-.custom-table td:nth-child(2) {
-    width: 220px;
+@media(max-width:768px){
+
+.questions-header{
+flex-direction:column;
+align-items:flex-start;
 }
 
-/* CHAPTER (slightly more) */
-.custom-table th:nth-child(3),
-.custom-table td:nth-child(3) {
-    width: 200px;
+.header-right{
+width:100%;
+justify-content:space-between;
 }
 
-/* TOPIC */
-.custom-table th:nth-child(4),
-.custom-table td:nth-child(4) {
-    width: 170px;
+.header-title{
+font-size:22px;
 }
 
-/* INSTRUCTION */
-.custom-table th:nth-child(5),
-.custom-table td:nth-child(5) {
-    width: 200px;
+.questions-table{
+min-width:900px;
 }
 
-/* TYPE (reduce space) */
-.custom-table th:nth-child(6),
-.custom-table td:nth-child(6) {
-    width: 130px;
-    text-align: center;
 }
 
-/* UNIT (small) */
-.custom-table th:nth-child(7),
-.custom-table td:nth-child(7) {
-    width: 80px;
-    text-align: center;
-}
 </style>
 
 
 
- <div class="page-container">
-
-
+<div class="questions-container">
 
 <!-- HEADER -->
 
-<div class="page-header">
+<div class="questions-header">
 
-    <div class="page-title">
-        Manage Questions
-    </div>
+<div class="header-left">
 
+<div class="header-icon">
+<i class="bi bi-question-circle-fill"></i>
+</div>
 
-    <a
-        href="teacher_dashboard.php?page=teacher_question_pages/add_question.php"
-        class="btn-add"
-    >
+<div>
+<h2 class="header-title">Manage Questions</h2>
+<p class="header-subtitle">
+<?= $total_questions ?> question<?= $total_questions==1?'':'s' ?> found
+</p>
+</div>
 
-        <i class="bi bi-plus-circle"></i>
+</div>
 
-        Add New Question
+<div class="header-right">
 
-    </a>
+<span class="subject-badge">
+<i class="bi bi-collection-fill me-1"></i>
+Total : <?= $total_questions ?>
+</span>
+
+<a
+    href="teacher_dashboard.php?page=teacher_question_pages/add_question.php"
+    class="btn-add"
+>
+
+    <i class="bi bi-plus-circle"></i>
+
+    Add New Question
+
+</a>
+
+</div>
 
 </div>
 
@@ -369,9 +527,7 @@ rel="stylesheet"
 
 <div class="filter-card">
 
-<form method="GET" action="teacher_dashboard.php">
-
-<input type="hidden" name="page" value="teacher_question_pages/manage_questions.php">
+<form id="filterForm">
 
 <div class="row g-3">
 
@@ -505,21 +661,19 @@ if (!empty($_GET['topic_id'])) {
 
 
 
-<div class="col-md-2">
+<div class="col-md-2 d-flex gap-2">
 
-<button class="btn btn-primary w-100 mb-1">
+<button type="submit" class="btn-filter w-50">
+<!-- <i class="bi bi-funnel-fill me-1"></i> -->
 Filter
 </button>
 
-
-<a
-href="teacher_dashboard.php?page=teacher_question_pages/manage_questions.php"
-class="btn btn-secondary w-100"
->
-
+<button
+type="button"
+id="clearFilter"
+class="btn-clear w-50">
 Clear
-
-</a>
+</button>
 
 </div>
 
@@ -535,24 +689,29 @@ Clear
 
 <!-- TABLE -->
 
+<?php if ($result->num_rows > 0): ?>
+
+<div class="card">
+
+<div class="card-body p-0">
+
 <div class="table-responsive">
 
+<table class="questions-table ">
 
-<table class="table custom-table">
-
-
-<thead>
+<thead class="head text-center">
 
 <tr>
 
-<th>Sr</th>
-<th>Subject</th>
+<th width="90">Sr</th>
+<th>Grade</th>
+<th style="min-width:120px;">Subject</th>
 <th>Chapter</th>
 <th>Topic</th>
 <th>Instruction</th>
 <th>Type</th>
-<th>Unit</th>
-<th>Action</th>
+<!-- <th width="80">Unit</th> -->
+<th width="150">Action</th>
 
 </tr>
 
@@ -565,25 +724,6 @@ Clear
 
 <?php
 
-if ($result->num_rows == 0)
-{
-?>
-
-<tr>
-
-<td colspan="8" class="text-center">
-
-No Questions Found
-
-</td>
-
-</tr>
-
-<?php
-}
-else
-{
-
 $sr = 1;
 
 while ($row = $result->fetch_assoc())
@@ -593,12 +733,21 @@ while ($row = $result->fetch_assoc())
 
 <tr>
 
-<td><?= $sr++ ?></td>
+<td><strong><?= $sr++ ?></strong></td>
+
+<td>
+    <span class="badge bg-primary">
+        Grade <?= htmlspecialchars($row['grade']) ?>
+    </span>
+</td>
 
 <td><?= htmlspecialchars($row['subject_name']) ?></td>
 
-<td><?= htmlspecialchars($row['chapter_name']) ?></td>
-
+<td class="position-relative">
+    <div class="truncate-text" data-full="<?= htmlspecialchars($row['chapter_name']) ?>">
+        <?= htmlspecialchars($row['chapter_name']) ?>
+    </div>
+</td>
 <td class="position-relative">
     <div class="truncate-text" data-full="<?= htmlspecialchars($row['topic']) ?>">
         <?= htmlspecialchars($row['topic']) ?>
@@ -612,22 +761,25 @@ while ($row = $result->fetch_assoc())
 </td>
 
 
-<td>
+<td class= "question text-center">
 
-<span class="badge bg-primary">
+<span
+class="type-badge"
+title="<?= htmlspecialchars($row['question_type']) ?>"
+>
 
-<?= $row['question_type'] ?>
+<?= htmlspecialchars($row['question_type']) ?>
 
 </span>
 
 </td>
 
 
-<td>
+<!-- <td>
 
-<?= $row['unit'] ?: "-" ?>
+<?= $row['unit'] ? htmlspecialchars($row['unit']) : "-" ?>
 
-</td>
+</td> -->
 
 
 <td>
@@ -674,7 +826,6 @@ class="icon-btn btn-delete"
 
 <?php
 }
-}
 ?>
 
 
@@ -685,12 +836,34 @@ class="icon-btn btn-delete"
 
 </div>
 
+</div>
+
+</div>
+
+<?php else: ?>
+
+<div class="empty-state">
+
+<i class="bi bi-question-circle"></i>
+
+<h3 class="mt-4">
+No Questions Found
+</h3>
+
+<p class="text-muted">
+Try adjusting your filters or add a new question.
+</p>
+
+</div>
+
+<?php endif; ?>
+
 
 
 </div>
 
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 <script>
 
 function deleteQuestion(id)
@@ -714,10 +887,12 @@ function deleteQuestion(id)
     }
 }
 
-$(document).ready(function() {
+// $(document).ready(function() {
 
     // Grade -> Subjects
-    $('#grade').change(function () {
+    $(document).off('change','#grade');
+
+    $(document).on('change','#grade',function () {
 
         const grade = $(this).val();
 
@@ -739,7 +914,9 @@ $(document).ready(function() {
 
 
     // Subject -> Chapters
-    $('#subject_id').change(function() {
+    $(document).off('change','#subject_id');
+
+    $(document).on('change','#subject_id',function() {
 
         const sid = $(this).val();
 
@@ -759,7 +936,9 @@ $(document).ready(function() {
 
 
     // Chapter -> Topics
-    $('#chapter_id').change(function() {
+    $(document).off('change','#chapter_id');
+
+    $(document).on('change','#chapter_id',function() {
 
         const cid = $(this).val();
 
@@ -777,7 +956,9 @@ $(document).ready(function() {
 
 
     // Topic -> Instructions
-    $('#topic_id').change(function() {
+    $(document).off('change','#topic_id');
+
+    $(document).on('change','#topic_id',function() {
 
         const tid = $(this).val();
 
@@ -791,19 +972,54 @@ $(document).ready(function() {
 
     });
 
+// });
+// ===========================
+// FILTER USING AJAX
+// ===========================
+
+$(document).off("submit","#filterForm");
+
+$(document).on("submit","#filterForm",function(e){
+
+    e.preventDefault();
+
+    let query=$(this).serialize();
+
+    $("#content-area").load(
+        "teacher_question_pages/manage_questions.php?"+query
+    );
+
+});
+
+$(document).off("click","#clearFilter");
+
+$(document).on("click","#clearFilter",function(){
+
+    $("#content-area").load(
+        "teacher_question_pages/manage_questions.php"
+    );
+
 });
 // ✅ TOOLTIP FIX
-const tooltip = $('#tooltipBox');
+var tooltip = $('#tooltipBox');
 
-$('.truncate-text').on('mouseenter', function(e){
+// Mouse Enter
+$(document)
+.off('mouseenter', '.truncate-text')
+.on('mouseenter', '.truncate-text', function () {
 
-    const text = $(this).attr('data-full');
+    const text = $(this).data('full');
 
-    if(!text) return;
+    if (!text) return;
 
     tooltip.text(text).fadeIn(150);
 
-}).on('mousemove', function(e){
+});
+
+// Mouse Move
+$(document)
+.off('mousemove', '.truncate-text')
+.on('mousemove', '.truncate-text', function (e) {
 
     let x = e.clientX + 15;
     let y = e.clientY + 15;
@@ -811,7 +1027,6 @@ $('.truncate-text').on('mouseenter', function(e){
     const tooltipHeight = tooltip.outerHeight();
     const windowHeight = $(window).height();
 
-    // prevent bottom cut
     if (y + tooltipHeight > windowHeight) {
         y = e.clientY - tooltipHeight - 15;
     }
@@ -821,7 +1036,12 @@ $('.truncate-text').on('mouseenter', function(e){
         left: x + 'px'
     });
 
-}).on('mouseleave', function(){
+});
+
+// Mouse Leave
+$(document)
+.off('mouseleave', '.truncate-text')
+.on('mouseleave', '.truncate-text', function () {
 
     tooltip.hide();
 

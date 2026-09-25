@@ -26,21 +26,26 @@ if (!isset($student)) {
     --primary-dark: #1e3a8a;
     --accent: #ef4444;
     --accent-dark: #dc2626;
-    --text-light: #f1f5ff;
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
 }
 
 /* Main Sidebar */
 .sidebar {
     width: 270px;
-    background: linear-gradient(160deg, #1e3a8a, #2563eb);
-    color: white;
+    background: #ffffff;
+    color: var(--text-dark);
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
     overflow-y: auto;
-    box-shadow: 8px 0 30px rgba(0,0,0,0.35);
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.06);
+    border-right: 1px solid #eef1f6;
     z-index: 1050;
+
+    display: flex;
+    flex-direction: column;
 
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -51,33 +56,27 @@ if (!isset($student)) {
 }
 
 /* Header */
-/* Header - reduce top spacing */
 .sidebar-header {
-    padding: 12px 15px 8px;   /* pehle 25px tha - ab kam kar diya */
+    padding: 22px 15px 16px;
     text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid #eef1f6;
 }
 
-/* Logo - bigger & tighter */
 .sidebar-logo {
-    width: 190px;     /* Size increase */
-    max-width: 100%;
-    height: auto;
-
-    margin: 0 auto 5px;  /* Bottom gap kam */
-    display: block;
-
-    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
-    transition: 0.3s ease;
+    width: 150px;
+    height: 100px;
 }
 
 .sidebar-logo:hover {
-    transform: scale(1.05);
+    transform: scale(1.03);
 }
 
 /* Navigation */
 .sidebar nav {
-    margin-top: 10px; /* Dashboard upar aayega */
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 /* Links */
@@ -86,56 +85,79 @@ if (!isset($student)) {
     align-items: center;
     gap: 14px;
 
-    color: var(--text-light);
+    color: #64748b;
     padding: 13px 20px;
-    margin: 6px 15px;
+    margin: 4px 15px;
 
     border-radius: 10px;
     text-decoration: none;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
 
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
 }
 
 /* Hover */
 .sidebar nav a:hover {
-    background: rgba(255,255,255,0.12);
-    transform: translateX(6px);
+    background: rgba(30, 64, 175, 0.06);
+    color: var(--primary-dark);
+    transform: translateX(4px);
 }
 
-/* Active */
+/* Hover */
+.sidebar nav a:hover:not(.active):not(.logout-link) {
+    background: #eef2ff;
+    color: #1e40af;
+    transform: translateX(0);
+}
+
+.sidebar nav a:hover:not(.active):not(.logout-link) i {
+    color: #1e40af;
+}
+
 .sidebar nav a.active {
-    background: linear-gradient(90deg, #ef4444, #dc2626);
-    color: white;
-    box-shadow: 0 5px 15px rgba(239,68,68,0.45);
+    background: #eef2ff;
+    color: #1e40af;
 }
 
+.sidebar nav a.active i {
+    color: #1e40af;
+}
+
+.sidebar nav a.active:hover {
+    background: #eef2ff;
+    color: #1e40af;
+}
+
+.sidebar nav a.active:hover i {
+    color: #1e40af;
+}
 /* Icons */
 .sidebar nav i {
     font-size: 18px;
     min-width: 22px;
 }
 
-/* Logout */
-/* Logout Button */
+/* Logout - pinned near the bottom */
 .sidebar nav a.logout-link {
-    margin-top: 25px;
+    margin-top: auto;
+    margin-bottom: 25px;
 
     background: linear-gradient(90deg, #ef4444, #dc2626);
     color: #fff;
 
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
+    justify-content: center;
 
-    box-shadow: 0 5px 15px rgba(239,68,68,0.45);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
 }
 
-/* Hover Effect */
 .sidebar nav a.logout-link:hover {
     background: linear-gradient(90deg, #dc2626, #b91c1c);
-    transform: translateX(6px) scale(1.02);
-    box-shadow: 0 8px 22px rgba(220,38,38,0.6);
+    transform: translateX(0) scale(1.02);
+    box-shadow: 0 8px 22px rgba(220, 38, 38, 0.45);
+    color: #fff;
 }
 
 /* Mobile */
@@ -163,34 +185,37 @@ if (!isset($student)) {
 
 <div class="sidebar" id="studentSidebar">
     <div class="sidebar-header">
-        <!-- Replace the src with your actual logo path -->
-        <img src="../images/logo3.png" 
-             alt="Achiever's Castle Logo" 
+        <img src="../images/logo.png"
+             alt="Achiever's Castle Logo"
              class="sidebar-logo">
     </div>
 
     <nav class="nav flex-column">
         <a href="student_dashboard.php" class="<?= ($currentpage === 'student_dashboard.php') ? 'active' : '' ?>">
-            <i class="bi bi-house-door-fill"></i> Dashboard
+            <i class="bi bi-house"></i> Dashboard
         </a>
         <a href="enrolled_subjects.php" class="<?= ($currentpage === 'enrolled_subjects.php') ? 'active' : '' ?>">
-            <i class="bi bi-journal-bookmark-fill"></i> Enrolled Subjects
+            <i class="bi bi-book"></i> Enrolled Subjects
         </a>
         <a href="student_documents.php" class="<?= ($currentpage === 'student_documents.php') ? 'active' : '' ?>">
-            <i class="bi bi-file-earmark-arrow-up-fill"></i> My Documents
+            <i class="bi bi-folder2-open"></i> My Documents
         </a>
         <a href="student_assessments.php" class="<?= ($currentpage === 'student_assessments.php') ? 'active' : '' ?>">
-            <i class="bi bi-file-earmark-check-fill"></i> My Assessments
+            <i class="bi bi-file-earmark-check"></i> My Assessments
         </a>
-        <a href="#progress">
+        <!-- <a href="#progress">
             <i class="bi bi-graph-up-arrow"></i> Progress Tracker
-        </a>
+        </a> -->
         <a href="purchase_history.php" class="<?= ($currentpage === 'purchase_history.php') ? 'active' : '' ?>">
-            <i class="bi bi-receipt-cutoff"></i> Purchase History
+            <i class="bi bi-bag"></i> Purchase History
         </a>
-        <a href="#settings">
-            <i class="bi bi-gear-fill"></i> Settings
-        </a>
+       <a href="settings.php"
+            class="<?= ($currentpage === 'settings.php') ? 'active' : '' ?>">
+
+                <i class="bi bi-gear"></i>
+                Settings
+
+            </a>
         <a href="student_logout.php" class="logout-link">
             <i class="bi bi-box-arrow-right"></i> Logout
         </a>

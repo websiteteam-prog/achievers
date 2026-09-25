@@ -40,16 +40,18 @@ $discount_amount = (float)($invoice['discount_amount'] ?? 0);
 $extra_type      = $invoice['extra_type'] ?? '';
 $extra_amount    = (float)($invoice['extra_amount'] ?? 0);
 
+// ⭐ ONE-TIME ENROLLMENT FEE — first invoice pe 50, monthly/normal pe 0
+$enrollment_fee  = (float)($invoice['enrollment_fee'] ?? 0);
+
 $disc      = in_array($discount_type, ['one_time','sibling']) ? $discount_amount : 0;
 $extra_add = in_array($extra_type, ['one_time','permanent']) ? $extra_amount : 0;
 
-// $total = final amount (GST included). Rebuild base tuition:
-$gross_tuition = $total + $disc - $extra_add;
+// $total = final amount. Base tuition nikaalo (enrollment fee ALAG rakho):
+$gross_tuition = $total + $disc - $extra_add - $enrollment_fee;
 
-// GST is included inside the total (5%)
-$gst = $total - ($total / 1.05);
-
-
+// GST sirf tuition part ke andar included (enrollment fee flat/GST-free):
+$taxable = $total - $enrollment_fee;
+$gst = $taxable - ($taxable / 1.05);
 ?>
 <!DOCTYPE html>
 <html>
@@ -66,116 +68,35 @@ body {
     color: #333;
 }
 
-.invoice-wrapper {
-    width: 100%;
-}
+.invoice-wrapper { width: 100%; }
 
-/* Header */
-.header-table {
-    width: 100%;
-    margin-bottom: 20px;
-}
-.header-table td {
-    vertical-align: top;
-}
-.logo img {
-    width: 140px;
-}
-.invoice-title {
-    text-align: right;
-}
-.invoice-title h1 {
-    margin: 0;
-    font-size: 30px;
-    letter-spacing: 1px;
-}
-.company-address {
-    text-align: right;
-    font-size: 12px;
-    line-height: 18px;
-}
+.header-table { width: 100%; margin-bottom: 20px; }
+.header-table td { vertical-align: top; }
+.logo img { width: 140px; }
+.invoice-title { text-align: right; }
+.invoice-title h1 { margin: 0; font-size: 30px; letter-spacing: 1px; }
+.company-address { text-align: right; font-size: 12px; line-height: 18px; }
 
-/* Bill info */
-.bill-table {
-    width: 100%;
-    margin-top: 20px;
-}
-.bill-table td {
-    vertical-align: top;
-    font-size: 13px;
-}
-.bill-to {
-    width: 55%;
-}
-.invoice-meta {
-    width: 45%;
-}
-.invoice-meta table {
-    width: 100%;
-}
-.invoice-meta td {
-    padding: 3px 0;
-}
-.highlight {
-    background: #f3f3f3;
-    font-weight: bold;
-}
+.bill-table { width: 100%; margin-top: 20px; }
+.bill-table td { vertical-align: top; font-size: 13px; }
+.bill-to { width: 55%; }
+.invoice-meta { width: 45%; }
+.invoice-meta table { width: 100%; }
+.invoice-meta td { padding: 3px 0; }
+.highlight { background: #f3f3f3; font-weight: bold; }
 
-/* Items table */
-.items-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 30px;
-}
-.items-table th {
-    background: #3b3b3b;
-    color: #fff;
-    padding: 10px;
-    text-align: left;
-}
-.items-table td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-}
+.items-table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+.items-table th { background: #3b3b3b; color: #fff; padding: 10px; text-align: left; }
+.items-table td { padding: 10px; border-bottom: 1px solid #ddd; }
 
-/* Totals */
-.totals-table {
-    width: 100%;
-    margin-top: 20px;
-}
-.totals-table td {
-    padding: 6px;
-}
-.totals-label {
-    text-align: right;
-    width: 80%;
-}
-.total-amount {
-    font-weight: bold;
-    border-top: 2px solid #333;
-}
-.amount-due {
-    background: #f3f3f3;
-    font-weight: bold;
-}
+.totals-table { width: 100%; margin-top: 20px; }
+.totals-table td { padding: 6px; }
+.totals-label { text-align: right; width: 80%; }
+.total-amount { font-weight: bold; border-top: 2px solid #333; }
+.amount-due { background: #f3f3f3; font-weight: bold; }
 
-/* Notes */
-.notes {
-    margin-top: 40px;
-    font-size: 12px;
-    color: #555;
-}
-
-.footer {
-    position: fixed;
-    bottom: 20px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    font-size: 11px;
-    color: #777;
-}
-
+.notes { margin-top: 40px; font-size: 12px; color: #555; }
+.footer { position: fixed; bottom: 20px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #777; }
 </style>
 </head>
 
@@ -186,7 +107,6 @@ body {
 <table class="header-table">
 <tr>
     <td class="logo">
-        <!-- ✅ FINAL FIXED LOGO (Base64 – Dompdf safe) -->
         <img src="<?php echo $logoBase64; ?>" alt="Logo">
     </td>
     <td class="invoice-title">
@@ -209,28 +129,22 @@ body {
 <tr>
    <td class="bill-to">
     <strong>BILL TO</strong><br><br>
-
-    <strong>
-    <?php echo $student['first_name'] . ' ' . $student['last_name']; ?>
-    </strong><br>
-
+    <strong><?php echo $student['first_name'] . ' ' . $student['last_name']; ?></strong><br>
     <?php 
     $payer = trim($student['payer_name'] ?? '');
     $studentName = trim($student['first_name'].' '.$student['last_name']);
     ?>
-
     <?php if(!empty($payer) && $payer !== $studentName): ?>
         C/O <?php echo $payer; ?><br>
     <?php endif; ?>
-
     <?php echo $student['email'] ?? ''; ?>
 </td>
     <td class="invoice-meta">
         <table>
             <tr>
-            <td><strong>Invoice Number:</strong></td>
-            <td><?php echo $student['invoice_number']; ?></td>
-        </tr>
+                <td><strong>Invoice Number:</strong></td>
+                <td><?php echo $student['invoice_number']; ?></td>
+            </tr>
             <tr>
                 <td><strong>Invoice Date:</strong></td>
                 <td><?php echo $date; ?></td>
@@ -265,9 +179,22 @@ body {
     <?php echo $courseDisplay; ?>
     </td>
     <td>1</td>
-  <td>$<?php echo number_format($gross_tuition, 2); ?></td>
-<td>$<?php echo number_format($gross_tuition, 2); ?></td>
+    <td>$<?php echo number_format($gross_tuition, 2); ?></td>
+    <td>$<?php echo number_format($gross_tuition, 2); ?></td>
 </tr>
+
+<?php if($enrollment_fee > 0): ?>
+<!-- ⭐ ONE-TIME ENROLLMENT FEE LINE -->
+<tr>
+   <td>
+    <strong>Enrollment Fee (One-time)</strong><br>
+    First-time registration charge
+    </td>
+    <td>1</td>
+    <td>$<?php echo number_format($enrollment_fee, 2); ?></td>
+    <td>$<?php echo number_format($enrollment_fee, 2); ?></td>
+</tr>
+<?php endif; ?>
 </tbody>
 </table>
 
@@ -289,6 +216,14 @@ body {
 <tr>
     <td class="totals-label">Extra Charge (<?php echo $extra_type === 'permanent' ? 'Permanent' : 'One Time'; ?>):</td>
     <td>+ $<?php echo number_format($extra_add, 2); ?></td>
+</tr>
+<?php endif; ?>
+
+<?php if($enrollment_fee > 0): ?>
+<!-- ⭐ ENROLLMENT FEE TOTALS ROW -->
+<tr>
+    <td class="totals-label">Enrollment Fee (One-time):</td>
+    <td>+ $<?php echo number_format($enrollment_fee, 2); ?></td>
 </tr>
 <?php endif; ?>
 

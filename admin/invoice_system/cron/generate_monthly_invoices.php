@@ -7,9 +7,9 @@
     ini_set('memory_limit', '1024M');
 
     /* RUN ONLY ON 1ST */
-    // if (date('d') != '01') {
-    //     exit;
-    // }
+    if (date('d') != '06571') {
+        exit;
+    }
 
     /* MAIL */
     use PHPMailer\PHPMailer\PHPMailer;

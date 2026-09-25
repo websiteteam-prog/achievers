@@ -70,6 +70,7 @@ $invoice = [
     "price_after_discount" => $data['price'], 
     "gst" => $data['gst'],
     "total" => $data['total'],
+    "enrollment_fee" => $data['enrollment_fee'] ?? 0,  
     "extra_type" => $data['extra_type'] ?? '',
     "extra_amount" => $data['extra_amount'] ?? 0
 ];

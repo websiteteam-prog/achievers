@@ -81,19 +81,19 @@ $qid = (int)$q['id'];
 }
 
 .canvas-container{
-    width:900px;
-    height:900px;
-    margin:auto;
-    overflow:hidden;
+    width:100%;
     max-width:900px;
+    aspect-ratio:1/1;
+    margin:auto;
     border:1px solid #ddd;
     border-radius:12px;
-    overflow:hidden;
     background:#fff;
-    box-shadow:0 5px 15px rgba(0,0,0,.15);
+    overflow:hidden;
 }
 
 #coordCanvas<?= $qid ?>{
+    width:100%;
+    height:100%;
     display:block;
 }
 

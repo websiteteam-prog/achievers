@@ -4,19 +4,42 @@
   const teacherName = "<?php echo $_SESSION['teacher_name'] ?? 'Teacher'; ?>";
 </script>
   <style>
-    :root {
-  --primary: #1e3c72;
-  --accent: #2a5298;
-  --theme-red:#e8063c;
+:root {
+    --primary: #1e40af;
+    --primary-light: #3b82f6;
+    --primary-dark: #1e3a8a;
+    --accent: #ef4444;
+    --light-bg: #f5f7fb;
+    --card-bg: #ffffff;
+    --text: #1f2937;
+    --gray: #6b7280;
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.1);
 }
 
-.dashboard-header {
-  margin-bottom: 2rem;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+.dashboard-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    padding:10px 0px;  
+    min-height:170px; 
+    margin-top: -51px;   
 }
 
+.dashboard-illustration{
+    width:180px;
+    flex-shrink:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.dashboard-illustration img{
+    width:170px;
+    height:auto;
+    display:block;
+}
 
 .greeting {
 font-size: 40px;
@@ -36,13 +59,15 @@ font-weight: 400;
     padding: 10px;
     width: 139px;
     font-size: 17px;
+    flex-shrink:0;
+
 }
 
 /* hover RED */
 #refresh-btn:hover{
-  background: var(--theme-red);
+  background: #2a5298;
   color:#fff;
-   box-shadow:0 6px 18px rgba(232,6,60,0.4);
+  box-shadow:0 6px 18px rgba(232,6,60,0.4);
 }
 
 /* ================= CARDS ================= */
@@ -101,8 +126,8 @@ font-weight: 400;
 
 .stat-label {
   font-size: 18px;
-  color: #666;
-  font-weight: 500;
+  color: var(--primary);
+  font-weight: 700;
 }
 
 .trend {
@@ -113,11 +138,12 @@ font-weight: 400;
 
 .section-title {
   font-size: 1.2rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--primary);
   margin-bottom: 1rem;
   padding-left: 0.6rem;
   border-left: 4px solid var(--accent);
+  margin-top: 47px;
 }
 
 /* ================= QUICK ACTIONS ================= */
@@ -211,6 +237,49 @@ font-weight: 400;
   border-radius:25px;
 }
 
+.text-muted {
+    --bs-text-opacity: 1;
+    color: var(--bs-secondary-color) !important;
+    margin-top: -14px !important;
+}
+
+.welcome-text{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-width:0;
+    margin-top:22px;   /* thoda upar */
+}
+
+.welcome-title{
+    margin:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transform:translateY(-10px);
+    font-family:"Love Ya Like A Sister", cursive;
+    font-size:clamp(28px,2.7vw,42px);
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.welcome-gradient{
+    background:linear-gradient(90deg,#e02121,#5a3d9a);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    white-space:nowrap;
+}
+
+.teacher-name{
+    color:#3b82f6;
+    white-space:nowrap;
+    flex-shrink:0;
+}
+
 /* ================= LOADER ================= */
 
 .loading-spinner {
@@ -223,6 +292,44 @@ font-weight: 400;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ================= STUDENTS PER BATCH ================= */
+.batch-summary{
+  display:flex; gap:16px; flex-wrap:wrap; margin-bottom:22px;
+}
+.batch-summary-item{
+  flex:1; min-width:150px; color:#fff; border-radius:14px;
+  padding:16px 20px; display:flex; flex-direction:column;
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
+  box-shadow:0 6px 18px rgba(30,60,114,0.25);
+}
+.batch-summary-item:nth-child(2){
+  background:linear-gradient(135deg,#e8063c,#c40530);
+  box-shadow:0 6px 18px rgba(232,6,60,0.25);
+}
+.batch-summary-item .bs-number{
+  font-size:34px; font-weight:700; line-height:1;
+  font-family:"Love Ya Like A Sister", cursive;
+}
+.batch-summary-item .bs-label{ font-size:14px; opacity:.9; margin-top:6px; }
+
+.batch-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:14px;
+}
+.batch-item{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:#f8fbff; border:1px solid #eef2f9; border-radius:14px;
+  padding:14px 16px; transition:.2s ease;
+}
+.batch-item:hover{ transform:translateY(-3px); box-shadow:0 10px 22px rgba(0,0,0,.08); background:#fff; }
+.batch-name{ margin:0; font-weight:700; color:#1e3c72; font-size:15px; }
+.batch-meta{ color:#6b7280; font-size:12.5px; }
+.batch-count{
+  min-width:44px; height:44px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,#1e3c72,#2a5298); color:#fff;
+  font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px rgba(30,60,114,.3);
+}
+
 /* ================= MOBILE ================= */
 
 @media (max-width:768px){
@@ -230,19 +337,24 @@ font-weight: 400;
   .greeting{
     font-size:1.4rem;
   }
-
+.dashboard-illustration img{display:none;}
   .dashboard-header{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0px 0px 20px;
+    min-height: 0px;
+    margin-top: 0px;
   }
-
+.welcome-text{margin-top:0px;}
+.text-muted{margin-top:0px!important;}
   #refresh-btn{
-    width: auto;
+    /* width: auto;
     padding:10px 18px;
     font-size:14px;
     border-radius:20px;
-    align-self:flex-start;
+    align-self:flex-start; */
+    display:none;
   }
 
 .stat-card{
@@ -336,12 +448,25 @@ font-weight: 400;
   </style>
 <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Love+Ya+Like+A+Sister&display=swap" rel="stylesheet">
-  <div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
-    <h1 class="greeting" id="greeting">Dashboard Overview</h1>
-    <button id="refresh-btn" class="btn btn-outline-primary btn-sm px-4">
-      <span id="refresh-text">Refresh</span>
-      <span id="refresh-spinner" class="loading-spinner d-none ms-2"></span>
-    </button>
+  <div class="dashboard-header">
+
+      <div class="dashboard-illustration">
+          <img src="images/welcome-illustration.png" alt="Welcome">
+      </div>
+
+      <div class="welcome-text">
+        <h1 class="welcome-title">
+            <span class="welcome-gradient">Welcome back,</span>
+            <span class="teacher-name">
+                <?= htmlspecialchars($_SESSION['teacher_name'] ?? 'Teacher') ?>
+            </span>
+        </h1>
+    </div>
+      <button id="refresh-btn" class="btn btn-outline-primary btn-sm px-4">
+          <span id="refresh-text">Refresh</span>
+          <span id="refresh-spinner" class="loading-spinner d-none ms-2"></span>
+      </button>
+
   </div>
 
   <div class="row g-4 mb-5">
@@ -365,7 +490,7 @@ font-weight: 400;
         <p class="stat-number" id="my-subjects-count">0</p>
         <p class="stat-label">My Subjects</p>
         </div>
-        <small class="trend text-muted" id="pending-trend"></small>
+        <small class="trend text-muted" id="subjects-trend"></small>
       </div>
     </div>
 
@@ -373,11 +498,11 @@ font-weight: 400;
     <div class="col-md-3 ">
       <div class="stat-card text-center">
         <div>
-        <div class="stat-icon"><i class="bi bi-calendar-event-fill"></i></div>
+        <div class="stat-icon"><i class="bi bi-file-earmark-check-fill"></i></div>
         <p class="stat-number" id="pending-documents">0</p>
-        <p class="stat-label">Student Documents</p>
+        <p class="stat-label">Pending Docs</p>
         </div>
-        <small class="trend text-muted" id="classes-trend"></small>
+        <small class="trend text-muted" id="documents-trend"></small>
       </div>
     </div>
 
@@ -389,10 +514,18 @@ font-weight: 400;
         <p class="stat-number" id="teacher-assessments">0</p>
         <p class="stat-label">Assessments</p>
         </div>
-        <small class="trend text-muted" id="active-students-trend"></small>
+        <small class="trend text-muted" id="teacher-assessments-trend"></small>
       </div>
     </div>
   </div>
+
+  <!-- Students Per Batch -->
+<h5 class="section-title">Students Per Batch</h5>
+<div class="card mb-5" style="border-radius:16px; box-shadow:0 6px 20px rgba(0,0,0,0.08);">
+  <div class="card-body p-4" id="students-per-batch">
+    <div class="text-center py-5"><span class="loading-spinner"></span></div>
+  </div>
+</div>
 
   <!-- Quick Actions -->
   <h5 class="section-title">Quick Actions</h5>
@@ -421,14 +554,28 @@ font-weight: 400;
       <i class="bi bi-book"></i>
       <span>Assign Chapters</span>
     </button>
-    <button
-    class="quick-action"
-    data-target="my_students.php">
+    <!-- Student Documents -->
+    <!-- <button class="quick-action" data-target="my_students.php">
+        <i class="bi bi-folder2-open"></i>
+        <span>Student Documents</span>
+    </button> -->
 
-    <i class="bi bi-folder2-open"></i>
+    <!-- Assign Assessment -->
+    <button class="quick-action" data-target="teacher_question_pages/assign_assessment.php">
+        <i class="bi bi-file-earmark-plus"></i>
+        <span>Assign Assessment</span>
+    </button>
 
-    <span>Student Documents</span>
+    <!-- Manage Assessments -->
+    <button class="quick-action" data-target="teacher_question_pages/manage_assessments.php">
+        <i class="bi bi-folder-check"></i>
+        <span>Manage Assessments</span>
+    </button>
 
+    <!-- Manage Questions -->
+    <button class="quick-action" data-target="teacher_question_pages/manage_questions.php">
+        <i class="bi bi-patch-question"></i>
+        <span>Manage Questions</span>
     </button>
   </div>
 
@@ -462,23 +609,6 @@ font-weight: 400;
 <script>
 $(document).ready(function() {
 
-  function setGreeting() {
-    const hour = new Date().getHours();
-    let greetingText = "Hello 👋";
-
-    if (hour >= 5 && hour < 12) {
-      greetingText = "Good Morning ☀️";
-    } else if (hour >= 12 && hour < 17) {
-      greetingText = "Good Afternoon 🌤️";
-    } else if (hour >= 17 && hour < 21) {
-      greetingText = "Good Evening 🌇";
-    } else {
-      greetingText = "Good Night 🌙";
-    }
-
-    elements.greeting.text(`${greetingText}, ${teacherName} 👋`);
-  }
-
   const BASE_API = './api/';
 
   const API_ENDPOINTS = {
@@ -487,7 +617,8 @@ $(document).ready(function() {
     pendingDocuments: BASE_API + 'get_pending_documents.php',
     teacherAssessments: BASE_API + 'get_teacher_assessments.php',
     teacherSubjects: BASE_API + 'get_teacher_subjects.php',
-    recentActivity: BASE_API + 'get_teacher_recent_activity.php'
+    recentActivity: BASE_API + 'get_teacher_recent_activity.php',
+    studentsPerBatch: BASE_API + 'get_students_per_batch.php'
   };
 
   const elements = {
@@ -503,6 +634,7 @@ $(document).ready(function() {
   assessmentsTrend: $('#teacher-assessments-trend'),
     subjects: $('#teacher-subjects'),
     activity: $('#recent-activity'),
+    batches: $('#students-per-batch'),
     footer: $('#activity-footer'),
     readMoreBtn: $('#read-more-btn'),
     showLessBtn: $('#show-less-btn'),
@@ -551,6 +683,42 @@ $(document).ready(function() {
     container.html(html);
   }
 
+    function renderBatches(container, data) {
+    const batches = data.batches || [];
+
+    let html = `
+      <div class="batch-summary">
+        <div class="batch-summary-item">
+          <span class="bs-number">${data.total_students || 0}</span>
+          <span class="bs-label">Total Students</span>
+        </div>
+        <div class="batch-summary-item">
+          <span class="bs-number">${data.total_branches || 0}</span>
+          <span class="bs-label">Total Branches</span>
+        </div>
+      </div>`;
+
+    if (batches.length === 0) {
+      html += `<div class="text-center py-4 text-muted">No batches found</div>`;
+    } else {
+      html += '<div class="batch-grid">';
+      batches.forEach(b => {
+        const type = (b.course_type || '').replaceAll('_', ' ');
+        html += `
+          <div class="batch-item">
+            <div class="batch-info">
+              <h6 class="batch-name">${b.subject_name}</h6>
+              <small class="batch-meta">Grade ${b.grade}${type ? ' · ' + type : ''}</small>
+            </div>
+            <span class="batch-count">${b.student_count}</span>
+          </div>`;
+      });
+      html += '</div>';
+    }
+
+    container.html(html);
+  }
+
   function loadRecentActivity() {
     return fetchData(API_ENDPOINTS.recentActivity, elements.activity, res => {
       renderActivity(elements.activity, res.data);
@@ -562,7 +730,6 @@ $(document).ready(function() {
   }
 
   async function loadDashboard() {
-    setGreeting();
     elements.refreshText.text('Refreshing...');
     elements.refreshSpinner.removeClass('d-none');
 
@@ -572,20 +739,26 @@ $(document).ready(function() {
           elements.students.text(res.data.count || 0);
           elements.studentsTrend.html(res.data.trend || '');
         }),
+
         fetchData(API_ENDPOINTS.subjectsCount, elements.subjectsCount, res => {
-        elements.subjectsCount.text(res.data.count || 0);
-        elements.subjectsTrend.text(res.data.trend);
-    }),
+          elements.subjectsCount.text(res.data.count || 0);
+          elements.subjectsTrend.text(res.data.trend);
+        }),
 
-    fetchData(API_ENDPOINTS.pendingDocuments, elements.documents, res => {
-        elements.documents.text(res.data.count || 0);
-        elements.documentsTrend.text(res.data.trend);
-    }),
+        fetchData(API_ENDPOINTS.pendingDocuments, elements.documents, res => {
+          elements.documents.text(res.data.count || 0);
+          elements.documentsTrend.text(res.data.trend);
+        }),
 
-    fetchData(API_ENDPOINTS.teacherAssessments, elements.assessments, res => {
-        elements.assessments.text(res.data.count || 0);
-        elements.assessmentsTrend.text(res.data.trend);
-    }),
+        fetchData(API_ENDPOINTS.teacherAssessments, elements.assessments, res => {
+          elements.assessments.text(res.data.count || 0);
+          elements.assessmentsTrend.text(res.data.trend);
+        }),
+
+        fetchData(API_ENDPOINTS.studentsPerBatch, elements.batches, res => {
+          renderBatches(elements.batches, res.data);
+        }),
+
         fetchData(API_ENDPOINTS.teacherSubjects, elements.subjects, res => {
           let html = '';
 
@@ -613,6 +786,7 @@ $(document).ready(function() {
 
           elements.subjects.html(html);
         }),
+
         loadRecentActivity()
       ]);
     } finally {
