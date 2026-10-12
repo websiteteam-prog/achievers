@@ -8,7 +8,10 @@
  * Include this BEFORE printing any HTML so header() redirects keep working.
  */
 
+// Branch admins use their OWN session cookie, separate from the super admin
+// (admin/) and teacher logins, so logging into one never changes the other.
 if (session_status() === PHP_SESSION_NONE) {
+    session_name('ACHIEVERS_BRANCH');
     session_start();
 }
 

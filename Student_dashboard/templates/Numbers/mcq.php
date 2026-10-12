@@ -21,12 +21,17 @@ $protocol = (
 ) ? 'https' : 'http';
 
 $domain = $_SERVER['HTTP_HOST'];
-$base_path = '/Student_dashboard/';
 
-$final_image_path = $protocol . '://' .
-    $domain .
-    $base_path .
-    ltrim($image_path, '/');
+// Folder of the running page (quiz.php / check_answer.php), e.g.
+// "/Student_dashboard" live or "/creativetheka.in/Student_dashboard" on localhost
+$base_path = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/') . '/';
+
+// Old rows may store "Student_dashboard/..." — strip it so it isn't doubled
+$image_path = preg_replace('~^/?Student_dashboard/~i', '', $image_path);
+
+$final_image_path = preg_match('~^https?://~i', $image_path)
+    ? $image_path
+    : $protocol . '://' . $domain . $base_path . ltrim($image_path, '/');
 
 ?>
 

@@ -112,6 +112,41 @@ function isExponentExpression($v)
         || preg_match('/\d+\^\d+/u', $v);
 }
 
+/* figure_questions: answer -> tokens (order, "angle", "°", "line", "and" ignore; ∠CXD = ∠DXC) */
+function figureTokens($v) {
+    $v = mb_strtolower(trim((string)$v));
+    $v = str_replace(['°', '^\circ', '\circ', '∠', '\angle'], ' ', $v);
+    $v = preg_replace('/\b(lines?|rays?|segments?|points?|angles?|degrees?|deg|and|the)\b/u', ' ', $v);
+    preg_match_all('/[a-z0-9]+/u', $v, $m);
+    $t = [];
+    foreach ($m[0] as $w) {
+        if (preg_match('/^[a-z]{3}$/', $w) && strcmp(strrev($w), $w) < 0) $w = strrev($w);
+        $t[] = $w;
+    }
+    $t = array_values(array_unique($t));
+    sort($t);
+    return $t;
+}
+
+function figureMatch($cv, $sv) {
+    if (is_array($sv) || trim((string)$sv) === '') return false;
+
+    $alts = [];
+    foreach (explode('|', (string)$cv) as $alt) {
+        $alts[] = figureTokens($alt);
+    }
+
+    // split the student's answer on | , "or" , /
+    $parts = preg_split('~\s*(?:\||/|\bor\b)\s*~iu', (string)$sv);
+    $parts = array_values(array_filter($parts, function ($p) { return trim($p) !== ''; }));
+    if (!$parts) return false;
+
+    foreach ($parts as $p) {
+        if (!in_array(figureTokens($p), $alts, true)) return false;   // every part must be an accepted answer
+    }
+    return true;
+}
+
 // Check login
 if (!isset($_SESSION['student_id'])) {
     header("Location: student_dashboard.php");
@@ -616,6 +651,23 @@ if (
                         $ok = strcasecmp(trim((string)$cv), trim((string)$sv)) === 0;
                     }
                     if ($ok) $correct_count++;
+                }
+                $is_correct = ($correct_count === $total_count) ? 1 : 0;
+            }
+        }
+
+                // ---- PARTIAL SCORING: figure_questions (har sub-question alag, 1 mark each) ----
+        if ($question_type === 'prime_composite_worksheet' && $mode === 'figure_questions') {
+            $exp = json_decode($correct_answer, true);
+            $sub = json_decode($student_answer, true);
+            if (is_array($exp) && $exp && array_keys($exp) !== range(0, count($exp) - 1)) {
+                $total_count   = count($exp);
+                $correct_count = 0;
+                foreach ($exp as $k => $cv) {
+                    $sv = (is_array($sub) && isset($sub[$k])) ? $sub[$k] : '';
+                    if (figureMatch($cv, $sv)) {
+                        $correct_count++;
+                    }
                 }
                 $is_correct = ($correct_count === $total_count) ? 1 : 0;
             }

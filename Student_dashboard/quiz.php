@@ -100,6 +100,8 @@ if ($topic_id) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="student.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <title>Student Dashboard</title>
   <style>
 
@@ -274,31 +276,278 @@ if ($topic_id) {
     @media (max-width: 480px) {
       .blue-box { width: 100%; font-size: 14px; padding: 6px; }
     }
+
+    /* =========================================================
+       NEW TOP + BOTTOM DESIGN (questions area left unchanged)
+       ========================================================= */
+    :root {
+      --primary: #2f55a4;
+      --primary-dark: #1e3c72;
+      --navy: #0f1d3a;
+      --accent: #e02121;
+      --muted: #64748b;
+      --border: #e8edf5;
+    }
+
+    .quiz-top,
+    .bottom-explain-box {
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+    }
+
+    /* Header */
+    .quiz-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .qh-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1 1 300px;
+    }
+
+    .qh-icon {
+      flex-shrink: 0;
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: #e3eaf7;
+      color: var(--primary);
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qh-text {
+      min-width: 0;
+    }
+
+    .main .qh-title {
+      margin: 0;
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      line-height: 1.25;
+    }
+
+    .main .qh-sub {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .btn-group-pill {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .quiz-top .see-explanation,
+    .quiz-top .video-btn,
+    .bottom-explain-box a {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 16px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      color: #fff;
+      transition: 0.25s;
+    }
+
+    .quiz-top .see-explanation { background: var(--navy); }
+    .quiz-top .video-btn { background: var(--accent); }
+
+    .quiz-top .see-explanation:hover { background: var(--primary); color: #fff; }
+    .quiz-top .video-btn:hover { background: #c51b1b; color: #fff; }
+
+    /* Stats row */
+    .quiz-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 8px 4px;
+      margin-bottom: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(47, 85, 164, 0.05);
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 2px 14px;
+      min-width: 0;
+    }
+
+    .stat + .stat {
+      border-left: 1px dashed #c9d6ef;
+    }
+
+    .stat-icon {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+    }
+
+    .stat-icon.yellow { background: #fef6d8; color: #eab308; }
+    .stat-icon.blue   { background: #e3eaf7; color: var(--primary); }
+    .stat-icon.green  { background: #dcfce7; color: #16a34a; }
+
+    .stat small {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .stat b {
+      font-size: 17px;
+      color: var(--navy);
+      line-height: 1.2;
+    }
+
+    /* Submit button */
+    .next-btn {
+      background: var(--accent);
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+      font-weight: 600;
+      box-shadow: 0 6px 14px rgba(224, 33, 33, 0.25);
+    }
+
+    .next-btn:hover {
+      background: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    /* Bottom explanation box */
+    .bottom-explain-box {
+      border-radius: 14px;
+      padding: 12px 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      box-shadow: 0 2px 10px rgba(47, 85, 164, 0.05);
+      color: var(--navy);
+      margin-top: 22px;
+    }
+
+    .bottom-explain-box a { background: var(--navy); }
+
+    .bottom-explain-box a:hover { background: var(--primary); color: #fff; }
+
+    .bottom-explain-box .text strong { color: var(--primary-dark); }
+
+    .bottom-explain-box .small-text { color: var(--muted); }
+
+
+    /* Answered progress */
+    .stat-progress .sp-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .sp-bar {
+      height: 6px;
+      margin-top: 4px;
+      border-radius: 6px;
+      background: #e8edf5;
+      overflow: hidden;
+    }
+
+    .sp-bar span {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+      transition: width 0.3s ease;
+    }
+
+    @media (max-width: 700px) {
+      .main .qh-title { font-size: 19px; }
+
+      .quiz-head .btn-group-pill { width: 100%; }
+
+      .quiz-top .see-explanation,
+      .quiz-top .video-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px 10px;
+      }
+
+      .quiz-stats { grid-template-columns: 1fr; }
+
+      .stat { padding: 6px 12px; }
+
+      .stat + .stat {
+        border-left: none;
+        border-top: 1px dashed #c9d6ef;
+      }
+
+      .bottom-explain-box { border-radius: 14px; align-items: stretch; }
+
+      .bottom-explain-box a { justify-content: center; margin-top: 4px; }
+    }
   </style>
 </head>
 <body>
 <section class="main">
 
-<!-- Top Section -->
-<div class="explaination-box">
-  <div class="info-box info-yellow">
-    <div class="left-content">
-      <strong>Quiz:</strong> <?= htmlspecialchars($selected_topic['title'] ?? '') ?><br>
-      <span class="small-text"><?= htmlspecialchars($selected_topic['content'] ?? '') ?></span>
+<!-- ===== Top: header + stats ===== -->
+<?php if (!isset($_SESSION['score'])) $_SESSION['score'] = 0; ?>
+<div class="quiz-top">
+  <div class="quiz-head">
+    <div class="qh-left">
+      <div class="qh-icon"><i class="bi bi-book"></i></div>
+      <div class="qh-text">
+        <h1 class="qh-title"><?= htmlspecialchars($selected_topic['title'] ?? '') ?></h1>
+        <p class="qh-sub">
+          <?= !empty($selected_topic['content'])
+                ? htmlspecialchars($selected_topic['content'])
+                : 'Practice questions, check your answers and track your progress.' ?>
+        </p>
+      </div>
     </div>
-    <div class="right-buttons">
-      <a href="#" class="see-explanation">See Explanation</a>
-      <a href="#" class="video-btn" data-bs-toggle="modal" data-bs-target="#videoModal">
-        Watch Video
-      </a>
+    <div class="btn-group-pill">
+      <a href="explanation_page.php?topic_id=<?= $topic_id ?>" class="see-explanation"><i class="bi bi-play-circle"></i> See Explanation</a>
+      <a href="#" class="video-btn" data-bs-toggle="modal" data-bs-target="#videoModal"><i class="bi bi-play-circle-fill"></i> Watch Video</a>
     </div>
   </div>
 
-  <div class="info-box info-blue">
-    <?php if (!isset($_SESSION['score'])) $_SESSION['score'] = 0; ?>
-    <div class="text">Score: <?= intval($_SESSION['score']) ?></div>
-    <div class="text">Total Questions: <?= $total_questions ?></div>
-    <div class="text">Grade</div>
+  <div class="quiz-stats">
+    <div class="stat">
+      <div class="stat-icon blue"><i class="bi bi-question-circle-fill"></i></div>
+      <div><small>Total Questions</small><b><?= $total_questions ?></b></div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon yellow"><i class="bi bi-collection-fill"></i></div>
+      <div><small>Sections</small><b><?= count($instructions) ?></b></div>
+    </div>
+    <div class="stat stat-progress">
+      <div class="stat-icon green"><i class="bi bi-check2-circle"></i></div>
+      <div class="sp-body">
+        <small>Answered</small>
+        <b><span id="answeredCount">0</span> / <?= $total_questions ?></b>
+        <div class="sp-bar"><span id="answeredBar"></span></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -752,7 +1001,7 @@ if (
           <div class="text">
               <strong>See Explanation:</strong> <span class="small-text">Click below to review answers and explanations.</span>
           </div>
-          <a href="explanation_page.php?topic_id=<?= $topic_id ?>">See Explanation</a>
+          <a href="explanation_page.php?topic_id=<?= $topic_id ?>"><i class="bi bi-play-circle"></i> See Explanation</a>
       </div>
 
       <!-- Video Modal -->
@@ -800,6 +1049,35 @@ videoModal.addEventListener('hidden.bs.modal', function () {
     var iframe = videoModal.querySelector('iframe');
     if (iframe) { iframe.src = iframe.src; }
 });
+
+/* ===== Live "Answered" counter ===== */
+(function () {
+    var form  = document.querySelector('form[action="submit_quiz.php"]');
+    var count = document.getElementById('answeredCount');
+    var bar   = document.getElementById('answeredBar');
+    var total = <?= (int)$total_questions ?>;
+    if (!form || !count || !total) return;
+
+    function update() {
+        var done = {};
+        form.querySelectorAll('input[name^="answer["], select[name^="answer["], textarea[name^="answer["]').forEach(function (el) {
+            if (el.type === 'hidden') return;
+            var m = el.name.match(/^answer\[(\d+)\]/);
+            if (!m) return;
+            var filled = (el.type === 'radio' || el.type === 'checkbox')
+                ? el.checked
+                : el.value.trim() !== '';
+            if (filled) done[m[1]] = true;
+        });
+        var n = Math.min(Object.keys(done).length, total);
+        count.textContent = n;
+        bar.style.width = (n / total * 100) + '%';
+    }
+
+    form.addEventListener('input', update);
+    form.addEventListener('change', update);
+    update();
+})();
 
 /* ===== Double submit protection ===== */
 (function () {

@@ -217,7 +217,7 @@
         $mail->Host='smtp.hostinger.com';
         $mail->SMTPAuth=true;
         $mail->Username='info@achieverscastle.com';
-        $mail->Password='Amplic@@7408';
+        $mail->Password='7|fl@1wBj';
         $mail->SMTPSecure='ssl';
         $mail->Port=465;
 

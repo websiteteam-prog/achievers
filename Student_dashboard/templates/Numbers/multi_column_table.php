@@ -43,6 +43,8 @@ $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'
     padding:12px;
     text-align:center;
     vertical-align:middle;
+    font-weight: 400;
+    font-size:20px;
 
 }
 

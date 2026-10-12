@@ -145,7 +145,7 @@ if (isset($_POST['confirm_appointment'])) {
         $mail->Host       = 'smtp.hostinger.com';
         $mail->SMTPAuth   = true;
         $mail->Username   = 'info@achieverscastle.com';
-        $mail->Password   = 'Amplic@@7408'; // <-- apna SMTP password daalo
+        $mail->Password   = '7|fl@1wBj'; // <-- apna SMTP password daalo
         $mail->SMTPSecure = 'ssl';
         $mail->Port       = 465;
 
@@ -168,7 +168,7 @@ if (isset($_POST['confirm_appointment'])) {
         $mail2->Host       = 'smtp.hostinger.com';
         $mail2->SMTPAuth   = true;
         $mail2->Username   = 'info@achieverscastle.com';
-        $mail2->Password   = 'Amplic@@7408'; // <-- apna SMTP password daalo
+        $mail2->Password   = '7|fl@1wBj'; // <-- apna SMTP password daalo
         $mail2->SMTPSecure = 'ssl';
         $mail2->Port       = 465;
 

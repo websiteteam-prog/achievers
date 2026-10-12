@@ -362,7 +362,7 @@ $total = $price + $enrollment_fee;
                 $mail->Host       = 'smtp.hostinger.com';
                 $mail->SMTPAuth   = true;
                 $mail->Username   = 'info@achieverscastle.com';
-                $mail->Password   = 'Amplic@@7408';
+                $mail->Password   = '7|fl@1wBj';
                 $mail->SMTPSecure = 'ssl';
                 $mail->Port       = 465;
 
@@ -388,7 +388,7 @@ $total = $price + $enrollment_fee;
             $mail2->Host       = 'smtp.hostinger.com';
             $mail2->SMTPAuth   = true;
             $mail2->Username   = 'info@achieverscastle.com';
-            $mail2->Password   = 'Amplic@@7408';
+            $mail2->Password   = '7|fl@1wBj';
             $mail2->SMTPSecure = 'ssl';
             $mail2->Port       = 465;
 

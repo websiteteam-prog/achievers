@@ -2741,6 +2741,156 @@ name="answer[<?= $q['id']?>]">
 })();
 </script>
 <?php endif; ?>
+<?php if($mode=="figure_questions"): ?>
+
+<?php
+    // image path -> URL (works on localhost sub-folder and live)
+    $figImg  = (string)($data['image'] ?? '');
+    $figRoot = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/')), '/');
+    if ($figImg !== '' && !preg_match('~^https?://~i', $figImg)) {
+        $figImg = $figRoot . '/' . ltrim($figImg, '/');
+    }
+    $figCols = (int)($data['columns'] ?? 1);
+    $figStart = !empty($data['use_index'])
+        ? ((int)($index ?? 0) + 1)
+        : (int)($data['start'] ?? 1);
+?>
+
+<style>
+.fig-card{background:#fff;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,.08);padding:25px 30px;margin:30px 0 25px;width:100%;}
+.fig-title{font-size:19px;font-weight:700;font-style:italic;color:#000;line-height:1.5;margin-bottom:18px;}
+.fig-image{text-align:center;margin:0 auto 26px;}
+.fig-image img{max-width:100%;width:520px;height:auto;}
+.fig-list{display:grid;gap:14px 50px;}
+.fig-list.fig-cols-2{row-gap:30px;}
+.fig-q{font-size:18px;color:#000;line-height:1.6;}
+.fig-list:not(.fig-cols-2) .fig-q{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;}
+.fig-list:not(.fig-cols-2) .fig-q-line{flex:1;min-width:200px;}
+.fig-list:not(.fig-cols-2) .fig-input{min-width:0;width:100%;}
+.fig-list.fig-cols-2 .fig-input{flex:0 0 190px;min-width:0;text-align: center;}
+.fig-q-text{font-weight:400;font-size:20px;}
+.fig-q-has-img .fig-q-text{margin-left:212px;}
+.fig-card{font-family:"Times New Roman",Times,serif;}
+.fig-list.fig-cols-2 .fig-q-text{font-weight:400;}
+.fig-q-line{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+.fig-input,.fig-select{border:none;border-bottom:2px solid #000;background:transparent;outline:none;font-size:17px;color:#000;padding:2px 4px;}
+.fig-input{flex:1;min-width:220px;}
+.fig-select{min-width:200px;cursor:pointer;}
+.fig-q-line .fig-input.fig-short{flex:0 0 170px;width:170px;min-width:0;}
+.fig-plain .fig-q-text{font-weight:400;}
+.fig-title{color:#e41e26;}
+.fig-q-num{font-size:20px;line-height:1;min-width:28px;}
+.fig-q-img{flex:0 0 auto;display:flex;justify-content:flex-start;}
+.fig-q.fig-q-has-img{display:flex !important;align-items:flex-end !important;gap:40px;flex-wrap:wrap;}
+.fig-q-has-img .fig-q-answer{ margin-left: 29%;}
+.fig-q-img-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:0;}
+.fig-q-answer{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-left:0;}
+.fig-q-answer .fig-input{flex:0 0 170px;width:170px;min-width:0;text-align:center;}
+.fig-q-img img{width:300px;max-width:100%;height:auto;}
+.fig-q-break{flex-basis:100%;height:6px;}
+@media(max-width:768px){
+  .fig-card{padding:18px;}
+  .fig-list{grid-template-columns:1fr !important;}
+  .fig-q{font-size:16px;}
+  .fig-input,.fig-select{min-width:0;width:100%;}
+}
+</style>
+
+<div class="fig-card<?= !empty($data['plain']) ? ' fig-plain' : '' ?>">
+
+    <?php if(!empty($data['show_title'])): ?>
+        <div class="fig-title"><?= htmlspecialchars($data['title'] ?? '') ?></div>
+    <?php endif; ?>
+
+    <?php if($figImg !== ''): ?>
+        <div class="fig-image">
+            <img src="<?= htmlspecialchars($figImg) ?>" alt="Figure">
+        </div>
+    <?php endif; ?>
+
+    <div class="fig-list<?= $figCols > 1 ? ' fig-cols-2' : '' ?>" style="grid-template-columns:repeat(<?= max(1, $figCols) ?>, minmax(0,1fr));<?php if($figCols > 1 && ($data['flow'] ?? '') !== 'row'): ?>grid-auto-flow:column;grid-template-rows:repeat(<?= (int)ceil(count($data['questions'] ?? []) / $figCols) ?>, auto);<?php endif; ?>">
+
+        <?php foreach(($data['questions'] ?? []) as $k => $fq):
+            $fqText   = is_array($fq) ? ($fq['text'] ?? '')   : (string)$fq;
+            $fqSuffix = is_array($fq) ? ($fq['suffix'] ?? '') : '';
+            $fqOpts   = (is_array($fq) && !empty($fq['options'])) ? $fq['options'] : ($data['options'] ?? []);
+            $fqImg    = is_array($fq) ? (string)($fq['image'] ?? '') : '';   // optional picture per question
+            if ($fqImg !== '' && !preg_match('~^https?://~i', $fqImg)) {
+                $fqImg = $figRoot . '/' . ltrim($fqImg, '/');
+            }
+        ?>
+
+            <div class="fig-q<?= $fqImg !== '' ? ' fig-q-has-img' : '' ?>">
+
+                <?php if($fqImg !== ''): ?>
+
+                    <!-- number + diagram -->
+                    <div class="fig-q-img-row">
+                        <span class="fig-q-num"><?= ($figStart + $k) ?>)</span>
+                        <div class="fig-q-img"><img src="<?= htmlspecialchars($fqImg) ?>" alt="Figure <?= ($figStart + $k) ?>"></div>
+                    </div>
+
+                     <!-- "Find x!" + input on one line -->
+                    <div class="fig-q-answer">
+                        <span class="fig-q-text"><?= htmlspecialchars($fqText) ?></span>
+                        <?php if(!empty($fqOpts)): ?>
+                            <select class="fig-select" name="answer[<?= $q['id'] ?>][<?= chr(97 + $k) ?>]">
+                                <option value="">Select</option>
+                                <?php foreach($fqOpts as $o): ?>
+                                    <option value="<?= htmlspecialchars($o) ?>"><?= htmlspecialchars($o) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php else: ?>
+                            <input type="text" class="fig-input fig-short" name="answer[<?= $q['id'] ?>][<?= chr(97 + $k) ?>]" autocomplete="off">
+                        <?php endif; ?>
+                        <?php if($fqSuffix !== ''): ?>
+                            <span><?= htmlspecialchars($fqSuffix) ?></span>
+                        <?php endif; ?>
+                        <?php foreach((is_array($fq) ? ($fq['more'] ?? []) : []) as $m => $mq): ?>
+                            <span class="fig-q-break"></span>
+                            <span class="fig-q-text"><?= htmlspecialchars($mq['text'] ?? '') ?></span>
+                            <input type="text" class="fig-input fig-short" name="answer[<?= $q['id'] ?>][<?= chr(98 + $m) ?>]" autocomplete="off">
+                            <?php if(!empty($mq['suffix'])): ?>
+                                <span><?= htmlspecialchars($mq['suffix']) ?></span>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+
+                <?php else: ?>
+
+                    <div class="fig-q-text"><?= ($figStart + $k) ?>) <?= htmlspecialchars($fqText) ?></div>
+
+                    <div class="fig-q-line">
+
+                        <?php if(!empty($fqOpts)): ?>
+                            <select class="fig-select" name="answer[<?= $q['id'] ?>][<?= chr(97 + $k) ?>]">
+                                <option value=""></option>
+                                <?php foreach($fqOpts as $o): ?>
+                                    <option value="<?= htmlspecialchars($o) ?>"><?= htmlspecialchars($o) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php else: ?>
+                            <input type="text" class="fig-input<?= $fqSuffix !== '' ? ' fig-short' : '' ?>" name="answer[<?= $q['id'] ?>][<?= chr(97 + $k) ?>]" autocomplete="off">
+                        <?php endif; ?>
+
+                        <?php if($fqSuffix !== ''): ?>
+                            <span><?= htmlspecialchars($fqSuffix) ?></span>
+                        <?php endif; ?>
+
+                    </div>
+
+                <?php endif; ?>
+
+            </div>
+
+        <?php endforeach; ?>
+
+    </div>
+
+</div>
+
+<?php endif; ?>
+
 <?php if($mode=="compare_fractions"): ?>
 <style>
 .cmp-card{background:#fff;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,.08);padding:25px 30px;margin:20px 0;}

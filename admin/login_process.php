@@ -17,7 +17,7 @@ $email = trim($_POST['email']);
 $password = trim($_POST['password']);
 
 // ✅ Fetch user by email ONLY
-$sql = "SELECT id, email, password, role, branch_id FROM admins WHERE email = ?";
+$sql = "SELECT id, name, email, password, role, branch_id FROM admins WHERE email = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $email);
 $stmt->execute();
@@ -38,13 +38,6 @@ if ($result && $result->num_rows === 1) {
         $password === $dbPassword
     ) {
 
-        // 🔐 Login success
-        $_SESSION['admin_logged_in'] = true;
-        $_SESSION['admin_email'] = $user['email'];
-        $_SESSION['role'] = $user['role'];
-        $_SESSION['branch_id'] = $user['branch_id'];
-        $_SESSION['admin_id'] = $user['id'];
-
         /**
          * 🔁 Auto-upgrade plain password → hash
          */
@@ -55,15 +48,33 @@ if ($result && $result->num_rows === 1) {
             $update->execute();
         }
 
-        // 🚀 Role based redirect
+        // 🚀 Role based login + redirect
         if ($user['role'] === 'super_admin') {
+            session_regenerate_id(true);
+            $_SESSION['admin_logged_in'] = true;
+            $_SESSION['admin_email'] = $user['email'];
+            $_SESSION['admin_name'] = $user['name'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['branch_id'] = $user['branch_id'];
+            $_SESSION['admin_id'] = $user['id'];
             header("Location: dashboard.php");
-        } 
+        }
         elseif ($user['role'] === 'branch_admin') {
+            // Branch admins get their OWN session (the same one branch_admin/login.php uses),
+            // so the super admin session in this browser is left untouched
+            session_write_close();
+            session_name('ACHIEVERS_BRANCH');
+            session_id(session_create_id());
+            session_start();
+            $_SESSION['admin_logged_in'] = true;
+            $_SESSION['admin_id'] = $user['id'];
+            $_SESSION['admin_name'] = $user['name'];
+            $_SESSION['admin_email'] = $user['email'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['branch_id'] = $user['branch_id'];
             header("Location: ../branch_admin/branch_dashboard.php");
-        } 
+        }
         else {
-            session_destroy();
             echo "<script>alert('Unknown role'); window.location.href='login.php';</script>";
         }
 

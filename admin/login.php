@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (isset($_SESSION['admin_logged_in'])) {
+if (!empty($_SESSION['admin_logged_in']) && ($_SESSION['role'] ?? '') === 'super_admin') {
     header("Location: dashboard.php");
     exit;
 }

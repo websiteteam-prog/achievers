@@ -1,8 +1,11 @@
 <?php
 session_start();
-if (!isset($_SESSION['admin_logged_in'])) {
-  header("Location: login.php");
-  exit;
+if (empty($_SESSION['admin_logged_in']) || ($_SESSION['role'] ?? '') !== 'super_admin') {
+    // old / wrong login data in this session -> clear it and go to the login page
+    unset($_SESSION['admin_logged_in'], $_SESSION['admin_id'], $_SESSION['admin_name'],
+          $_SESSION['admin_email'], $_SESSION['role'], $_SESSION['branch_id']);
+    header("Location: login.php");
+    exit;
 }
 ?>
 
