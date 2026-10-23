@@ -1,0 +1,9 @@
+# Secrets - create config/config.php from config/config.sample.php
+/config/config.php
+
+# Runtime files
+/storage/logs/*
+!/storage/logs/.gitkeep
+/uploads/banners/*
+!/uploads/banners/.htaccess
+!/uploads/banners/.gitkeep

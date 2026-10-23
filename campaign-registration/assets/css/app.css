@@ -1,0 +1,100 @@
+/* Campaign Registration - custom styles on top of Bootstrap 5 */
+
+body.public-page {
+    background: #f3f5f9;
+}
+
+.req {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* Banner: <picture> picks desktop (>= 768px) or mobile artwork */
+.campaign-banner img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.banner-fallback {
+    background: linear-gradient(135deg, #0b3d91, #1565c0 55%, #00a2c7);
+    color: #fff;
+    padding: 3.5rem 1rem;
+    text-align: center;
+}
+
+.form-card {
+    border-radius: 1rem;
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.otp-box {
+    background: #f8f9fb;
+    border: 1px dashed #c9d2e3;
+    border-radius: .5rem;
+    padding: .9rem;
+}
+
+#store_code[readonly] {
+    background-color: #eef1f5;
+}
+
+.success-icon {
+    width: 72px;
+    height: 72px;
+    line-height: 72px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: #d1f2e0;
+    color: #198754;
+    font-size: 2rem;
+}
+
+#scannerRegion {
+    width: 100%;
+    min-height: 220px;
+    background: #111;
+    border-radius: .5rem;
+    overflow: hidden;
+}
+
+#scannerRegion video {
+    width: 100% !important;
+    display: block;
+}
+
+/* ---------- Admin ---------- */
+
+body.admin-page {
+    background: #f4f6f9;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.table-registrations th,
+.table-registrations td {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.banner-preview {
+    max-height: 160px;
+    max-width: 100%;
+    border: 1px solid #dee2e6;
+    border-radius: .375rem;
+}
+
+.login-wrap {
+    min-height: 100vh;
+}
+
+.login-card {
+    max-width: 400px;
+}
