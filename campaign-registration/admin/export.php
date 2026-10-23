@@ -36,7 +36,7 @@ $filters = registration_filters($_GET);
 $stmt = db()->prepare(registration_select_sql() . " {$where} ORDER BY r.id ASC");
 $stmt->execute($params);
 
-// [header, width, type]  type: text | int | date | datetime
+// [header, width, type]  type: text | int | date
 $columns = [
     ['S. No.',             8,  'int'],
     ['Customer Name',      28, 'text'],
@@ -47,7 +47,7 @@ $columns = [
     ['Store Name',         34, 'text'],
     ['Store Code',         16, 'text'],
     ['City',               18, 'text'],
-    ['Registration Date & Time', 24, 'datetime'],
+    ['Registration Date',  18, 'date'],
 ];
 $lastCol = chr(ord('A') + count($columns) - 1);
 
@@ -80,7 +80,7 @@ while ($r = $stmt->fetch()) {
         $r['store_name'],
         (string) ($r['store_code'] ?? ''),
         $r['city_name'],
-        $r['created_at'],
+        substr($r['created_at'], 0, 10), // date only, no time
     ];
     foreach ($columns as $i => [, , $type]) {
         $cell = chr(ord('A') + $i) . $rowNum;
@@ -88,7 +88,7 @@ while ($r = $stmt->fetch()) {
         match ($type) {
             'int'   => $sheet->setCellValueExplicit($cell, $value, DataType::TYPE_NUMERIC),
             // Real Excel dates so they sort and filter correctly
-            'date', 'datetime' => $sheet->setCellValue($cell, ExcelDate::PHPToExcel(new DateTimeImmutable($value))),
+            'date'  => $sheet->setCellValue($cell, ExcelDate::PHPToExcel(new DateTimeImmutable($value))),
             // Explicit strings: keeps mobile/IMEI as text (no 4.9E+14) and stops formula injection
             default => $sheet->setCellValueExplicit($cell, (string) $value, DataType::TYPE_STRING),
         };
@@ -116,10 +116,9 @@ if ($lastRow > 1) {
         match ($type) {
             'int'      => $style->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER),
             'date'     => $style->getNumberFormat()->setFormatCode('dd-mm-yyyy'),
-            'datetime' => $style->getNumberFormat()->setFormatCode('dd-mm-yyyy hh:mm AM/PM'),
             default    => $style->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT),
         };
-        if ($type === 'date' || $type === 'datetime') {
+        if ($type === 'date') {
             $style->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
     }

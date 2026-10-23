@@ -103,7 +103,7 @@ require __DIR__ . '/partials/header.php';
                     <td><?= e($row['store_name']) ?></td>
                     <td><?= e($row['store_code'] ?? '-') ?></td>
                     <td><?= e($row['city_name']) ?></td>
-                    <td class="pe-4"><?= e(format_date($row['created_at'], 'd-m-Y h:i A')) ?></td>
+                    <td class="pe-4"><?= e(format_date($row['created_at'])) ?></td>
                 </tr>
             <?php endforeach; ?>
             <?php if (!$rows): ?>
