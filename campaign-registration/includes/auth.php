@@ -9,15 +9,15 @@ defined('APP_ROOT') || exit;
  * inactivity timeout.
  */
 
-// Used when the username does not exist so the response time stays the same.
+// Used when the email does not exist so the response time stays the same.
 const ADMIN_DUMMY_HASH = '$2y$10$NaHRcxNYdpRKlU8z/mppSuU6FM0Wt9LLKuQRKAGqkMbXTNbItWohW';
 
 /** @return array{0:bool,1:string} [success, error message] */
-function admin_attempt_login(string $username, string $password): array
+function admin_attempt_login(string $email, string $password): array
 {
     $pdo = db();
-    $stmt = $pdo->prepare('SELECT * FROM admin_users WHERE username = ?');
-    $stmt->execute([$username]);
+    $stmt = $pdo->prepare('SELECT * FROM admin_users WHERE email = ?');
+    $stmt->execute([mb_strtolower(trim($email))]);
     $user = $stmt->fetch();
     $now = now();
 
@@ -38,7 +38,7 @@ function admin_attempt_login(string $username, string $password): array
                     ->execute([$user['id']]);
             }
         }
-        return [false, 'Invalid username or password.'];
+        return [false, 'Invalid email or password.'];
     }
 
     if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
@@ -51,8 +51,8 @@ function admin_attempt_login(string $username, string $password): array
     session_regenerate_id(true);
     $_SESSION['admin'] = [
         'id'                   => (int) $user['id'],
-        'username'             => $user['username'],
-        'name'                 => $user['full_name'] ?: $user['username'],
+        'email'                => $user['email'],
+        'name'                 => $user['full_name'] ?: $user['email'],
         'must_change_password' => (bool) $user['must_change_password'],
     ];
     $_SESSION['admin_last_activity'] = time();

@@ -1,100 +1,414 @@
-/* Campaign Registration - custom styles on top of Bootstrap 5 */
+/*
+ * Campaign Registration - dark theme
+ * Bootstrap 5.3 dark mode (<html data-bs-theme="dark">) + the colours below.
+ */
 
-body.public-page {
-    background: #f3f5f9;
+:root {
+    --c-bg: #110f2b;
+    --c-bg-glow: #1d1948;
+    --c-card: #1e1a4a;
+    --c-card-border: rgba(255, 255, 255, .07);
+    --c-input: #17143c;
+    --c-input-border: #36326c;
+    --c-text: #f3f2ff;
+    --c-label: #dcd9ff;
+    --c-muted: #a7a3da;
+    --c-gold-1: #f8d466;
+    --c-gold-2: #e9a92a;
+    --c-gold: #f0b93a;
+    --c-on-gold: #1b1744;
+    --c-danger: #ff6b81;
+    --c-success: #34d399;
+}
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: var(--c-bg);
+    --bs-body-color: var(--c-text);
+    --bs-emphasis-color: #fff;
+    --bs-heading-color: #fff;
+    --bs-secondary-color: var(--c-muted);
+    --bs-border-color: var(--c-input-border);
+    --bs-secondary-bg: #24205a;
+    --bs-tertiary-bg: #1a1745;
+    --bs-link-color: var(--c-gold-1);
+    --bs-link-color-rgb: 248, 212, 102;
+    --bs-link-hover-color: #ffe08c;
+    --bs-link-hover-color-rgb: 255, 224, 140;
+    --bs-form-invalid-color: var(--c-danger);
+    --bs-form-invalid-border-color: var(--c-danger);
+    --bs-form-valid-color: var(--c-success);
+    --bs-form-valid-border-color: var(--c-success);
+    --bs-focus-ring-color: rgba(240, 185, 58, .25);
+}
+
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(1100px 650px at 12% 0%, var(--c-bg-glow) 0%, transparent 62%),
+        radial-gradient(900px 600px at 100% 100%, #0b0a1f 0%, transparent 60%),
+        var(--c-bg);
+}
+
+/* ------------------------------------------------------------ Cards */
+
+.card {
+    --bs-card-bg: var(--c-card);
+    --bs-card-border-color: var(--c-card-border);
+    --bs-card-cap-bg: rgba(255, 255, 255, .025);
+    --bs-card-color: var(--c-text);
+    border-radius: 24px;
+    box-shadow: 0 30px 80px rgba(5, 4, 20, .5);
+}
+
+.card > .card-header:first-child {
+    border-radius: 24px 24px 0 0;
+}
+
+.card > .card-footer:last-child {
+    border-radius: 0 0 24px 24px;
+}
+
+/* Gold round icon with glow (as in the "Campaign is over" design) */
+.icon-badge {
+    display: grid;
+    place-items: center;
+    width: 128px;
+    height: 128px;
+    margin: 0 auto 1.9rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--c-gold-1), var(--c-gold-2));
+    box-shadow: 0 0 46px rgba(240, 180, 50, .35);
+    color: var(--c-on-gold);
+}
+
+.icon-badge svg {
+    width: 58px;
+    height: 58px;
+}
+
+.icon-badge.icon-badge-sm {
+    width: 76px;
+    height: 76px;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 0 34px rgba(240, 180, 50, .3);
+}
+
+.icon-badge.icon-badge-sm svg {
+    width: 34px;
+    height: 34px;
+}
+
+/* Full-screen centred message card (campaign over / not started / login) */
+.center-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+}
+
+.status-card {
+    width: 100%;
+    max-width: 690px;
+    padding: 4.5rem 2.5rem;
+    text-align: center;
+}
+
+.status-card h1 {
+    margin-bottom: 1.1rem;
+    font-size: clamp(1.6rem, 3.4vw, 2.2rem);
+    font-weight: 700;
+    color: #fff;
+}
+
+.status-card p {
+    margin: 0;
+    font-size: clamp(1rem, 2.1vw, 1.3rem);
+    color: var(--c-muted);
+}
+
+/* ------------------------------------------------------------ Forms */
+
+.form-label {
+    font-weight: 500;
+    color: var(--c-label);
 }
 
 .req {
-    color: #dc3545;
+    color: var(--c-danger);
     font-weight: 600;
 }
 
-/* Banner: <picture> picks desktop (>= 768px) or mobile artwork */
+.form-text {
+    color: var(--c-muted);
+}
+
+.form-control,
+.form-select {
+    padding: .7rem .95rem;
+    border-color: var(--c-input-border);
+    border-radius: 12px;
+    background-color: var(--c-input);
+    color: var(--c-text);
+}
+
+.form-select {
+    padding-right: 2.5rem;
+}
+
+.form-control::placeholder {
+    color: #716ca9;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--c-gold);
+    background-color: var(--c-input);
+    color: #fff;
+    box-shadow: 0 0 0 .2rem rgba(240, 185, 58, .2);
+}
+
+.form-control[readonly] {
+    background-color: #1b1847;
+    color: var(--c-muted);
+}
+
+.input-group-text {
+    border-color: var(--c-input-border);
+    border-radius: 12px;
+    background-color: #231f56;
+    color: var(--c-muted);
+}
+
+.input-group-text svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ---------------------------------------------------------- Buttons */
+
+.btn {
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    --bs-btn-color: var(--c-on-gold);
+    --bs-btn-bg: var(--c-gold);
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-color: var(--c-on-gold);
+    --bs-btn-hover-bg: var(--c-gold);
+    --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-color: var(--c-on-gold);
+    --bs-btn-active-bg: var(--c-gold-2);
+    --bs-btn-active-border-color: transparent;
+    --bs-btn-disabled-color: var(--c-on-gold);
+    --bs-btn-disabled-bg: var(--c-gold);
+    --bs-btn-disabled-border-color: transparent;
+    --bs-btn-focus-shadow-rgb: 240, 185, 58;
+    background-image: linear-gradient(135deg, var(--c-gold-1), var(--c-gold-2));
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    filter: brightness(1.06);
+}
+
+.btn-success {
+    --bs-btn-bg: #10b981;
+    --bs-btn-border-color: #10b981;
+    --bs-btn-hover-bg: #0ea371;
+    --bs-btn-hover-border-color: #0ea371;
+    --bs-btn-disabled-bg: #10b981;
+    --bs-btn-disabled-border-color: #10b981;
+    --bs-btn-disabled-opacity: .85;
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--c-label);
+    --bs-btn-border-color: var(--c-input-border);
+    --bs-btn-bg: #1b1847;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #2a2563;
+    --bs-btn-hover-border-color: #4b4692;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #2a2563;
+    --bs-btn-active-border-color: #4b4692;
+}
+
+.btn-link {
+    --bs-btn-color: var(--c-gold-1);
+    --bs-btn-hover-color: #ffe08c;
+    --bs-btn-disabled-color: var(--c-muted);
+    text-decoration: none;
+}
+
+/* Buttons placed next to form fields get the same height */
+.btn-field {
+    padding-top: .7rem;
+    padding-bottom: .7rem;
+}
+
+.btn-icon {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+}
+
+/* -------------------------------------------------- Registration page */
+
 .campaign-banner img {
     display: block;
     width: 100%;
     height: auto;
 }
 
-.banner-fallback {
-    background: linear-gradient(135deg, #0b3d91, #1565c0 55%, #00a2c7);
+.form-card .card-body {
+    padding: 2.5rem;
+}
+
+.form-title {
+    font-weight: 700;
     color: #fff;
-    padding: 3.5rem 1rem;
-    text-align: center;
 }
 
-.form-card {
-    border-radius: 1rem;
-}
-
-.form-label {
-    font-weight: 500;
+.dev-pill {
+    display: inline-block;
+    padding: .2rem .65rem;
+    border: 1px solid rgba(240, 185, 58, .55);
+    border-radius: 999px;
+    color: var(--c-gold-1);
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .03em;
 }
 
 .otp-box {
-    background: #f8f9fb;
-    border: 1px dashed #c9d2e3;
-    border-radius: .5rem;
-    padding: .9rem;
-}
-
-#store_code[readonly] {
-    background-color: #eef1f5;
-}
-
-.success-icon {
-    width: 72px;
-    height: 72px;
-    line-height: 72px;
-    margin: 0 auto;
-    border-radius: 50%;
-    background: #d1f2e0;
-    color: #198754;
-    font-size: 2rem;
+    padding: 1rem;
+    border: 1px dashed #4a4590;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .025);
 }
 
 #scannerRegion {
     width: 100%;
     min-height: 220px;
-    background: #111;
-    border-radius: .5rem;
     overflow: hidden;
+    border-radius: 14px;
+    background: #07061a;
 }
 
 #scannerRegion video {
-    width: 100% !important;
     display: block;
+    width: 100% !important;
 }
 
-/* ---------- Admin ---------- */
-
-body.admin-page {
-    background: #f4f6f9;
+.modal {
+    --bs-modal-bg: var(--c-card);
+    --bs-modal-border-color: var(--c-card-border);
+    --bs-modal-border-radius: 20px;
 }
 
-.stat-card .stat-value {
-    font-size: 2rem;
+@media (max-width: 575.98px) {
+    .form-card .card-body {
+        padding: 1.5rem 1.15rem;
+    }
+
+    .status-card {
+        padding: 3.25rem 1.4rem;
+    }
+
+    .icon-badge {
+        width: 108px;
+        height: 108px;
+    }
+
+    .icon-badge svg {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* ------------------------------------------------------------ Admin */
+
+.admin-nav {
+    background: rgba(13, 11, 34, .85);
+    border-bottom: 1px solid var(--c-card-border);
+    backdrop-filter: blur(6px);
+}
+
+.admin-nav .navbar-brand {
     font-weight: 700;
-    line-height: 1.1;
+    color: #fff;
+}
+
+.admin-nav .brand-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: .5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--c-gold-1), var(--c-gold-2));
+    box-shadow: 0 0 12px rgba(240, 180, 50, .6);
+}
+
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--c-text);
+    --bs-table-border-color: rgba(255, 255, 255, .07);
+    --bs-table-hover-bg: rgba(255, 255, 255, .035);
+    --bs-table-hover-color: #fff;
+}
+
+.table thead th {
+    background: rgba(255, 255, 255, .03);
+    color: var(--c-muted);
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
 }
 
 .table-registrations th,
 .table-registrations td {
+    padding: .8rem .75rem;
     white-space: nowrap;
     vertical-align: middle;
 }
 
-.banner-preview {
-    max-height: 160px;
-    max-width: 100%;
-    border: 1px solid #dee2e6;
-    border-radius: .375rem;
+.total-count {
+    color: var(--c-gold-1);
+    font-size: 1.35rem;
+    font-weight: 700;
 }
 
-.login-wrap {
-    min-height: 100vh;
+.pagination {
+    --bs-pagination-bg: var(--c-input);
+    --bs-pagination-color: var(--c-label);
+    --bs-pagination-border-color: var(--c-input-border);
+    --bs-pagination-hover-bg: #2a2563;
+    --bs-pagination-hover-color: #fff;
+    --bs-pagination-hover-border-color: #4b4692;
+    --bs-pagination-active-bg: var(--c-gold);
+    --bs-pagination-active-border-color: var(--c-gold);
+    --bs-pagination-active-color: var(--c-on-gold);
+    --bs-pagination-disabled-bg: #15123a;
+    --bs-pagination-disabled-color: #5f5a96;
+    --bs-pagination-disabled-border-color: var(--c-input-border);
+    --bs-pagination-focus-box-shadow: 0 0 0 .2rem rgba(240, 185, 58, .25);
 }
 
 .login-card {
-    max-width: 400px;
+    width: 100%;
+    max-width: 440px;
+}
+
+.login-card .card-body {
+    padding: 3rem 2.25rem;
+}
+
+@media (max-width: 575.98px) {
+    .login-card .card-body {
+        padding: 2.25rem 1.25rem;
+    }
 }

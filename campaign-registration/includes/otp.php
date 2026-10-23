@@ -19,10 +19,34 @@ require_once APP_ROOT . '/includes/sms.php';
 function otp_hash(string $mobile, string $otp): string
 {
     $secret = (string) config('app.secret', '');
-    if (strlen($secret) < 32 || str_contains($secret, 'CHANGE_ME')) {
-        throw new RuntimeException('Set a long random app.secret in config/config.php.');
+    if (strlen($secret) < 32) {
+        throw new RuntimeException('Set APP_SECRET in .env to a random string of at least 32 characters.');
     }
     return hash_hmac('sha256', $mobile . '|' . $otp, $secret);
+}
+
+/**
+ * DEV OTP mode: no SMS is sent and the fixed DEV_OTP from .env works.
+ * OTP_MODE=auto (default) uses it only while SMS_API_URL is empty, so it switches
+ * off by itself as soon as the live uEngage API is configured.
+ */
+function otp_dev_mode(): bool
+{
+    return match (config('otp.mode', 'auto')) {
+        'dev'   => true,
+        'live'  => false,
+        default => trim((string) config('sms.api_url', '')) === '',
+    };
+}
+
+function otp_dev_code(): string
+{
+    $code = (string) config('otp.dev_otp', '123456');
+    $length = (int) config('otp.length', 6);
+    if (!preg_match('/^\d{' . $length . '}$/', $code)) {
+        throw new RuntimeException("DEV_OTP in .env must be exactly {$length} digits.");
+    }
+    return $code;
 }
 
 function otp_send(string $mobile): array
@@ -76,8 +100,11 @@ function otp_send(string $mobile): array
             return otp_result(429, false, 'OTP request limit reached for this mobile number. Please try again after an hour.');
         }
 
+        $devMode = otp_dev_mode();
         $length = (int) $cfg['length'];
-        $otp = str_pad((string) random_int(0, 10 ** $length - 1), $length, '0', STR_PAD_LEFT);
+        $otp = $devMode
+            ? otp_dev_code()
+            : str_pad((string) random_int(0, 10 ** $length - 1), $length, '0', STR_PAD_LEFT);
 
         $pdo->prepare(
             "INSERT INTO otp_verifications (mobile, otp_hash, send_status, expires_at, ip_address, created_at)
@@ -91,7 +118,9 @@ function otp_send(string $mobile): array
         ]);
         $otpId = (int) $pdo->lastInsertId();
 
-        $sms = sms_send_otp($mobile, $otp);
+        $sms = $devMode
+            ? ['ok' => true, 'reason' => null, 'response' => 'DEV OTP mode - SMS not sent']
+            : sms_send_otp($mobile, $otp);
 
         $pdo->prepare('UPDATE otp_verifications SET send_status = ?, provider_response = ? WHERE id = ?')
             ->execute([$sms['ok'] ? 'sent' : 'failed', mb_substr($sms['response'], 0, 500), $otpId]);
@@ -107,9 +136,14 @@ function otp_send(string $mobile): array
             : otp_result(502, false, 'We could not send the OTP right now. Please try again in a few minutes.');
     }
 
-    return otp_result(200, true, 'OTP sent to +91 ' . mask_mobile($mobile) . '.', [
+    $message = $devMode
+        ? "Dev mode: no SMS is sent. Use OTP {$otp}."
+        : 'OTP sent to +91 ' . mask_mobile($mobile) . '.';
+
+    return otp_result(200, true, $message, [
         'cooldown'   => (int) $cfg['resend_cooldown_seconds'],
         'expires_in' => (int) $cfg['expiry_seconds'],
+        'dev_mode'   => $devMode,
     ]);
 }
 

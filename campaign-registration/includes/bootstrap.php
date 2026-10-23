@@ -8,12 +8,15 @@ declare(strict_types=1);
 
 define('APP_ROOT', dirname(__DIR__));
 
-if (!is_file(APP_ROOT . '/config/config.php')) {
+if (!is_file(APP_ROOT . '/.env')) {
     http_response_code(500);
     header('Content-Type: text/plain; charset=utf-8');
-    exit("Setup required: copy config/config.sample.php to config/config.php and fill in your settings.\n");
+    exit("Setup required: copy .env.example to .env and fill in your settings.\n");
 }
-$GLOBALS['__app_config'] = require APP_ROOT . '/config/config.php';
+
+require APP_ROOT . '/includes/env.php';
+$GLOBALS['__app_env'] = load_env_file(APP_ROOT . '/.env');
+$GLOBALS['__app_config'] = require APP_ROOT . '/includes/config.php';
 
 require APP_ROOT . '/includes/helpers.php';
 require APP_ROOT . '/includes/db.php';

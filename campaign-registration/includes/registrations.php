@@ -187,20 +187,17 @@ function registration_number(int $id): string
 }
 
 /* =====================================================================
- *  Admin: shared filters for the registrations list and Excel export
+ *  Admin: date filter shared by the registrations list and Excel export
  * ===================================================================== */
 
 /**
- * Read and validate filters from the query string.
+ * Read and validate the date filter from the query string.
  *
- * @return array{q:string,store_id:int,city_id:int,date_type:string,start_date:string,end_date:string,errors:list<string>}
+ * @return array{date_type:string,start_date:string,end_date:string,errors:list<string>}
  */
 function registration_filters(array $query): array
 {
     $filters = [
-        'q'          => mb_substr(trim((string) ($query['q'] ?? '')), 0, 100),
-        'store_id'   => max(0, (int) ($query['store_id'] ?? 0)),
-        'city_id'    => max(0, (int) ($query['city_id'] ?? 0)),
         'date_type'  => ($query['date_type'] ?? '') === 'purchase' ? 'purchase' : 'registration',
         'start_date' => '',
         'end_date'   => '',
@@ -227,25 +224,11 @@ function registration_filters(array $query): array
     return $filters;
 }
 
-/** @return array{0:string,1:list<mixed>} [WHERE clause (may be empty), params] */
+/** @return array{0:string,1:list<string>} [WHERE clause (may be empty), params] */
 function registration_where(array $filters): array
 {
     $where = [];
     $params = [];
-
-    if ($filters['q'] !== '') {
-        $like = '%' . addcslashes($filters['q'], '%_\\') . '%';
-        $where[] = '(r.name LIKE ? OR r.mobile LIKE ? OR r.imei LIKE ?)';
-        array_push($params, $like, $like, $like);
-    }
-    if ($filters['store_id'] > 0) {
-        $where[] = 'r.store_id = ?';
-        $params[] = $filters['store_id'];
-    }
-    if ($filters['city_id'] > 0) {
-        $where[] = 'r.city_id = ?';
-        $params[] = $filters['city_id'];
-    }
 
     if ($filters['date_type'] === 'purchase') {
         if ($filters['start_date'] !== '') {
@@ -270,14 +253,14 @@ function registration_where(array $filters): array
     return [$where ? 'WHERE ' . implode(' AND ', $where) : '', $params];
 }
 
-/** Query-string values for links that keep the current filters. */
+/** Query-string values for links that keep the current filter. */
 function registration_filter_query(array $filters): array
 {
+    if ($filters['start_date'] === '' && $filters['end_date'] === '') {
+        return [];
+    }
     return array_filter([
-        'q'          => $filters['q'],
-        'store_id'   => $filters['store_id'] ?: '',
-        'city_id'    => $filters['city_id'] ?: '',
-        'date_type'  => $filters['start_date'] !== '' || $filters['end_date'] !== '' ? $filters['date_type'] : '',
+        'date_type'  => $filters['date_type'],
         'start_date' => $filters['start_date'],
         'end_date'   => $filters['end_date'],
     ], static fn ($v) => $v !== '');

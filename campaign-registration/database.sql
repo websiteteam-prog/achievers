@@ -8,8 +8,11 @@
 --       OR  mysql -u DB_USER -p DB_NAME < database.sql
 --
 --  This file is safe to re-run: it never drops tables or deletes data.
---  Default admin login:  admin / Admin@123  (you are forced to change it
---  on first login).
+--  Default admin login:  admin@example.com / Admin@123  (you are forced to
+--  change the password on first login; change the email in admin_users).
+--
+--  Campaign name, dates, active status and banner paths are in the
+--  campaign_settings table (row id = 1) - edit them in phpMyAdmin.
 -- =====================================================================
 
 SET NAMES utf8mb4;
@@ -45,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `stores` (
 
 -- ---------------------------------------------------------------------
 --  Campaign settings (single row, id = 1)
+--  is_active = 0 or an end date in the past shows "Campaign is over".
 --  Banner paths are relative to the project root.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `campaign_settings` (
@@ -64,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `campaign_settings` (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `admin_users` (
   `id`                   INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `username`             VARCHAR(50)  NOT NULL,
+  `email`                VARCHAR(191) NOT NULL,
   `password_hash`        VARCHAR(255) NOT NULL,
   `full_name`            VARCHAR(100) NOT NULL DEFAULT '',
   `must_change_password` TINYINT(1)   NOT NULL DEFAULT 0,
@@ -74,7 +78,7 @@ CREATE TABLE IF NOT EXISTS `admin_users` (
   `created_at`           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_admin_users_username` (`username`)
+  UNIQUE KEY `uq_admin_users_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -145,10 +149,10 @@ VALUES
   (1, 'Festive Buy & Win Campaign', '2026-10-01', '2026-12-31', 1,
    'assets/img/banner-desktop.jpg', 'assets/img/banner-mobile.jpg');
 
--- Default admin: username "admin", password "Admin@123" (must be changed on first login)
-INSERT IGNORE INTO `admin_users` (`id`, `username`, `password_hash`, `full_name`, `must_change_password`)
+-- Default admin: email "admin@example.com", password "Admin@123" (must be changed on first login)
+INSERT IGNORE INTO `admin_users` (`id`, `email`, `password_hash`, `full_name`, `must_change_password`)
 VALUES
-  (1, 'admin', '$2y$10$we78gFZgGZJX5nt55OA3YO9D6eoDKvgyoOK4RAMcZZsNQBz1uACdy', 'Administrator', 1);
+  (1, 'admin@example.com', '$2y$10$we78gFZgGZJX5nt55OA3YO9D6eoDKvgyoOK4RAMcZZsNQBz1uACdy', 'Administrator', 1);
 
 INSERT IGNORE INTO `cities` (`id`, `name`) VALUES
   (1, 'Ahmedabad'),

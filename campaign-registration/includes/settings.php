@@ -17,16 +17,17 @@ function campaign_settings(bool $fresh = false): array
 }
 
 /**
- * 'inactive' - switched off by the admin
- * 'upcoming' - active, but the campaign start date is in the future
+ * 'over'     - is_active = 0, or the campaign end date has passed
+ * 'upcoming' - the campaign start date is in the future
  * 'open'     - registrations accepted
  */
 function campaign_state(array $settings): string
 {
-    if (!(int) $settings['is_active']) {
-        return 'inactive';
+    $today = date('Y-m-d');
+    if (!(int) $settings['is_active'] || $today > $settings['end_date']) {
+        return 'over';
     }
-    if (date('Y-m-d') < $settings['start_date']) {
+    if ($today < $settings['start_date']) {
         return 'upcoming';
     }
     return 'open';

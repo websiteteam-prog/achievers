@@ -12,8 +12,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 /*
- * Excel (.xlsx) export of ALL registrations matching the current filters
- * (same filters as registrations.php, no pagination). Admins only.
+ * Excel (.xlsx) export of ALL registrations matching the current date filter
+ * (same filter as the admin list, no pagination). Admins only.
  */
 
 require __DIR__ . '/../includes/bootstrap.php';
@@ -24,7 +24,7 @@ require_admin();
 
 if (!is_file(APP_ROOT . '/vendor/autoload.php')) {
     flash('danger', 'Excel export needs PhpSpreadsheet. Run "composer install" in the project folder (see README).');
-    redirect('registrations.php');
+    redirect('index.php');
 }
 require APP_ROOT . '/vendor/autoload.php';
 

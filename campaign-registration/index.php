@@ -2,36 +2,57 @@
 declare(strict_types=1);
 
 require __DIR__ . '/includes/bootstrap.php';
+require APP_ROOT . '/includes/otp.php';
 
 $settings = campaign_settings();
 $state    = campaign_state($settings);
 $banners  = banner_paths($settings);
 [$minPurchase, $maxPurchase] = purchase_date_range($settings);
+$otpLength = (int) config('otp.length', 6);
 
 $stores = $state === 'open' ? active_stores() : [];
 $cities = $state === 'open' ? active_cities() : [];
 
 $jsConfig = [
-    'otpLength'   => (int) config('otp.length', 6),
-    'imeiLuhn'    => (bool) config('app.imei_luhn_check', true),
-    'purchaseMin' => $minPurchase,
-    'purchaseMax' => $maxPurchase,
+    'otpLength'       => $otpLength,
+    'imeiLuhn'        => (bool) config('app.imei_luhn_check', true),
+    'purchaseMin'     => $minPurchase,
+    'purchaseMax'     => $maxPurchase,
     'purchaseMinText' => format_date($minPurchase),
     'purchaseMaxText' => format_date($maxPurchase),
 ];
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#110f2b">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
-    <title><?= e($settings['campaign_name']) ?> - Registration</title>
+    <title><?= e($settings['campaign_name']) ?></title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="assets/lib/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/app.css">
 </head>
-<body class="public-page">
+<body>
+
+<?php if ($state !== 'open'): ?>
+
+<main class="center-screen">
+    <div class="card status-card">
+        <?php if ($state === 'upcoming'): ?>
+            <div class="icon-badge"><?= icon('calendar') ?></div>
+            <h1>Campaign starts soon</h1>
+            <p>Registrations open on <?= e(format_date($settings['start_date'])) ?>. We will keep you posted on all the updates here.</p>
+        <?php else: ?>
+            <div class="icon-badge"><?= icon('megaphone') ?></div>
+            <h1>Campaign is over</h1>
+            <p>We will keep you posted on all the updates here.</p>
+        <?php endif; ?>
+    </div>
+</main>
+
+<?php else: ?>
 
 <header class="campaign-banner">
     <?php if ($banners['desktop']): ?>
@@ -39,35 +60,25 @@ $jsConfig = [
             <source media="(min-width: 768px)" srcset="<?= e($banners['desktop']) ?>">
             <img src="<?= e($banners['mobile']) ?>" alt="<?= e($settings['campaign_name']) ?>">
         </picture>
-    <?php else: ?>
-        <div class="banner-fallback">
-            <h1 class="h2 mb-0"><?= e($settings['campaign_name']) ?></h1>
-        </div>
     <?php endif; ?>
 </header>
 
 <main class="container py-4 py-md-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-10 col-lg-8 col-xl-7">
-            <div class="card form-card border-0 shadow-sm">
-                <div class="card-body p-4 p-md-5">
-
-                <?php if ($state !== 'open'): ?>
-                    <div class="text-center py-4">
-                        <h1 class="h4 mb-3"><?= e($settings['campaign_name']) ?></h1>
-                        <?php if ($state === 'upcoming'): ?>
-                            <p class="text-muted mb-0">Registrations open on <strong><?= e(format_date($settings['start_date'])) ?></strong>. Please visit again.</p>
-                        <?php else: ?>
-                            <p class="text-muted mb-0">Registrations for this campaign are currently closed. Thank you for your interest.</p>
-                        <?php endif; ?>
-                    </div>
-                <?php else: ?>
+            <div class="card form-card">
+                <div class="card-body">
 
                     <div id="formSection">
-                        <h1 class="h4 mb-1">Campaign Registration</h1>
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+                            <h1 class="h3 form-title mb-0"><?= e($settings['campaign_name']) ?></h1>
+                            <?php if (otp_dev_mode()): ?>
+                                <span class="dev-pill" title="No SMS is sent until the uEngage API is configured in .env">DEV OTP MODE</span>
+                            <?php endif; ?>
+                        </div>
                         <p class="text-muted small mb-4">
-                            Purchases made between <strong><?= e(format_date($settings['start_date'])) ?></strong> and
-                            <strong><?= e(format_date($settings['end_date'])) ?></strong> are eligible.
+                            Purchases made between <strong class="text-white"><?= e(format_date($settings['start_date'])) ?></strong> and
+                            <strong class="text-white"><?= e(format_date($settings['end_date'])) ?></strong> are eligible.
                             Fields marked <span class="req">*</span> are mandatory.
                         </p>
 
@@ -101,11 +112,11 @@ $jsConfig = [
                                 <label for="otp" class="form-label">Enter OTP <span class="req">*</span></label>
                                 <div class="input-group has-validation">
                                     <input type="text" class="form-control" id="otp"
-                                           inputmode="numeric" autocomplete="one-time-code" placeholder="<?= (int) config('otp.length', 6) ?>-digit OTP">
+                                           inputmode="numeric" autocomplete="one-time-code" placeholder="<?= $otpLength ?>-digit OTP">
                                     <button class="btn btn-success" type="button" id="verifyOtpBtn">Verify OTP</button>
                                     <div class="invalid-feedback" data-error-for="otp"></div>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center mt-2 small">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 small">
                                     <span class="text-muted" id="otpInfo"></span>
                                     <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend OTP</button>
                                 </div>
@@ -117,9 +128,8 @@ $jsConfig = [
                                 <div class="input-group has-validation">
                                     <input type="text" class="form-control" id="imei" name="imei"
                                            inputmode="numeric" autocomplete="off" placeholder="15-digit IMEI number" required>
-                                    <button class="btn btn-outline-secondary" type="button" id="scanImeiBtn" title="Scan IMEI barcode">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>
-                                        Scan
+                                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1" type="button" id="scanImeiBtn" title="Scan IMEI barcode">
+                                        <span class="btn-icon"><?= icon('barcode') ?></span> Scan
                                     </button>
                                     <div class="invalid-feedback" data-error-for="imei"></div>
                                 </div>
@@ -174,7 +184,7 @@ $jsConfig = [
                                 <div class="invalid-feedback" data-error-for="city_id"></div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 py-3" id="submitBtn">
                                 <span class="spinner-border spinner-border-sm me-2 d-none" aria-hidden="true"></span>
                                 Submit Registration
                             </button>
@@ -182,20 +192,18 @@ $jsConfig = [
                     </div>
 
                     <div id="successSection" class="text-center py-4 d-none">
-                        <div class="success-icon mb-3">&#10004;</div>
-                        <h2 class="h4">Registration Successful</h2>
-                        <p class="text-muted mb-2" id="successMessage"></p>
-                        <p class="mb-0">Registration No: <strong id="registrationNo"></strong></p>
+                        <div class="icon-badge icon-badge-sm"><?= icon('check') ?></div>
+                        <h2 class="h3 fw-bold text-white">Registration Successful</h2>
+                        <p class="text-muted mb-3" id="successMessage"></p>
+                        <p class="mb-0">Registration No: <strong class="text-white" id="registrationNo"></strong></p>
                     </div>
 
-                <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
 </main>
 
-<?php if ($state === 'open'): ?>
 <!-- IMEI barcode scanner -->
 <div class="modal fade" id="scanModal" tabindex="-1" aria-labelledby="scanModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -216,15 +224,14 @@ $jsConfig = [
         </div>
     </div>
 </div>
-<?php endif; ?>
 
 <footer class="text-center text-muted small pb-4">&copy; <?= date('Y') ?> <?= e($settings['campaign_name']) ?></footer>
 
 <script type="application/json" id="appConfig"><?= json_encode($jsConfig, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
 <script src="assets/lib/bootstrap/bootstrap.bundle.min.js"></script>
-<?php if ($state === 'open'): ?>
 <script src="assets/lib/html5-qrcode/html5-qrcode.min.js"></script>
 <script src="assets/js/register.js"></script>
+
 <?php endif; ?>
 </body>
 </html>

@@ -7,8 +7,8 @@ defined('APP_ROOT') || exit;
  * uEngage SMS gateway (Airtel DLT) client.
  *
  * The endpoint, HTTP method, authentication and parameter names all come from
- * the 'sms' section of config/config.php and must be copied from the uEngage
- * API document - nothing is hard-coded or guessed here.
+ * the SMS_* values in .env and must be copied from the uEngage API document -
+ * nothing is hard-coded or guessed here.
  */
 
 /**
@@ -20,15 +20,6 @@ defined('APP_ROOT') || exit;
 function sms_send_otp(string $mobile, string $otp): array
 {
     $cfg = config('sms', []);
-
-    if (($cfg['driver'] ?? 'uengage') === 'log') {
-        if (config('app.env') !== 'local') {
-            app_log('sms', 'Refused: the "log" SMS driver only works when app.env = local.');
-            return ['ok' => false, 'reason' => 'not_configured', 'response' => ''];
-        }
-        app_log('otp-local', "OTP for {$mobile}: {$otp}");
-        return ['ok' => true, 'reason' => null, 'response' => 'logged'];
-    }
 
     $missing = sms_missing_config($cfg);
     if ($missing) {

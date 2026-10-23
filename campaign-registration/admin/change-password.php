@@ -37,33 +37,44 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 }
 
 $pageTitle = 'Change Password';
-$activeNav = 'password';
 require __DIR__ . '/partials/header.php';
+
+$passwordField = static function (string $id, string $label, string $autocomplete, string $help = ''): void { ?>
+    <div class="mb-3">
+        <label for="<?= e($id) ?>" class="form-label"><?= e($label) ?> <span class="req">*</span></label>
+        <div class="input-group">
+            <input type="password" class="form-control" id="<?= e($id) ?>" name="<?= e($id) ?>" autocomplete="<?= e($autocomplete) ?>" required>
+            <button class="btn btn-outline-secondary" type="button" data-toggle-password="<?= e($id) ?>" aria-label="Show password">
+                <span class="btn-icon icon-show"><?= icon('eye') ?></span>
+                <span class="btn-icon icon-hide d-none"><?= icon('eye-off') ?></span>
+            </button>
+        </div>
+        <?php if ($help !== ''): ?><div class="form-text"><?= e($help) ?></div><?php endif; ?>
+    </div>
+<?php };
 ?>
 <div class="row justify-content-center">
     <div class="col-12 col-md-8 col-lg-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <h1 class="h5 mb-3">Change Password</h1>
+        <div class="card">
+            <div class="card-body p-4 p-md-5">
+                <h1 class="h4 fw-bold text-white mb-1">Change Password</h1>
+                <p class="text-muted small mb-4"><?= e($admin['email']) ?></p>
                 <?php foreach ($errors as $error): ?>
                     <div class="alert alert-danger py-2 small"><?= e($error) ?></div>
                 <?php endforeach; ?>
                 <form method="post" action="change-password.php" novalidate>
                     <?= csrf_field() ?>
-                    <div class="mb-3">
-                        <label for="current_password" class="form-label">Current Password <span class="req">*</span></label>
-                        <input type="password" class="form-control" id="current_password" name="current_password" autocomplete="current-password" required>
+                    <?php
+                    $passwordField('current_password', 'Current Password', 'current-password');
+                    $passwordField('new_password', 'New Password', 'new-password', 'At least 8 characters, with letters and numbers.');
+                    $passwordField('confirm_password', 'Confirm New Password', 'new-password');
+                    ?>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary px-4">Update Password</button>
+                        <?php if (!$admin['must_change_password']): ?>
+                            <a href="index.php" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <?php endif; ?>
                     </div>
-                    <div class="mb-3">
-                        <label for="new_password" class="form-label">New Password <span class="req">*</span></label>
-                        <input type="password" class="form-control" id="new_password" name="new_password" autocomplete="new-password" minlength="8" required>
-                        <div class="form-text">At least 8 characters, with letters and numbers.</div>
-                    </div>
-                    <div class="mb-4">
-                        <label for="confirm_password" class="form-label">Confirm New Password <span class="req">*</span></label>
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" autocomplete="new-password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Update Password</button>
                 </form>
             </div>
         </div>

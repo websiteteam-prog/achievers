@@ -1,9 +1,7 @@
-# Secrets - create config/config.php from config/config.sample.php
-/config/config.php
+# Secrets - create .env from .env.example
+/.env
+!/.env.example
 
 # Runtime files
 /storage/logs/*
 !/storage/logs/.gitkeep
-/uploads/banners/*
-!/uploads/banners/.htaccess
-!/uploads/banners/.gitkeep
