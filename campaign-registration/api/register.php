@@ -55,5 +55,5 @@ unset($_SESSION['otp_verified']);
 json_response([
     'ok'              => true,
     'message'         => 'Thank you! Your registration has been submitted successfully.',
-    'registration_no' => registration_number($result['id']),
+    'registration_no' => $result['id'], // serial number: 1, 2, 3 ...
 ]);

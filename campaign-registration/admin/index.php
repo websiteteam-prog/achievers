@@ -79,7 +79,7 @@ require __DIR__ . '/partials/header.php';
         <table class="table table-hover table-registrations mb-0">
             <thead>
             <tr>
-                <th class="ps-4">Reg. No.</th>
+                <th class="ps-4">S. No.</th>
                 <th>Name</th>
                 <th>Mobile Number</th>
                 <th>Email ID</th>
@@ -92,9 +92,9 @@ require __DIR__ . '/partials/header.php';
             </tr>
             </thead>
             <tbody>
-            <?php foreach ($rows as $row): ?>
+            <?php foreach ($rows as $i => $row): ?>
                 <tr>
-                    <td class="ps-4"><?= e(registration_number((int) $row['id'])) ?></td>
+                    <td class="ps-4"><?= $offset + $i + 1 ?></td>
                     <td><?= e($row['name']) ?></td>
                     <td><?= e($row['mobile']) ?></td>
                     <td><?= e($row['email']) ?></td>

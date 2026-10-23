@@ -181,11 +181,6 @@ function registration_create(array $data, int $otpId): array
     }
 }
 
-function registration_number(int $id): string
-{
-    return 'REG' . str_pad((string) $id, 6, '0', STR_PAD_LEFT);
-}
-
 /* =====================================================================
  *  Admin: date filter shared by the registrations list and Excel export
  * ===================================================================== */

@@ -195,7 +195,7 @@ $jsConfig = [
                         <div class="icon-badge icon-badge-sm"><?= icon('check') ?></div>
                         <h2 class="h3 fw-bold text-white">Registration Successful</h2>
                         <p class="text-muted mb-3" id="successMessage"></p>
-                        <p class="mb-0">Registration No: <strong class="text-white" id="registrationNo"></strong></p>
+                        <p class="mb-0">Serial No: <strong class="text-white" id="registrationNo"></strong></p>
                     </div>
 
                 </div>

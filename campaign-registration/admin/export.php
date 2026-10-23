@@ -39,7 +39,6 @@ $stmt->execute($params);
 // [header, width, type]  type: text | int | date | datetime
 $columns = [
     ['S. No.',             8,  'int'],
-    ['Registration No.',   18, 'text'],
     ['Customer Name',      28, 'text'],
     ['Mobile Number',      16, 'text'],
     ['Email ID',           34, 'text'],
@@ -73,7 +72,6 @@ while ($r = $stmt->fetch()) {
     $rowNum++;
     $values = [
         $rowNum - 1,
-        registration_number((int) $r['id']),
         $r['name'],
         $r['mobile'],
         $r['email'],
