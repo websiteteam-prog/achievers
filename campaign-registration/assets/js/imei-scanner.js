@@ -73,6 +73,7 @@
     var stream = null;
     var track = null;
     var session = 0;        // bumps on every open/close so late callbacks are ignored
+    var closedCount = 0;    // bumps when the scanner closes; a photo result after that is ignored
     var scanning = false;
     var loopTimer = null;
     var startedAt = 0;
@@ -495,6 +496,7 @@
 
     function scanPhoto(file) {
         var mySession = session;
+        var myClosedCount = closedCount; // the camera starting meanwhile must not cancel the photo
         var wasScanning = scanning;
         scanning = false; // pause the live camera while the photo is decoded
         clearTimeout(loopTimer);
@@ -525,7 +527,7 @@
             // whole photo, then strips, then the same turned 90 degrees (barcode photographed sideways)
             var attempts = [upright].concat(strips(upright), [sideways], strips(sideways));
             return firstImei(attempts).then(function (result) {
-                if (mySession !== session) {
+                if (myClosedCount !== closedCount) {
                     return;
                 }
                 if (result.imei) {
@@ -537,7 +539,7 @@
                 resumeLive();
             });
         }).catch(function () {
-            if (mySession === session) {
+            if (myClosedCount === closedCount) {
                 setStatus('error', MESSAGES.badImage);
                 resumeLive();
             }
@@ -556,6 +558,7 @@
     });
 
     modalEl.addEventListener('hidden.bs.modal', function () {
+        closedCount++;
         stopCamera();
         el.view.classList.remove('is-busy');
     });
