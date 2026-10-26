@@ -33,6 +33,7 @@ $jsConfig = [
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="assets/lib/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/imei-scanner.css">
 </head>
 <body>
 
@@ -128,7 +129,7 @@ $jsConfig = [
                                 <div class="input-group has-validation">
                                     <input type="text" class="form-control" id="imei" name="imei"
                                            inputmode="numeric" autocomplete="off" placeholder="15-digit IMEI number" required>
-                                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1" type="button" id="scanImeiBtn" title="Scan IMEI barcode">
+                                    <button class="btn btn-outline-secondary d-flex align-items-center gap-1" type="button" id="imeiScanBtn" title="Scan IMEI barcode">
                                         <span class="btn-icon"><?= icon('barcode') ?></span> Scan
                                     </button>
                                     <div class="invalid-feedback" data-error-for="imei"></div>
@@ -204,25 +205,43 @@ $jsConfig = [
     </div>
 </main>
 
-<!-- IMEI barcode scanner -->
-<div class="modal fade" id="scanModal" tabindex="-1" aria-labelledby="scanModalLabel" aria-hidden="true">
+<!-- IMEI barcode scanner (assets/js/imei-scanner.js) -->
+<div class="modal fade" id="imeiScanModal" tabindex="-1" aria-labelledby="imeiScanModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title h5" id="scanModalLabel">Scan IMEI Barcode</h2>
+                <h2 class="modal-title h5" id="imeiScanModalLabel">Scan IMEI Barcode</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="small text-muted">Point the camera at the IMEI barcode on the phone box.</p>
-                <div id="scannerRegion"></div>
-                <div id="scanMessage" class="small mt-2"></div>
-                <label class="btn btn-outline-secondary btn-sm mt-3">
-                    Or take / upload a photo of the barcode
-                    <input type="file" id="scanFileInput" accept="image/*" capture="environment" hidden>
+                <div class="imei-scan-view" id="imeiScanView">
+                    <video id="imeiScanVideo" playsinline muted autoplay></video>
+                    <div class="imei-scan-guide" id="imeiScanGuide"><span class="imei-scan-laser"></span></div>
+                </div>
+                <div class="imei-scan-tools">
+                    <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="imeiTorchBtn" aria-pressed="false">Flash</button>
+                    <label class="imei-zoom d-none" id="imeiZoomWrap">Zoom
+                        <input type="range" class="form-range" id="imeiZoom" min="1" max="1" step="0.1" value="1">
+                    </label>
+                </div>
+                <p class="imei-scan-status" id="imeiScanStatus" role="status" aria-live="polite"></p>
+                <div class="imei-scan-or"><span>or</span></div>
+                <label class="btn btn-outline-secondary w-100">
+                    Take / upload a photo of the barcode
+                    <input type="file" id="imeiPhotoInput" accept="image/*" hidden>
                 </label>
+                <p class="form-text text-center mt-2 mb-0">The photo must be clear and in focus, with the IMEI barcode fully visible.</p>
+                <div id="imeiDecoderHolder" hidden></div>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Empty placeholders for the old scanner code inside register.js (ids scanImeiBtn / scanModal / ...).
+     They are never shown; they only keep that old code from failing. -->
+<div hidden>
+    <button type="button" id="scanImeiBtn" tabindex="-1"></button>
+    <div class="modal" id="scanModal" tabindex="-1"><div id="scannerRegion"></div><div id="scanMessage"></div><input type="file" id="scanFileInput"></div>
 </div>
 
 <footer class="text-center text-muted small pb-4">&copy; <?= date('Y') ?> <?= e($settings['campaign_name']) ?></footer>
@@ -231,6 +250,7 @@ $jsConfig = [
 <script src="assets/lib/bootstrap/bootstrap.bundle.min.js"></script>
 <script src="assets/lib/html5-qrcode/html5-qrcode.min.js"></script>
 <script src="assets/js/register.js"></script>
+<script src="assets/js/imei-scanner.js"></script>
 
 <?php endif; ?>
 </body>

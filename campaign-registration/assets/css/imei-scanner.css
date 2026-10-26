@@ -1,0 +1,131 @@
+/* IMEI barcode scanner (assets/js/imei-scanner.js) */
+
+.imei-scan-view {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    max-height: 62vh;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #07061a;
+}
+
+.imei-scan-view video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Wide, short box that matches the shape of an IMEI barcode; everything outside is dimmed */
+.imei-scan-guide {
+    position: absolute;
+    top: 33%;
+    left: 8%;
+    width: 84%;
+    height: 34%;
+    border: 2px solid var(--c-gold, #f0b93a);
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(7, 6, 26, .55);
+    transition: border-color .2s, box-shadow .2s;
+    pointer-events: none;
+}
+
+.imei-scan-laser {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    top: 50%;
+    height: 2px;
+    border-radius: 2px;
+    background: #ff4d6d;
+    box-shadow: 0 0 10px #ff4d6d;
+    opacity: 0;
+}
+
+.imei-scan-view.is-live .imei-scan-laser {
+    opacity: 1;
+    animation: imei-scan-laser 1.8s ease-in-out infinite alternate;
+}
+
+.imei-scan-view.is-found .imei-scan-guide {
+    border-color: #34d399;
+    box-shadow: 0 0 0 9999px rgba(7, 6, 26, .55), inset 0 0 24px rgba(52, 211, 153, .45);
+}
+
+.imei-scan-view.is-found .imei-scan-laser,
+.imei-scan-view.is-busy .imei-scan-laser {
+    animation: none;
+    opacity: 0;
+}
+
+@keyframes imei-scan-laser {
+    from { top: 12%; }
+    to { top: 88%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .imei-scan-view.is-live .imei-scan-laser {
+        animation: none;
+    }
+}
+
+.imei-scan-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem;
+    margin-top: .75rem;
+}
+
+#imeiTorchBtn.active {
+    border-color: var(--c-gold, #f0b93a);
+    background: rgba(240, 185, 58, .15);
+    color: var(--c-gold-1, #f8d466);
+}
+
+.imei-zoom {
+    display: flex;
+    flex: 1 1 180px;
+    align-items: center;
+    gap: .5rem;
+    margin: 0;
+    color: var(--c-muted, #a7a3da);
+    font-size: .875rem;
+}
+
+.imei-zoom .form-range {
+    flex: 1;
+}
+
+.imei-scan-status {
+    min-height: 2.6em;
+    margin: .75rem 0 0;
+    font-size: .9rem;
+    text-align: center;
+    color: var(--c-muted, #a7a3da);
+}
+
+.imei-scan-status.is-warn { color: var(--c-gold-1, #f8d466); }
+.imei-scan-status.is-error { color: var(--c-danger, #ff6b81); }
+.imei-scan-status.is-success { color: var(--c-success, #34d399); font-weight: 600; }
+
+.imei-scan-or {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin: 1rem 0 .85rem;
+    color: var(--c-muted, #a7a3da);
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.imei-scan-or::before,
+.imei-scan-or::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, .1);
+}
